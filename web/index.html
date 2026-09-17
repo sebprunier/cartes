@@ -45,10 +45,7 @@
           </p>
           <p>
             <label for="format">Format du fichier</label>
-            <select id="format">
-              <option value="png">PNG</option>
-              <option value="jpg">JPEG</option>
-            </select>
+            <select id="format"></select>
           </p>
           <p>
             <label for="dpi">Résolution visée (dpi)</label>
@@ -84,10 +81,7 @@
           ></span>
           <span id="estimate-note" class="note">Télécharge 36 tuiles par niveau de zoom.</span>
         </p>
-        <p class="note">
-          Au-delà du zoom 17, l'image dépasse ce qu'un navigateur sait produire : passez par la
-          <a href="https://github.com/sebprunier/cartes#utilisation">ligne de commande</a>.
-        </p>
+        <p id="zoom-note" class="note"></p>
       </section>
 
       <section id="generation" hidden>

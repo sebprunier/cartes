@@ -83,8 +83,9 @@ export function sampleTiles(extent, gridSize) {
  * `loadTile(url, tile)` returns what identifies the loaded tile — its path in a cache, or its bytes — and null
  * for a missing tile (404, outside the basemap coverage). A tile that keeps failing has a null content and an
  * error, without stopping the others; too many failures in a row abort the whole download.
+ * An aborted signal stops the download between two tiles.
  */
-export async function downloadTiles(basemap, zoom, tileIndices, { loadTile, concurrency, onProgress }) {
+export async function downloadTiles(basemap, zoom, tileIndices, { loadTile, concurrency, onProgress, signal }) {
   const tiles = tileIndices.map(({ x, y }) => ({ x, y }));
   let next = 0;
   let done = 0;
@@ -92,7 +93,7 @@ export async function downloadTiles(basemap, zoom, tileIndices, { loadTile, conc
   let lastError;
 
   async function worker() {
-    while (next < tiles.length && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+    while (next < tiles.length && consecutiveFailures < MAX_CONSECUTIVE_FAILURES && !signal?.aborted) {
       const tile = tiles[next++];
       try {
         tile.content = await loadTile(tileUrl(basemap, zoom, tile.x, tile.y), tile);
@@ -107,6 +108,7 @@ export async function downloadTiles(basemap, zoom, tileIndices, { loadTile, conc
   }
 
   await Promise.all(Array.from({ length: concurrency }, worker));
+  if (signal?.aborted) throw new Error('Génération annulée.');
   if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
     throw new Error(
       `Téléchargement interrompu après ${MAX_CONSECUTIVE_FAILURES} tuiles en échec d'affilée. ` +

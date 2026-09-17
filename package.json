@@ -29,7 +29,10 @@
   "scripts": {
     "test": "node --test",
     "build:web": "node scripts/build-web.js",
-    "web": "node scripts/build-web.js --serve"
+    "web": "node scripts/build-web.js --serve",
+    "build:electron": "node scripts/build-electron.js",
+    "electron": "node scripts/build-electron.js && electron .",
+    "package:electron": "node scripts/build-electron.js && electron-builder"
   },
   "engines": {
     "node": ">=22"
@@ -37,5 +40,35 @@
   "private": true,
   "dependencies": {
     "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "electron": "^44.4.1",
+    "electron-builder": "^26.15.3"
+  },
+  "main": "electron/main.js",
+  "build": {
+    "appId": "fr.cartes.app",
+    "productName": "cartes",
+    "files": [
+      "electron/**",
+      "dist-electron/**",
+      "src/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Science"
+    }
   }
 }

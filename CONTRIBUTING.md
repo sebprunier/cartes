@@ -38,8 +38,10 @@ node src/cli.js --aide
 | `src/node/command-line.js` | analyse des commandes et des options (noms français, alias anglais) |
 | `src/node/cache.js` | cache des tuiles sur disque |
 | `src/node/render.js` | rendu avec sharp : décodage des tuiles, surcouches et écriture du fichier |
-| `web/` | page web : interface, rendu sur canvas et worker |
+| `web/` | page web : interface, moteur de rendu sur canvas et worker |
+| `electron/` | application de bureau : processus principal, pont vers l'interface et moteur de rendu |
 | `scripts/build-web.js` | construit la page dans `dist/` (avec `--serve`, la sert en local) |
+| `scripts/build-electron.js` | construit l'interface de l'application dans `dist-electron/` |
 | `test/` | tests unitaires (`node:test`) |
 
 ## Conventions
@@ -68,6 +70,8 @@ Pour les essais manuels, ménagez les services publics utilisés : commencez par
 L'intégration continue (GitHub Actions) lance les tests sur Node.js 22, 24 et 26, et déploie la page web sur GitHub Pages à chaque push sur `main`.
 
 Pour travailler sur la page web : `npm run web`, puis <http://localhost:8000>. Le script recopie `src/core/` à côté des fichiers de `web/`, donc relancez-le après chaque modification.
+
+Pour l'application de bureau : `npm run electron`. Elle réutilise l'interface de `web/`, avec un moteur de rendu différent (`electron/engine.js` remplace `web/engine.js`) : la page web rend dans le navigateur, l'application rend dans son processus principal avec sharp.
 
 ## Publier une version
 

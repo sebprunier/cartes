@@ -11,11 +11,10 @@ import {
 } from './core/municipalities.js';
 import { paperFormat, printSizeMm } from './core/print.js';
 import { extentFromBbox, groundResolution } from './core/tiles.js';
+import { engine } from './engine.js';
 
 const ZOOM_LEVELS = 7; // Zoom levels shown in the table, up to the maximum of the basemap.
 const DEFAULT_ZOOM = 16;
-// Above this zoom level, the image goes beyond what browsers can draw: the command line takes over.
-const MAX_ZOOM = 17;
 const MARGIN = 0.03;
 const UNKNOWN_SIZE = '–';
 const FILE_SIZE_COLUMN = 6;
@@ -44,9 +43,15 @@ const progressBar = element('progress-bar');
 const progressStatus = element('progress-status');
 const result = element('result');
 const errorLine = element('error');
+const zoomNote = element('zoom-note');
+
+// The engine sets what the platform can do: highest zoom level and output formats.
+const MAX_ZOOM = engine.maxZoom;
+for (const [value, label] of engine.formats) formatChoice.append(new Option(label, value));
+if (engine.zoomNote) zoomNote.textContent = engine.zoomNote;
+else zoomNote.hidden = true;
 
 let municipality;
-let worker;
 let pendingSearch;
 
 for (const basemap of Object.values(BASEMAPS)) {
@@ -181,8 +186,7 @@ async function estimateFileSizes() {
       estimateStatus.textContent = `zoom ${zoom} (${index + 1} sur ${zooms.length})`;
       const cell = fileSizeCell(zoom);
       if (cell) cell.textContent = '…';
-      const { size } = await askWorker({
-        task: 'estimate',
+      const { size } = await engine.estimate({
         basemapId: basemapChoice.value,
         bbox: municipality.bbox,
         zoom,
@@ -215,9 +219,8 @@ async function generate() {
   const start = performance.now();
 
   try {
-    const map = await askWorker(
+    const map = await engine.generate(
       {
-        task: 'generate',
         basemapId: basemapChoice.value,
         boundary: municipality.boundary,
         bbox: municipality.bbox,
@@ -226,13 +229,14 @@ async function generate() {
         format: formatChoice.value,
         grayscale: grayscaleBox.checked,
         outline: outlineBox.checked,
+        fileName: defaultFileName(),
       },
       ({ done, total }) => {
         progressBar.value = (done / total) * 100;
         progressStatus.textContent = `${done} / ${total} tuiles`;
       },
     );
-    showMap(map, Math.round((performance.now() - start) / 1000));
+    if (!map.canceled) showMap(map, Math.round((performance.now() - start) / 1000));
   } catch (error) {
     showError(error.message);
   } finally {
@@ -242,14 +246,25 @@ async function generate() {
   }
 }
 
-function showMap(map, seconds) {
-  const name =
+/** Name of the generated file: municipality, basemap, zoom level and rendering. */
+function defaultFileName() {
+  return (
     `${municipality.boundary.inseeCode}-${normalizeName(municipality.boundary.name).replaceAll(' ', '-')}` +
-    `-${basemapChoice.value}-z${zoomChoice.value}${grayscaleBox.checked ? '-gris' : ''}.${formatChoice.value}`;
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(map.blob);
-  link.download = name;
-  link.textContent = `Télécharger ${name} (${formatBytes(map.blob.size)})`;
+    `-${basemapChoice.value}-z${zoomChoice.value}${grayscaleBox.checked ? '-gris' : ''}.${formatChoice.value}`
+  );
+}
+
+function showMap(map, seconds) {
+  // The web page offers the image as a download; the desktop application has already written the file.
+  const delivery = document.createElement(map.blob ? 'a' : 'span');
+  if (map.blob) {
+    const name = defaultFileName();
+    delivery.href = URL.createObjectURL(map.blob);
+    delivery.download = name;
+    delivery.textContent = `Télécharger ${name} (${formatBytes(map.blob.size)})`;
+  } else {
+    delivery.textContent = `Carte enregistrée dans ${map.path}`;
+  }
 
   const details = document.createElement('span');
   details.className = 'note';
@@ -258,32 +273,16 @@ function showMap(map, seconds) {
     (map.missing > 0 ? `, ${map.missing} tuile(s) indisponible(s) laissée(s) en blanc` : '') +
     (map.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.');
 
-  result.replaceChildren(link, document.createElement('br'), details);
+  result.replaceChildren(delivery, document.createElement('br'), details);
   result.hidden = false;
 }
 
 function cancel() {
-  worker?.terminate();
-  worker = undefined;
+  engine.cancel();
   cancelButton.hidden = true;
   progressLine.hidden = true;
   generateButton.disabled = false;
   progressStatus.textContent = '';
-}
-
-/** Sends a task to a fresh worker and waits for its result, forwarding the progress messages. */
-function askWorker(message, onProgress) {
-  worker?.terminate();
-  worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
-  return new Promise((resolve, reject) => {
-    worker.onmessage = ({ data }) => {
-      if (data.progress) onProgress?.(data.progress);
-      else if (data.error) reject(new Error(data.error));
-      else if (data.done) resolve(data);
-    };
-    worker.onerror = (event) => reject(new Error(event.message ?? 'Erreur inattendue'));
-    worker.postMessage(message);
-  });
 }
 
 function showError(message) {

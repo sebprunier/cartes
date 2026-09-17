@@ -28,8 +28,9 @@ Le projet est né de ce besoin à Colombiers, dans la Vienne. L'idée : partir d
 ## Feuille de route
 
 1. **Fait** : un outil en ligne de commande qui valide le recollage de tuiles sur l'emprise d'une commune.
-2. Ajouter des données géographiques complémentaires (points, zones).
-3. Proposer un service en ligne, avec une interface graphique.
+2. **Fait** : une page web pour générer une carte sans rien installer.
+3. **En cours** : une application de bureau, pour les cartes que le navigateur ne sait pas produire.
+4. Ajouter des données géographiques complémentaires (points, zones).
 
 ## Page web
 
@@ -38,6 +39,12 @@ Une page web permet de générer une carte sans rien installer : <https://sebpru
 Elle a deux limites par rapport à la ligne de commande : la taille des images est bornée par le navigateur (environ 268 millions de pixels sur Chrome, soit le zoom 17 pour une commune de la taille de Colombiers) et le format TIFF n'est pas disponible.
 
 Pour la faire tourner en local : `npm run web`, puis <http://localhost:8000>.
+
+## Application de bureau
+
+Une application de bureau (Electron) reprend l'interface de la page web, mais génère les cartes avec le même moteur que la ligne de commande : les zooms 18 et 19, le format TIFF et le cache des tuiles sur disque y sont disponibles, et la carte est écrite directement dans le fichier choisi.
+
+Elle n'est pas encore empaquetée : pour l'essayer, `npm run electron`.
 
 ## Installation
 
