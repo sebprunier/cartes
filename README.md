@@ -31,6 +31,14 @@ Le projet est né de ce besoin à Colombiers, dans la Vienne. L'idée : partir d
 2. Ajouter des données géographiques complémentaires (points, zones).
 3. Proposer un service en ligne, avec une interface graphique.
 
+## Page web
+
+Une page web permet de générer une carte sans rien installer : <https://sebprunier.github.io/cartes/>. Tout s'y passe dans le navigateur, qui télécharge lui-même les tuiles ; aucune donnée ne transite par un serveur tiers.
+
+Elle a deux limites par rapport à la ligne de commande : la taille des images est bornée par le navigateur (environ 268 millions de pixels sur Chrome, soit le zoom 17 pour une commune de la taille de Colombiers) et le format TIFF n'est pas disponible.
+
+Pour la faire tourner en local : `npm run web`, puis <http://localhost:8000>.
+
 ## Installation
 
 Il faut Node.js 22 ou plus récent.

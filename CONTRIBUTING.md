@@ -38,6 +38,8 @@ node src/cli.js --aide
 | `src/node/command-line.js` | analyse des commandes et des options (noms français, alias anglais) |
 | `src/node/cache.js` | cache des tuiles sur disque |
 | `src/node/render.js` | rendu avec sharp : décodage des tuiles, surcouches et écriture du fichier |
+| `web/` | page web : interface, rendu sur canvas et worker |
+| `scripts/build-web.js` | construit la page dans `dist/` (avec `--serve`, la sert en local) |
 | `test/` | tests unitaires (`node:test`) |
 
 ## Conventions
@@ -63,7 +65,9 @@ Pour les essais manuels, ménagez les services publics utilisés : commencez par
 4. Pour une évolution notable pour les utilisateurs, ajoutez une ligne dans la section « Non publié » du [journal des modifications](CHANGELOG.md).
 5. Ouvrez une pull request qui décrit le changement et sa motivation.
 
-L'intégration continue (GitHub Actions) lance les tests sur Node.js 22, 24 et 26.
+L'intégration continue (GitHub Actions) lance les tests sur Node.js 22, 24 et 26, et déploie la page web sur GitHub Pages à chaque push sur `main`.
+
+Pour travailler sur la page web : `npm run web`, puis <http://localhost:8000>. Le script recopie `src/core/` à côté des fichiers de `web/`, donc relancez-le après chaque modification.
 
 ## Publier une version
 

@@ -27,7 +27,9 @@
     "cartes": "./src/node/cli.js"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "build:web": "node scripts/build-web.js",
+    "web": "node scripts/build-web.js --serve"
   },
   "engines": {
     "node": ">=22"

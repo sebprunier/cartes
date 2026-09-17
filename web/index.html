@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>cartes — cartes détaillées des communes de France</title>
+    <meta
+      name="description"
+      content="Générez la carte détaillée d'une commune française, prête à imprimer en grand format. Tout se passe dans votre navigateur."
+    />
+    <link rel="icon" href="logo.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <img src="logo.png" alt="" width="72" height="72" />
+      <div>
+        <h1>cartes</h1>
+        <p>
+          Générez la carte détaillée d'une commune française, prête à imprimer en grand format. Tout se passe dans
+          votre navigateur : aucune donnée n'est envoyée ailleurs.
+        </p>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>1. Choisir la commune</h2>
+        <label for="recherche">Nom de la commune</label>
+        <input id="recherche" type="search" placeholder="Colombiers" autocomplete="off" />
+        <ul id="resultats" hidden></ul>
+        <p id="commune-choisie" hidden></p>
+      </section>
+
+      <section id="options" hidden>
+        <h2>2. Régler la carte</h2>
+        <div class="reglages">
+          <p>
+            <label for="fond">Fond de carte</label>
+            <select id="fond"></select>
+          </p>
+          <p>
+            <label for="zoom">Niveau de zoom</label>
+            <select id="zoom"></select>
+          </p>
+          <p>
+            <label for="format">Format du fichier</label>
+            <select id="format">
+              <option value="png">PNG</option>
+              <option value="jpg">JPEG</option>
+            </select>
+          </p>
+          <p>
+            <label for="dpi">Résolution visée (dpi)</label>
+            <input id="dpi" type="number" value="150" min="50" max="600" step="10" />
+          </p>
+          <p class="cases">
+            <label><input id="gris" type="checkbox" /> Niveaux de gris</label>
+            <label><input id="contour" type="checkbox" checked /> Tracer le contour de la commune</label>
+          </p>
+        </div>
+
+        <h3>Tailles selon le niveau de zoom</h3>
+        <div class="tableau">
+          <table id="estimations">
+            <thead>
+              <tr>
+                <th>Zoom</th>
+                <th>m/pixel</th>
+                <th>Image</th>
+                <th>Tuiles</th>
+                <th>Impression</th>
+                <th>Mémoire</th>
+                <th>Fichier</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p>
+          <button id="estimer" type="button">Estimer le poids des fichiers</button>
+          <span class="note">Télécharge 36 tuiles par niveau de zoom.</span>
+        </p>
+      </section>
+
+      <section id="generation" hidden>
+        <h2>3. Générer la carte</h2>
+        <p>
+          <button id="generer" type="button">Générer la carte</button>
+          <button id="annuler" type="button" hidden>Annuler</button>
+        </p>
+        <p id="progression" hidden><progress id="barre" max="100" value="0"></progress> <span id="etat"></span></p>
+        <p id="resultat" hidden></p>
+        <p id="erreur" class="erreur" hidden></p>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Données : © IGN – Plan IGN, BD ORTHO et ADMIN EXPRESS, sous licence ouverte Etalab. La mention des sources
+        est ajoutée sur chaque carte : conservez-la si vous retouchez l'image.
+      </p>
+      <p>
+        <a href="https://github.com/sebprunier/cartes">Code source (licence MIT)</a> ·
+        <a href="https://github.com/sebprunier/cartes/blob/main/docs/donnees-et-licences.md">Données et licences</a>
+      </p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
