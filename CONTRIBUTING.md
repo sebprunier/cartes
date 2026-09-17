@@ -41,6 +41,7 @@ node src/cli.js --aide
 - **Ligne de commande** : chaque commande et chaque option a un nom français, affiché dans l'aide, et un alias anglais.
 - **Style** : modules ES, indentation de 2 espaces, guillemets simples, points-virgules, lignes de 120 caractères au plus. En cas de doute, suivez le style du code existant.
 - **Dépendances** : le moins possible. Discutez-en dans une issue avant d'en ajouter une.
+- **Données** : avant d'ajouter une source de données, vérifiez que sa licence et ses conditions d'utilisation le permettent, puis complétez [Données utilisées et licences](docs/donnees-et-licences.md).
 
 ## Tests
 

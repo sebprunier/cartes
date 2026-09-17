@@ -91,11 +91,13 @@ Piste pour la suite : la Géoplateforme publie aussi le Plan IGN en **tuiles vec
 
 ## Sources des données et conditions d'utilisation
 
-- **IGN / Géoplateforme** (Plan IGN, photographies aériennes, ADMIN EXPRESS, géocodage) : données ouvertes sous licence ouverte Etalab 2.0. Leur réutilisation est libre, y compris pour un usage commercial, à condition de mentionner la source et la date de dernière mise à jour des données, sans laisser penser que l'IGN cautionne la carte.
+Toutes les données affichées sur les cartes viennent de l'IGN (Plan IGN, photographies aériennes, ADMIN EXPRESS), via la Géoplateforme. Elles sont diffusées sous la licence ouverte 2.0 d'Etalab : leur réutilisation est libre, y compris pour un usage commercial, à condition de mentionner la source et la date de dernière mise à jour des données, sans laisser penser que l'IGN cautionne la carte.
 
 Chaque carte générée porte en bas à droite la mention des sources utilisées, avec la date de dernière mise à jour de chaque donnée, lue dans le catalogue de la Géoplateforme, et la date de génération de la carte. Par exemple : « Sources : © IGN – Plan IGN (mise à jour du 05/08/2026) ; © IGN – ADMIN EXPRESS (mise à jour du 27/08/2026) · Carte générée le 17/09/2026 ». Si le catalogue ne répond pas, la carte est générée sans ces dates et un avertissement s'affiche.
 
-La licence du projet porte sur son code : les cartes produites restent soumises aux conditions des fournisseurs de données ci-dessus.
+La licence du projet porte sur son code : les cartes produites restent soumises aux conditions des fournisseurs de données.
+
+L'analyse détaillée des licences, des conditions d'accès aux services et des raisons du retrait des fonds de carte Esri est dans [Données utilisées et licences](docs/donnees-et-licences.md).
 
 ## Contribuer
 
