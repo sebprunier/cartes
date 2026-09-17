@@ -19,26 +19,26 @@ Sans `npm link`, remplacez `cartes` par `node src/cli.js` dans les exemples ci-d
 
 ```sh
 # Trouver une commune (et son code INSEE)
-cartes search colombiers -d 86
+cartes chercher colombiers -d 86
 
 # Voir, pour chaque niveau de zoom, la taille de l'image et le format d'impression correspondant
-cartes generate colombiers -d 86 --estimate
+cartes generer colombiers -d 86 --estimer
 
-# Générer la carte (par défaut : Plan IGN, zoom 17, contour de la commune tracé)
-cartes generate 86081
+# Générer la carte (par défaut : Plan IGN en niveaux de gris, zoom 17, contour de la commune tracé)
+cartes generer 86081
 
 # Autres exemples
-cartes generate 86081 -z 16 --grayscale
-cartes generate 86081 -z 16 -b ortho-ign -o sorties/colombiers-ortho.jpg
+cartes generer 86081 -z 16 --couleur
+cartes generer 86081 -z 16 -f ortho-ign -o sorties/colombiers-ortho.jpg
 ```
 
-Les commandes et les options existent aussi en français : `chercher`, `fonds`, `generer`, `--departement`, `--fond`, `--sortie`, `--marge`, `--gris`, `--sans-contour`, `--estimer`, `--max-tuiles`, `--paralleles`, `--aide`. Par exemple :
+Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--output`, `--margin`, `--color`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
 
 ```sh
-cartes generer 86081 -z 16 --gris
+cartes generate 86081 -z 16 --color
 ```
 
-Toutes les options : `cartes -h`. Fonds disponibles : `cartes basemaps`.
+Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
 
 Les cartes sont écrites dans `sorties/` (PNG par défaut, JPEG ou TIFF selon l'extension passée à `-o`). Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 

@@ -61,7 +61,7 @@ export async function resolveMunicipality(input, department) {
     throw new MunicipalityNotFound(
       `Plusieurs communes correspondent à « ${input} » :\n` +
         matches.map((m) => `  ${describeMunicipality(m)}`).join('\n') +
-        '\nPrécisez le département (--department) ou donnez directement le code INSEE.',
+        '\nPrécisez le département (--departement) ou donnez directement le code INSEE.',
     );
   }
   return matches[0].inseeCode;
