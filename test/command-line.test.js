@@ -29,6 +29,12 @@ describe('parseCommandLine', () => {
     assert.equal(french.options['no-outline'], true);
   });
 
+  it('recognizes the version option', () => {
+    assert.equal(parseCommandLine(['--version']).options.version, true);
+    assert.equal(parseCommandLine(['-v']).options.version, true);
+    assert.equal(parseCommandLine([]).options.version, false);
+  });
+
   it('maps the French commands, with or without accent', () => {
     assert.equal(parseCommandLine(['chercher', 'x']).command, 'search');
     assert.equal(parseCommandLine(['fonds']).command, 'basemaps');

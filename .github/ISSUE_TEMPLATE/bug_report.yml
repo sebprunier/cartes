@@ -40,7 +40,7 @@ body:
     id: version
     attributes:
       label: Version de cartes
-      description: Numéro de version, ou commit utilisé (`git rev-parse --short HEAD`).
+      description: Résultat de `cartes --version`, ou commit utilisé (`git rev-parse --short HEAD`).
   - type: input
     id: node
     attributes:

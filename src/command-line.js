@@ -26,6 +26,7 @@ Options de « generer » :
       --paralleles <n>      téléchargements simultanés, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   -h, --aide                afficher cette aide
+  -v, --version             afficher la version de cartes
 
 Les commandes et options existent aussi en anglais : search, basemaps, generate, --department,
 --basemap, --output, --margin, --grayscale, --no-outline, --estimate, --max-tiles, --concurrency, --help.`;
@@ -49,6 +50,7 @@ export const OPTIONS = {
   concurrency: { type: 'string', french: 'paralleles', default: '6' },
   cache: { type: 'string', default: '.cache/tiles' },
   help: { type: 'boolean', short: 'h', french: 'aide', default: false },
+  version: { type: 'boolean', short: 'v', default: false },
 };
 
 export class UsageError extends Error {}

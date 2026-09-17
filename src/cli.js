@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Command line interface.
 
+import { readFileSync } from 'node:fs';
+
 import { BASEMAPS } from './basemaps.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import { estimateFileSize, formatBytes, imageMemory } from './estimates.js';
@@ -31,13 +33,17 @@ import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInEx
 // 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
 const SAMPLE_GRID_SIZE = 6;
 
+const { version: VERSION } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+
 // True while the progress line has not been terminated by a line break.
 let progressLineOpen = false;
 
 async function main() {
   const { command, argument, options } = parseCommandLine();
 
-  if (options.help || !command) {
+  if (options.version) {
+    console.log(VERSION);
+  } else if (options.help || !command) {
     console.log(HELP);
   } else if (command === 'search' && argument) {
     await search(argument, options);
