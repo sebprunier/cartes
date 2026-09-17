@@ -22,6 +22,18 @@ describe('BASEMAPS', () => {
   });
 });
 
+describe('file size ratios', () => {
+  it('are defined for every basemap, in color and grayscale, and every output format', () => {
+    for (const basemap of Object.values(BASEMAPS)) {
+      for (const mode of ['color', 'grayscale']) {
+        for (const format of ['png', 'jpg', 'tif']) {
+          assert.ok(basemap.fileSizeRatios[mode][format] > 0, `${basemap.id} ${mode} ${format}`);
+        }
+      }
+    }
+  });
+});
+
 describe('withCurrentAttribution', () => {
   it('keeps the attribution of basemaps without attribution service, without calling it', async (t) => {
     const fetch = t.mock.method(globalThis, 'fetch', async () => Response.json({}));

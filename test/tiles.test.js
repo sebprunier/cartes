@@ -7,7 +7,15 @@ import path from 'node:path';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 
 import { HttpError } from '../src/http.js';
-import { TILE_SIZE, downloadTiles, extentFromBbox, groundResolution, lonLatToPixel, tilesInExtent } from '../src/tiles.js';
+import {
+  TILE_SIZE,
+  downloadTiles,
+  extentFromBbox,
+  groundResolution,
+  lonLatToPixel,
+  sampleTiles,
+  tilesInExtent,
+} from '../src/tiles.js';
 
 // Bounding box of Colombiers (86081), as returned by ADMIN EXPRESS.
 const COLOMBIERS_BBOX = [0.38344088, 46.75332418, 0.48673916, 46.80743244];
@@ -72,6 +80,27 @@ describe('extentFromBbox', () => {
   });
 });
 
+describe('sampleTiles', () => {
+  it('takes the tile at the center of each cell of the grid', () => {
+    const extent = { tiles: { xMin: 100, yMin: 200, xMax: 111, yMax: 205 } }; // 12 × 6 tiles
+    const tiles = sampleTiles(extent, 3);
+    assert.equal(tiles.length, 9);
+    assert.deepEqual(tiles.slice(0, 3), [
+      { x: 102, y: 201 },
+      { x: 106, y: 201 },
+      { x: 110, y: 201 },
+    ]);
+    assert.deepEqual(tiles.at(-1), { x: 110, y: 205 });
+  });
+
+  it('takes all the tiles in a direction with fewer tiles than the grid', () => {
+    const extent = { tiles: { xMin: 0, yMin: 0, xMax: 1, yMax: 9 } }; // 2 × 10 tiles
+    const tiles = sampleTiles(extent, 6);
+    assert.equal(tiles.length, 12);
+    assert.deepEqual(new Set(tiles.map((tile) => tile.x)), new Set([0, 1]));
+  });
+});
+
 describe('downloadTiles', () => {
   // 4 × 4 tiles at zoom 4.
   const extent = { zoom: 4, tiles: { xMin: 0, yMin: 0, xMax: 3, yMax: 3 } };
@@ -106,7 +135,8 @@ describe('downloadTiles', () => {
 
   afterEach(() => rm(cacheDir, { recursive: true, force: true }));
 
-  const download = () => downloadTiles(basemap, extent, { cacheDir, concurrency: 3, retryDelayMs: 1 });
+  const download = () =>
+    downloadTiles(basemap, extent.zoom, [...tilesInExtent(extent)], { cacheDir, concurrency: 3, retryDelayMs: 1 });
 
   it('downloads the tiles into the cache and reuses them', async () => {
     respond = () => 200;

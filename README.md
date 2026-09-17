@@ -40,7 +40,8 @@ Sans `npm link`, remplacez `cartes` par `node src/cli.js` dans les exemples ci-d
 # Trouver une commune (et son code INSEE)
 cartes chercher colombiers -d 86
 
-# Voir, pour chaque niveau de zoom, la taille de l'image et le format d'impression correspondant
+# Voir, pour chaque niveau de zoom, la taille de l'image, le format d'impression, la mémoire nécessaire
+# et le poids estimé du fichier
 cartes generer colombiers -d 86 --estimer
 
 # Générer la carte (par défaut : Plan IGN, zoom 17, contour de la commune tracé)
@@ -60,7 +61,9 @@ cartes generate 86081 -z 16 --grayscale
 
 Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
 
-Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes et satellite, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
+Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes et satellite, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format.
+
+Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom, qui restent ensuite en cache. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
 ## Fonctionnement
 

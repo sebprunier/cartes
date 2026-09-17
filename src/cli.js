@@ -3,6 +3,7 @@
 
 import { BASEMAPS, withCurrentAttribution } from './basemaps.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
+import { estimateFileSize, formatBytes, imageMemory } from './estimates.js';
 import {
   assembleTiles,
   attributionLabel,
@@ -22,7 +23,11 @@ import {
   resolveMunicipality,
   searchMunicipalities,
 } from './municipalities.js';
-import { downloadTiles, extentFromBbox, groundResolution } from './tiles.js';
+import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from './tiles.js';
+
+// Size of the grid of tiles downloaded for each zoom level to estimate the size of the generated file:
+// 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
+const SAMPLE_GRID_SIZE = 6;
 
 // True while the progress line has not been terminated by a line break.
 let progressLineOpen = false;
@@ -75,7 +80,7 @@ async function generate(input, options) {
   const bbox = boundaryBbox(boundary);
   const extent = extentFromBbox(bbox, zoom, margin);
   const { grayscale } = options;
-  const outputPath = resolveOutputPath(
+  const { path: outputPath, format } = resolveOutputPath(
     options,
     basemap.outputFormat,
     `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}-z${zoom}` +
@@ -84,7 +89,8 @@ async function generate(input, options) {
 
   console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
   console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}\n`);
-  printEstimates(bbox, margin, basemap.maxZoom, zoom, dpi);
+  const fileSizeOptions = options.estimate ? { format, grayscale, cacheDir: options.cache, concurrency } : undefined;
+  await printEstimates({ bbox, margin, basemap, selectedZoom: zoom, dpi, fileSizeOptions });
   console.log();
   if (options.estimate) return;
 
@@ -97,7 +103,11 @@ async function generate(input, options) {
 
   const start = performance.now();
   console.log(`Téléchargement de ${extent.tileCount} tuiles (zoom ${zoom})…`);
-  const tiles = await downloadTiles(basemap, extent, { cacheDir: options.cache, concurrency, onProgress: printProgress });
+  const tiles = await downloadTiles(basemap, zoom, [...tilesInExtent(extent)], {
+    cacheDir: options.cache,
+    concurrency,
+    onProgress: printProgress,
+  });
   const failedTiles = tiles.filter((tile) => tile.error);
   if (failedTiles.length > 0) {
     console.log(
@@ -125,17 +135,44 @@ async function generate(input, options) {
   console.log(`Terminé en ${Math.round((performance.now() - start) / 1000)} s.`);
 }
 
-function printEstimates(bbox, margin, maxZoom, selectedZoom, dpi) {
+/**
+ * Prints, for each zoom level, the image size, the print size and the memory used. With file size options,
+ * also downloads a sample of tiles to estimate the size of the generated file.
+ */
+async function printEstimates({ bbox, margin, basemap, selectedZoom, dpi, fileSizeOptions }) {
   const latitude = (bbox[1] + bbox[3]) / 2;
-  console.log(`   zoom   m/pixel           image (px)    tuiles   impression à ${dpi} dpi`);
-  for (let zoom = Math.max(0, Math.min(selectedZoom, maxZoom - 6)); zoom <= maxZoom; zoom++) {
-    const { width, height, tileCount } = extentFromBbox(bbox, zoom, margin);
-    const [widthMm, heightMm] = printSizeMm(width, height, dpi);
-    console.log(
+  const header = `   zoom   m/pixel           image (px)    tuiles   impression à ${dpi} dpi             mémoire`;
+  console.log(fileSizeOptions ? `${header}   fichier ${fileSizeOptions.format}` : header);
+  for (let zoom = Math.max(0, Math.min(selectedZoom, basemap.maxZoom - 6)); zoom <= basemap.maxZoom; zoom++) {
+    const extent = extentFromBbox(bbox, zoom, margin);
+    const [widthMm, heightMm] = printSizeMm(extent.width, extent.height, dpi);
+    let row =
       ` ${zoom === selectedZoom ? '→' : ' '} ${String(zoom).padStart(4)}   ${groundResolution(latitude, zoom).toFixed(2).padStart(7)}` +
-        `   ${String(width).padStart(8)} × ${String(height).padEnd(8)} ${String(tileCount).padStart(7)}` +
-        `   ${widthMm.toFixed(0).padStart(5)} × ${heightMm.toFixed(0).padEnd(5)} mm (${paperFormat(widthMm, heightMm)})`,
+      `   ${String(extent.width).padStart(8)} × ${String(extent.height).padEnd(8)} ${String(extent.tileCount).padStart(7)}` +
+      `   ${widthMm.toFixed(0).padStart(5)} × ${heightMm.toFixed(0).padEnd(5)} mm ${`(${paperFormat(widthMm, heightMm)})`.padEnd(7)}` +
+      `${formatBytes(imageMemory(extent)).padStart(10)}`;
+    if (fileSizeOptions) row += `${(await estimatedFileSize(basemap, extent, fileSizeOptions)).padStart(12)}`;
+    console.log(row);
+  }
+  if (fileSizeOptions) {
+    console.log(
+      `\nMémoire : image non compressée, à prévoir en RAM pendant la génération.` +
+        `\nFichier : poids estimé à ±30 % environ, à partir de ${SAMPLE_GRID_SIZE ** 2} tuiles téléchargées par niveau de zoom.`,
     );
+  }
+}
+
+async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir, concurrency }) {
+  try {
+    const sampledTiles = await downloadTiles(basemap, extent.zoom, sampleTiles(extent, SAMPLE_GRID_SIZE), {
+      cacheDir,
+      concurrency,
+    });
+    const size = await estimateFileSize({ basemap, format, grayscale, tileCount: extent.tileCount, sampledTiles });
+    return size === undefined ? '?' : `≈ ${formatBytes(size)}`;
+  } catch {
+    // Sample unavailable (network, service error): the estimate is only informative.
+    return '?';
   }
 }
 

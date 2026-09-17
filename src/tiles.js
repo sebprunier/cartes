@@ -61,13 +61,33 @@ export function* tilesInExtent(extent) {
 }
 
 /**
- * Downloads the tiles of the extent and returns the list of {x, y, path, error} tiles.
+ * Tiles spread over the extent: the tile at the center of each cell of a grid of `gridSize` × `gridSize` cells,
+ * or all the tiles when there are fewer of them in a direction.
+ */
+export function sampleTiles(extent, gridSize) {
+  const { xMin, yMin, xMax, yMax } = extent.tiles;
+  const columns = Math.min(gridSize, xMax - xMin + 1);
+  const rows = Math.min(gridSize, yMax - yMin + 1);
+  const tiles = [];
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      tiles.push({
+        x: xMin + Math.floor(((column + 0.5) * (xMax - xMin + 1)) / columns),
+        y: yMin + Math.floor(((row + 0.5) * (yMax - yMin + 1)) / rows),
+      });
+    }
+  }
+  return tiles;
+}
+
+/**
+ * Downloads {x, y} tiles at the given zoom level and returns them with their path and error, if any.
  * A missing tile (404, outside the basemap coverage) has a null path; a tile that still fails after
  * retries has a null path and an error, without stopping the others.
  * The download is aborted when too many tiles fail in a row (network down, service outage).
  */
-export async function downloadTiles(basemap, extent, { cacheDir, concurrency, onProgress, retryDelayMs = 1000 }) {
-  const tiles = [...tilesInExtent(extent)];
+export async function downloadTiles(basemap, zoom, tileIndices, { cacheDir, concurrency, onProgress, retryDelayMs = 1000 }) {
+  const tiles = tileIndices.map(({ x, y }) => ({ x, y }));
   let next = 0;
   let done = 0;
   let consecutiveFailures = 0;
@@ -76,9 +96,9 @@ export async function downloadTiles(basemap, extent, { cacheDir, concurrency, on
   async function worker() {
     while (next < tiles.length && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
       const tile = tiles[next++];
-      const tilePath = path.join(cacheDir, basemap.id, String(extent.zoom), String(tile.x), `${tile.y}.tile`);
+      const tilePath = path.join(cacheDir, basemap.id, String(zoom), String(tile.x), `${tile.y}.tile`);
       try {
-        tile.path = await downloadTile(tileUrl(basemap, extent.zoom, tile.x, tile.y), tilePath, retryDelayMs);
+        tile.path = await downloadTile(tileUrl(basemap, zoom, tile.x, tile.y), tilePath, retryDelayMs);
         consecutiveFailures = 0;
       } catch (error) {
         tile.path = null;

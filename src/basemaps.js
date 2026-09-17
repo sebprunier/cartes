@@ -16,6 +16,8 @@ function esriService(name) {
 
 // The output format is PNG for maps (sharp lines and texts), and JPEG for photographs, which PNG compresses
 // poorly: an aerial photograph weighs about 8 times more in PNG than in JPEG.
+// The file size ratios are the size of a generated file divided by the total size of its tiles, in color or in
+// grayscale, by output format. They were measured on Colombiers (86) at two zoom levels, to estimate file sizes.
 // Esri requires "Powered by Esri" and the data sources published in the metadata of each service.
 // The attribution below is a copy of these sources, used when the metadata cannot be fetched.
 const BASEMAP_LIST = [
@@ -26,6 +28,7 @@ const BASEMAP_LIST = [
     maxZoom: 19,
     attribution: '© IGN – Plan IGN',
     outputFormat: 'png',
+    fileSizeRatios: { color: { png: 1, jpg: 0.6, tif: 1.4 }, grayscale: { png: 0.9, jpg: 0.55, tif: 0.9 } },
   },
   {
     id: 'ortho-ign',
@@ -34,6 +37,7 @@ const BASEMAP_LIST = [
     maxZoom: 19,
     attribution: '© IGN – BD ORTHO',
     outputFormat: 'jpg',
+    fileSizeRatios: { color: { png: 12, jpg: 1.65, tif: 9 }, grayscale: { png: 6, jpg: 1.5, tif: 6.4 } },
   },
   {
     id: 'esri-plan',
@@ -46,6 +50,7 @@ const BASEMAP_LIST = [
     attributionService: esriService('World_Street_Map'),
     poweredBy: 'Powered by Esri',
     outputFormat: 'png',
+    fileSizeRatios: { color: { png: 2.2, jpg: 0.62, tif: 2.4 }, grayscale: { png: 1.5, jpg: 0.57, tif: 1.45 } },
   },
   {
     id: 'esri-satellite',
@@ -56,6 +61,7 @@ const BASEMAP_LIST = [
     attributionService: esriService('World_Imagery'),
     poweredBy: 'Powered by Esri',
     outputFormat: 'jpg',
+    fileSizeRatios: { color: { png: 11.5, jpg: 1.55, tif: 8.5 }, grayscale: { png: 5.5, jpg: 1.4, tif: 5.6 } },
   },
 ];
 

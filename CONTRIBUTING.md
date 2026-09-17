@@ -30,6 +30,7 @@ node src/cli.js --aide
 | `src/basemaps.js`       | catalogue des fonds de carte                                          |
 | `src/tiles.js`          | calcul des tuiles à récupérer, téléchargement et cache                |
 | `src/map.js`            | assemblage de l'image, surcouches SVG et formats d'impression         |
+| `src/estimates.js`      | estimation de la mémoire nécessaire et du poids des fichiers          |
 | `src/http.js`           | requêtes HTTP                                                         |
 | `test/`                 | tests unitaires (`node:test`)                                         |
 

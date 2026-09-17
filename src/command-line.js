@@ -20,7 +20,8 @@ Options de « generer » :
       --dpi <n>             résolution d'impression visée, défaut : 150
       --gris                fond de carte en niveaux de gris
       --sans-contour        ne pas tracer le contour de la commune
-      --estimer             afficher les tailles par niveau de zoom sans rien télécharger
+      --estimer             afficher, par niveau de zoom, les dimensions, la mémoire et le poids estimé du fichier,
+                            sans générer la carte (un échantillon de tuiles est téléchargé)
       --max-tuiles <n>      garde-fou sur le nombre de tuiles, défaut : 5000
       --paralleles <n>      téléchargements simultanés, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
@@ -103,7 +104,7 @@ function checkOptions(tokens, config) {
 const OUTPUT_FORMATS = { png: 'png', jpg: 'jpg', jpeg: 'jpg', tif: 'tif', tiff: 'tif' };
 
 /**
- * Path of the output file. The format comes from --format, else from the extension of --sortie, else from the
+ * Path and format of the output file. The format comes from --format, else from the extension of --sortie, else from the
  * default format; the extension of the format is added to a --sortie without extension and to the default path.
  */
 export function resolveOutputPath({ output, format }, defaultFormat, defaultPathWithoutExtension) {
@@ -111,10 +112,16 @@ export function resolveOutputPath({ output, format }, defaultFormat, defaultPath
   if (format !== undefined && !requestedFormat) {
     throw new UsageError(`Format inconnu : ${format}. Formats disponibles : png, jpg, tif.`);
   }
-  if (output === undefined) return `${defaultPathWithoutExtension}.${requestedFormat ?? defaultFormat}`;
+  if (output === undefined) {
+    const chosenFormat = requestedFormat ?? defaultFormat;
+    return { path: `${defaultPathWithoutExtension}.${chosenFormat}`, format: chosenFormat };
+  }
 
   const extension = path.extname(output).slice(1);
-  if (!extension) return `${output}.${requestedFormat ?? defaultFormat}`;
+  if (!extension) {
+    const chosenFormat = requestedFormat ?? defaultFormat;
+    return { path: `${output}.${chosenFormat}`, format: chosenFormat };
+  }
   const extensionFormat = OUTPUT_FORMATS[extension.toLowerCase()];
   if (!extensionFormat) {
     throw new UsageError(`Extension non gérée pour le fichier de sortie : .${extension} (utilisez .png, .jpg ou .tif).`);
@@ -122,7 +129,7 @@ export function resolveOutputPath({ output, format }, defaultFormat, defaultPath
   if (requestedFormat && requestedFormat !== extensionFormat) {
     throw new UsageError(`Le format demandé (${format}) ne correspond pas à l'extension du fichier de sortie : ${output}.`);
   }
-  return output;
+  return { path: output, format: extensionFormat };
 }
 
 /** Parses an integer option value, checking its bounds. */

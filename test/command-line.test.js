@@ -71,22 +71,22 @@ describe('resolveOutputPath', () => {
   const resolve = (options) => resolveOutputPath(options, 'jpg', 'sorties/86081-colombiers-ortho-ign-z17');
 
   it('uses the default format of the basemap for the default path', () => {
-    assert.equal(resolve({}), 'sorties/86081-colombiers-ortho-ign-z17.jpg');
+    assert.deepEqual(resolve({}), { path: 'sorties/86081-colombiers-ortho-ign-z17.jpg', format: 'jpg' });
   });
 
   it('uses the requested format, whatever its spelling', () => {
-    assert.equal(resolve({ format: 'png' }), 'sorties/86081-colombiers-ortho-ign-z17.png');
-    assert.equal(resolve({ format: 'TIFF' }), 'sorties/86081-colombiers-ortho-ign-z17.tif');
+    assert.deepEqual(resolve({ format: 'png' }), { path: 'sorties/86081-colombiers-ortho-ign-z17.png', format: 'png' });
+    assert.deepEqual(resolve({ format: 'TIFF' }), { path: 'sorties/86081-colombiers-ortho-ign-z17.tif', format: 'tif' });
   });
 
   it('keeps the output file given with an extension', () => {
-    assert.equal(resolve({ output: 'carte.png' }), 'carte.png');
-    assert.equal(resolve({ output: 'carte.jpeg', format: 'jpg' }), 'carte.jpeg');
+    assert.deepEqual(resolve({ output: 'carte.png' }), { path: 'carte.png', format: 'png' });
+    assert.deepEqual(resolve({ output: 'carte.jpeg', format: 'jpg' }), { path: 'carte.jpeg', format: 'jpg' });
   });
 
   it('adds the extension of the format to an output file without extension', () => {
-    assert.equal(resolve({ output: 'sorties/carte' }), 'sorties/carte.jpg');
-    assert.equal(resolve({ output: 'sorties/carte', format: 'tif' }), 'sorties/carte.tif');
+    assert.deepEqual(resolve({ output: 'sorties/carte' }), { path: 'sorties/carte.jpg', format: 'jpg' });
+    assert.deepEqual(resolve({ output: 'sorties/carte', format: 'tif' }), { path: 'sorties/carte.tif', format: 'tif' });
   });
 
   it('rejects unknown formats and extensions', () => {

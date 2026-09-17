@@ -7,7 +7,7 @@ import sharp from 'sharp';
 
 import { TILE_SIZE, lonLatToPixel } from './tiles.js';
 
-const CHANNELS = 3;
+export const CHANNELS = 3;
 const OUTLINE_COLOR = 'rgb(200, 30, 90)';
 const ATTRIBUTION_COLOR = '#333333';
 const BOUNDARY_ATTRIBUTION = '© IGN – ADMIN EXPRESS';
