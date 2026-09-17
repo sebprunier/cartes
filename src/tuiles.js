@@ -9,6 +9,7 @@ import { ErreurHttp, requete } from './http.js';
 export const TAILLE_TUILE = 256;
 const RAYON_TERRE = 6378137; // mètres, sphère de la projection Web Mercator
 const TENTATIVES = 4;
+const ECHECS_CONSECUTIFS_MAX = 10;
 
 /** Coordonnées en pixels dans l'image « monde » Web Mercator au niveau de zoom donné. */
 export function lonLatVersPixel(lon, lat, zoom) {
@@ -62,65 +63,75 @@ export function* tuilesDeLEmprise(emprise) {
 }
 
 /**
- * Télécharge les tuiles de l'emprise et retourne la liste {x, y, chemin} des tuiles dans le cache.
- * Une tuile absente (404, hors couverture du fond) a un chemin null.
+ * Télécharge les tuiles de l'emprise et retourne la liste {x, y, chemin, erreur} des tuiles.
+ * Une tuile absente (404, hors couverture du fond) a un chemin null ; une tuile qui échoue malgré
+ * les nouvelles tentatives a un chemin null et une erreur, sans interrompre les autres.
+ * Le téléchargement est abandonné si trop de tuiles échouent d'affilée (réseau coupé, service en panne).
  */
 export async function telechargerTuiles(fond, emprise, dossierCache, paralleles, progression) {
   const tuiles = [...tuilesDeLEmprise(emprise)];
   let prochaine = 0;
   let faites = 0;
+  let echecsConsecutifs = 0;
+  let derniereErreur;
 
   async function travailleur() {
-    while (prochaine < tuiles.length) {
+    while (prochaine < tuiles.length && echecsConsecutifs < ECHECS_CONSECUTIFS_MAX) {
       const tuile = tuiles[prochaine++];
       const chemin = path.join(dossierCache, fond.identifiant, String(emprise.zoom), String(tuile.x), `${tuile.y}.tuile`);
-      tuile.chemin = await telechargerTuile(urlTuile(fond, emprise.zoom, tuile.x, tuile.y), chemin);
+      try {
+        tuile.chemin = await telechargerTuile(urlTuile(fond, emprise.zoom, tuile.x, tuile.y), chemin);
+        echecsConsecutifs = 0;
+      } catch (erreur) {
+        tuile.chemin = null;
+        tuile.erreur = derniereErreur = erreur;
+        echecsConsecutifs++;
+      }
       progression?.(++faites, tuiles.length);
     }
   }
 
   await Promise.all(Array.from({ length: paralleles }, travailleur));
+  if (echecsConsecutifs >= ECHECS_CONSECUTIFS_MAX) {
+    throw new Error(
+      `Téléchargement interrompu après ${ECHECS_CONSECUTIFS_MAX} tuiles en échec d'affilée. ` +
+        'Relancez la commande plus tard : les tuiles déjà téléchargées sont en cache.',
+      { cause: derniereErreur },
+    );
+  }
   return tuiles;
 }
 
 async function telechargerTuile(url, chemin) {
   if (await existe(chemin)) return chemin;
 
-  for (let tentative = 0; tentative < TENTATIVES; tentative++) {
-    const derniere = tentative === TENTATIVES - 1;
+  for (let tentative = 1; ; tentative++) {
     let reponse;
     try {
       reponse = await requete(url);
     } catch (erreur) {
-      if (derniere) throw erreur;
-      await pause(2 ** tentative * 1000);
+      if (tentative === TENTATIVES) throw erreur;
+      await pause(2 ** (tentative - 1) * 1000);
       continue;
     }
 
-    if (!reponse.ok) await reponse.body?.cancel();
-    if (reponse.status === 404) {
-      // Tuile hors couverture du fond, mais la Géoplateforme renvoie aussi des 404 passagères :
-      // on réessaie une fois avant de considérer la tuile absente.
-      if (tentative > 0) return null;
-      await pause(1000);
-      continue;
-    }
-    if (reponse.status === 429 || reponse.status >= 500) {
-      // Serveur surchargé ou limite de débit atteinte : on réessaie plus tard.
-      if (derniere) throw new ErreurHttp(url, reponse.status);
-      await pause(2 ** tentative * 1000);
-      continue;
-    }
-    if (!reponse.ok) throw new ErreurHttp(url, reponse.status);
-    if (!reponse.headers.get('content-type')?.startsWith('image/')) {
-      throw new Error(`La réponse n'est pas une image : ${url}`);
+    if (reponse.ok && reponse.headers.get('content-type')?.startsWith('image/')) {
+      await mkdir(path.dirname(chemin), { recursive: true });
+      const temporaire = `${chemin}.tmp`;
+      await writeFile(temporaire, Buffer.from(await reponse.arrayBuffer()));
+      await rename(temporaire, chemin);
+      return chemin;
     }
 
-    await mkdir(path.dirname(chemin), { recursive: true });
-    const temporaire = `${chemin}.tmp`;
-    await writeFile(temporaire, Buffer.from(await reponse.arrayBuffer()));
-    await rename(temporaire, chemin);
-    return chemin;
+    await reponse.body?.cancel();
+    // Tuile hors couverture du fond, mais la Géoplateforme renvoie aussi des 404 passagères :
+    // on réessaie une fois avant de considérer la tuile absente.
+    if (reponse.status === 404 && tentative >= 2) return null;
+    // Les autres erreurs sont souvent passagères elles aussi (400, 429, 5xx…) : on réessaie.
+    if (tentative === TENTATIVES) {
+      throw reponse.ok ? new Error(`La réponse n'est pas une image : ${url}`) : new ErreurHttp(url, reponse.status);
+    }
+    await pause(2 ** (tentative - 1) * 1000);
   }
 }
 

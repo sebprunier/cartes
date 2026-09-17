@@ -115,6 +115,10 @@ async function generer(saisie, options) {
   const debut = performance.now();
   console.log(`Téléchargement de ${emprise.nombreTuiles} tuiles (zoom ${zoom})…`);
   const tuiles = await telechargerTuiles(fond, emprise, options.cache, paralleles, afficherProgression);
+  const enErreur = tuiles.filter((tuile) => tuile.erreur);
+  if (enErreur.length > 0) {
+    console.log(`  ${enErreur.length} tuile(s) en échec malgré plusieurs tentatives, par exemple : ${enErreur[0].erreur.message}`);
+  }
 
   console.log(`Assemblage d'une image de ${emprise.largeur} × ${emprise.hauteur} px…`);
   const { pixels, manquantes } = await assembler(emprise, tuiles, { gris: options.gris });
@@ -151,10 +155,14 @@ function afficherEstimations(bboxCommune, marge, zoomMax, zoomChoisi, dpi) {
   }
 }
 
+// Vrai tant que la ligne de progression n'est pas terminée par un retour à la ligne.
+let progressionEnCours = false;
+
 function afficherProgression(faites, total) {
   if (!process.stdout.isTTY) return;
   process.stdout.write(`\r  ${faites}/${total} tuiles (${Math.floor((faites * 100) / total)} %)`);
-  if (faites === total) process.stdout.write('\n');
+  progressionEnCours = faites < total;
+  if (!progressionEnCours) process.stdout.write('\n');
 }
 
 function entier(valeur, nom, min, max = Infinity) {
@@ -167,6 +175,7 @@ function entier(valeur, nom, min, max = Infinity) {
 }
 
 main().catch((erreur) => {
+  if (progressionEnCours) process.stdout.write('\n');
   if (erreur instanceof CommuneIntrouvable || erreur instanceof ErreurUtilisation) {
     console.error(erreur.message);
   } else {
