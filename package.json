@@ -1,19 +1,39 @@
 {
   "name": "cartes",
   "version": "0.1.0",
-  "description": "Génère des cartes détaillées d'une commune française, prêtes à imprimer en grand format",
+  "description": "Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format",
+  "keywords": [
+    "cartographie",
+    "carte",
+    "commune",
+    "collectivité",
+    "ign",
+    "geoplateforme",
+    "tuiles",
+    "impression"
+  ],
+  "homepage": "https://github.com/sebprunier/cartes#readme",
+  "bugs": {
+    "url": "https://github.com/sebprunier/cartes/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebprunier/cartes.git"
+  },
+  "license": "MIT",
+  "author": "Sébastien Prunier",
   "type": "module",
   "bin": {
     "cartes": "./src/cli.js"
   },
+  "scripts": {
+    "test": "node --test"
+  },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "private": true,
   "dependencies": {
     "sharp": "^0.35.4"
-  },
-  "scripts": {
-    "test": "node --test"
   }
 }
