@@ -6,10 +6,15 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [0.2.0] – 2026-09-17
+
+Deux nouvelles façons de générer une carte, sans passer par la ligne de commande : une page web et une application de bureau. Toutes deux partagent le même code de génération que la ligne de commande.
+
 ### Ajouté
 
 - Application de bureau (Electron) qui reprend l'interface de la page web et génère les cartes avec le même moteur que la ligne de commande : zooms 18 et 19, format TIFF, cache des tuiles sur disque et enregistrement direct dans le fichier choisi. Les installeurs macOS (Apple Silicon), Windows et Linux sont joints aux versions publiées.
 - Page web pour générer une carte sans rien installer, publiée sur <https://sebprunier.github.io/cartes/> : la recherche de commune, le téléchargement des tuiles et le rendu se font dans le navigateur, sans serveur intermédiaire. Elle propose les niveaux de zoom jusqu'à 17, au-delà desquels l'image dépasse ce qu'un navigateur sait produire, et renvoie alors vers la ligne de commande.
+- Logo du projet, affiché dans le README et sur la page web.
 
 ## [0.1.0] – 2026-09-17
 
@@ -31,5 +36,6 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v0.1.0...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/sebprunier/cartes/releases/tag/v0.2.0
 [0.1.0]: https://github.com/sebprunier/cartes/releases/tag/v0.1.0
