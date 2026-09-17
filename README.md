@@ -13,7 +13,7 @@
   Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format.
 </p>
 
-> **État du projet** : prototype. L'outil en ligne de commande valide le principe, mais ses commandes et options peuvent encore évoluer.
+> **État du projet** : utilisable, en version 0.x. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/), l'application de bureau et la ligne de commande. Les commandes, les options et l'interface peuvent encore évoluer.
 
 ## Pourquoi ce projet
 
@@ -29,8 +29,8 @@ Le projet est né de ce besoin à Colombiers, dans la Vienne. L'idée : partir d
 
 1. **Fait** : un outil en ligne de commande qui valide le recollage de tuiles sur l'emprise d'une commune.
 2. **Fait** : une page web pour générer une carte sans rien installer.
-3. **En cours** : une application de bureau, pour les cartes que le navigateur ne sait pas produire.
-4. Ajouter des données géographiques complémentaires (points, zones).
+3. **Fait** : une application de bureau, pour les cartes que le navigateur ne sait pas produire, avec ses installeurs pour macOS, Windows et Linux.
+4. **Prochaine étape** : ajouter des données géographiques complémentaires, comme les points de collecte des déchets ou les zones de risques.
 
 ## Page web
 
