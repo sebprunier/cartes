@@ -22,24 +22,30 @@ node src/cli.js --aide
 
 ## Organisation du code
 
-| Fichier                 | Rôle                                                                  |
-| ----------------------- | --------------------------------------------------------------------- |
-| `src/cli.js`            | point d'entrée de la ligne de commande                                |
-| `src/command-line.js`   | analyse des commandes et des options (noms français, alias anglais)   |
-| `src/municipalities.js` | recherche des communes et récupération de leur contour                |
-| `src/basemaps.js`       | catalogue des fonds de carte                                          |
-| `src/tiles.js`          | calcul des tuiles à récupérer, téléchargement et cache                |
-| `src/map.js`            | assemblage de l'image, surcouches SVG et formats d'impression         |
-| `src/estimates.js`      | estimation de la mémoire nécessaire et du poids des fichiers          |
-| `src/metadata.js`       | dates de mise à jour des données, lues dans le catalogue de la Géoplateforme |
-| `src/http.js`           | requêtes HTTP                                                         |
-| `test/`                 | tests unitaires (`node:test`)                                         |
+| Fichier | Rôle |
+| --- | --- |
+| `src/core/` | cœur partagé, sans dépendance à Node ni à sharp : il doit pouvoir tourner dans un navigateur |
+| `src/core/basemaps.js` | catalogue des fonds de carte |
+| `src/core/municipalities.js` | recherche des communes et récupération de leur contour |
+| `src/core/metadata.js` | dates de mise à jour des données, lues dans le catalogue de la Géoplateforme |
+| `src/core/tiles.js` | calcul des tuiles, échantillonnage et téléchargement |
+| `src/core/image.js` | assemblage des tuiles décodées en pixels |
+| `src/core/overlays.js` | géométrie, texte et styles du contour et de la mention des sources |
+| `src/core/print.js` | tailles d'impression et formats de papier |
+| `src/core/estimates.js` | mémoire nécessaire et poids estimé des fichiers |
+| `src/core/http.js` | requêtes HTTP |
+| `src/node/cli.js` | point d'entrée de la ligne de commande |
+| `src/node/command-line.js` | analyse des commandes et des options (noms français, alias anglais) |
+| `src/node/cache.js` | cache des tuiles sur disque |
+| `src/node/render.js` | rendu avec sharp : décodage des tuiles, surcouches et écriture du fichier |
+| `test/` | tests unitaires (`node:test`) |
 
 ## Conventions
 
 - **Langues** : le code (noms, commentaires) est en anglais. La documentation, les messages affichés par l'outil et les messages de commit sont en français.
 - **Ligne de commande** : chaque commande et chaque option a un nom français, affiché dans l'aide, et un alias anglais.
 - **Style** : modules ES, indentation de 2 espaces, guillemets simples, points-virgules, lignes de 120 caractères au plus. En cas de doute, suivez le style du code existant.
+- **Cœur partagé** : `src/core/` ne doit importer ni module `node:`, ni sharp. Ce code sert aussi à la page web et à l'application Electron ; un test le vérifie.
 - **Dépendances** : le moins possible. Discutez-en dans une issue avant d'en ajouter une.
 - **Données** : avant d'ajouter une source de données, vérifiez que sa licence et ses conditions d'utilisation le permettent, puis complétez [Données utilisées et licences](docs/donnees-et-licences.md).
 

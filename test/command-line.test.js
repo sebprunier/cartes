@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { UsageError, parseCommandLine, parseInteger, resolveOutputPath } from '../src/command-line.js';
+import { UsageError, parseCommandLine, parseInteger, resolveOutputPath } from '../src/node/command-line.js';
 
 describe('parseCommandLine', () => {
   it('applies the default values', () => {

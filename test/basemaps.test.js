@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { BASEMAPS, tileUrl } from '../src/basemaps.js';
+import { BASEMAPS, tileUrl } from '../src/core/basemaps.js';
 
 describe('tileUrl', () => {
   it('fills the zoom level and tile indices', () => {

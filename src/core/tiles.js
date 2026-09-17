@@ -1,7 +1,5 @@
-// Computes the tiles covering an extent and downloads them (with a disk cache).
-
-import { access, mkdir, rename, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+// Computes the tiles covering an extent and downloads them. Where a tile is stored is left to the platform:
+// a disk cache under Node, the bytes themselves in a browser.
 
 import { tileUrl } from './basemaps.js';
 import { HttpError, request } from './http.js';
@@ -81,12 +79,12 @@ export function sampleTiles(extent, gridSize) {
 }
 
 /**
- * Downloads {x, y} tiles at the given zoom level and returns them with their path and error, if any.
- * A missing tile (404, outside the basemap coverage) has a null path; a tile that still fails after
- * retries has a null path and an error, without stopping the others.
- * The download is aborted when too many tiles fail in a row (network down, service outage).
+ * Loads {x, y} tiles at the given zoom level and returns them with their content and error, if any.
+ * `loadTile(url, tile)` returns what identifies the loaded tile — its path in a cache, or its bytes — and null
+ * for a missing tile (404, outside the basemap coverage). A tile that keeps failing has a null content and an
+ * error, without stopping the others; too many failures in a row abort the whole download.
  */
-export async function downloadTiles(basemap, zoom, tileIndices, { cacheDir, concurrency, onProgress, retryDelayMs = 1000 }) {
+export async function downloadTiles(basemap, zoom, tileIndices, { loadTile, concurrency, onProgress }) {
   const tiles = tileIndices.map(({ x, y }) => ({ x, y }));
   let next = 0;
   let done = 0;
@@ -96,12 +94,11 @@ export async function downloadTiles(basemap, zoom, tileIndices, { cacheDir, conc
   async function worker() {
     while (next < tiles.length && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
       const tile = tiles[next++];
-      const tilePath = path.join(cacheDir, basemap.id, String(zoom), String(tile.x), `${tile.y}.tile`);
       try {
-        tile.path = await downloadTile(tileUrl(basemap, zoom, tile.x, tile.y), tilePath, retryDelayMs);
+        tile.content = await loadTile(tileUrl(basemap, zoom, tile.x, tile.y), tile);
         consecutiveFailures = 0;
       } catch (error) {
-        tile.path = null;
+        tile.content = null;
         tile.error = lastError = error;
         consecutiveFailures++;
       }
@@ -113,16 +110,18 @@ export async function downloadTiles(basemap, zoom, tileIndices, { cacheDir, conc
   if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
     throw new Error(
       `Téléchargement interrompu après ${MAX_CONSECUTIVE_FAILURES} tuiles en échec d'affilée. ` +
-        'Relancez la commande plus tard : les tuiles déjà téléchargées sont en cache.',
+        'Réessayez plus tard : les tuiles déjà téléchargées sont conservées.',
       { cause: lastError },
     );
   }
   return tiles;
 }
 
-async function downloadTile(url, tilePath, retryDelayMs) {
-  if (await exists(tilePath)) return tilePath;
-
+/**
+ * Downloads a tile and returns its bytes, or null when the tile is missing. Transient errors are retried:
+ * the Géoplateforme returns transient 404s, and 400, 429 or 5xx errors under load.
+ */
+export async function fetchTile(url, retryDelayMs = 1000) {
   for (let attempt = 1; ; attempt++) {
     let response;
     try {
@@ -134,31 +133,16 @@ async function downloadTile(url, tilePath, retryDelayMs) {
     }
 
     if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-      await mkdir(path.dirname(tilePath), { recursive: true });
-      const tempPath = `${tilePath}.tmp`;
-      await writeFile(tempPath, Buffer.from(await response.arrayBuffer()));
-      await rename(tempPath, tilePath);
-      return tilePath;
+      return new Uint8Array(await response.arrayBuffer());
     }
 
     await response.body?.cancel();
-    // Tile outside the basemap coverage, but the Géoplateforme also returns transient 404s:
-    // retry once before considering the tile missing.
+    // Tile outside the basemap coverage, but transient 404s happen: retry once before giving up.
     if (response.status === 404 && attempt >= 2) return null;
-    // Other errors are often transient too (400, 429, 5xx…): retry.
     if (attempt === MAX_ATTEMPTS) {
       throw response.ok ? new Error(`La réponse n'est pas une image : ${url}`) : new HttpError(url, response.status);
     }
     await sleep(2 ** (attempt - 1) * retryDelayMs);
-  }
-}
-
-async function exists(filePath) {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
   }
 }
 

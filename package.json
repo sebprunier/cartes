@@ -24,7 +24,7 @@
   "author": "Sébastien Prunier",
   "type": "module",
   "bin": {
-    "cartes": "./src/cli.js"
+    "cartes": "./src/node/cli.js"
   },
   "scripts": {
     "test": "node --test"

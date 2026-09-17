@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, it } from 'node:test';
 import { promisify } from 'node:util';
 
-const run = (...args) => promisify(execFile)(process.execPath, ['src/cli.js', ...args]);
+const run = (...args) => promisify(execFile)(process.execPath, ['src/node/cli.js', ...args]);
 
 // These tests run the command line itself, for the commands that do not call any external service.
 describe('cartes', () => {

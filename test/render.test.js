@@ -6,17 +6,10 @@ import { after, before, describe, it } from 'node:test';
 
 import sharp from 'sharp';
 
-import {
-  assembleTiles,
-  attributionLabel,
-  attributionText,
-  boundaryOutline,
-  drawOverlays,
-  paperFormat,
-  printSizeMm,
-  saveImage,
-} from '../src/map.js';
-import { lonLatToPixel } from '../src/tiles.js';
+import { attributionText } from '../src/core/overlays.js';
+import { paperFormat, printSizeMm } from '../src/core/print.js';
+import { lonLatToPixel } from '../src/core/tiles.js';
+import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, saveImage } from '../src/node/render.js';
 
 let tempDir;
 
@@ -59,8 +52,8 @@ describe('assembleTiles', () => {
 
   it('stitches the tiles at their position and crops them to the extent', async () => {
     const tiles = [
-      { x: 0, y: 0, path: await solidTile('red', { r: 255, g: 0, b: 0, alpha: 1 }) },
-      { x: 1, y: 0, path: await solidTile('blue', { r: 0, g: 0, b: 255, alpha: 1 }) },
+      { x: 0, y: 0, content: await solidTile('red', { r: 255, g: 0, b: 0, alpha: 1 }) },
+      { x: 1, y: 0, content: await solidTile('blue', { r: 0, g: 0, b: 255, alpha: 1 }) },
     ];
     const { pixels, missing } = await assembleTiles(extent, tiles);
     assert.equal(pixels.length, 112 * 10 * 3);
@@ -73,8 +66,8 @@ describe('assembleTiles', () => {
 
   it('leaves missing and transparent tiles white', async () => {
     const tiles = [
-      { x: 0, y: 0, path: null },
-      { x: 1, y: 0, path: await solidTile('transparent', { r: 0, g: 0, b: 0, alpha: 0 }) },
+      { x: 0, y: 0, content: null },
+      { x: 1, y: 0, content: await solidTile('transparent', { r: 0, g: 0, b: 0, alpha: 0 }) },
     ];
     const { pixels, missing } = await assembleTiles(extent, tiles);
     assert.equal(missing, 1);
@@ -82,7 +75,7 @@ describe('assembleTiles', () => {
   });
 
   it('converts the tiles to grayscale on three channels', async () => {
-    const tiles = [{ x: 0, y: 0, path: await solidTile('red-for-gray', { r: 255, g: 0, b: 0, alpha: 1 }) }];
+    const tiles = [{ x: 0, y: 0, content: await solidTile('red-for-gray', { r: 255, g: 0, b: 0, alpha: 1 }) }];
     const { pixels } = await assembleTiles(extent, tiles, { grayscale: true });
     assert.deepEqual(pixelAt(pixels, 112, 0, 0), [76, 76, 76]);
   });

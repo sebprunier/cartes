@@ -1,6 +1,9 @@
 const USER_AGENT = 'cartes/0.1 (generation de cartes communales)';
 const TIMEOUT_MS = 30_000;
 
+// Browsers forbid setting the User-Agent header, and send their own.
+const isNode = typeof process !== 'undefined' && Boolean(process.versions?.node);
+
 export class HttpError extends Error {
   constructor(url, status) {
     super(`HTTP ${status} pour ${url}`);
@@ -10,7 +13,7 @@ export class HttpError extends Error {
 
 export function request(url) {
   return fetch(url, {
-    headers: { 'User-Agent': USER_AGENT },
+    headers: isNode ? { 'User-Agent': USER_AGENT } : {},
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 }

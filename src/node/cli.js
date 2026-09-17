@@ -3,20 +3,9 @@
 
 import { readFileSync } from 'node:fs';
 
-import { BASEMAPS } from './basemaps.js';
-import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
-import { estimateFileSize, formatBytes, imageMemory } from './estimates.js';
-import { withUpdateDates } from './metadata.js';
-import {
-  assembleTiles,
-  attributionLabel,
-  attributionText,
-  boundaryOutline,
-  drawOverlays,
-  paperFormat,
-  printSizeMm,
-  saveImage,
-} from './map.js';
+import { BASEMAPS } from '../core/basemaps.js';
+import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
+import { withUpdateDates } from '../core/metadata.js';
 import {
   BOUNDARY_SOURCE,
   MunicipalityNotFound,
@@ -26,14 +15,19 @@ import {
   normalizeName,
   resolveMunicipality,
   searchMunicipalities,
-} from './municipalities.js';
-import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from './tiles.js';
+} from '../core/municipalities.js';
+import { attributionText } from '../core/overlays.js';
+import { paperFormat, printSizeMm } from '../core/print.js';
+import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from '../core/tiles.js';
+import { cachedTileLoader, tileSizes } from './cache.js';
+import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
+import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, saveImage } from './render.js';
 
 // Size of the grid of tiles downloaded for each zoom level to estimate the size of the generated file:
 // 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
 const SAMPLE_GRID_SIZE = 6;
 
-const { version: VERSION } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+const { version: VERSION } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
 // True while the progress line has not been terminated by a line break.
 let progressLineOpen = false;
@@ -112,7 +106,7 @@ async function generate(input, options) {
   const start = performance.now();
   console.log(`Téléchargement de ${extent.tileCount} tuiles (zoom ${zoom})…`);
   const tiles = await downloadTiles(basemap, zoom, [...tilesInExtent(extent)], {
-    cacheDir: options.cache,
+    loadTile: cachedTileLoader({ cacheDir: options.cache, basemapId: basemap.id, zoom }),
     concurrency,
     onProgress: printProgress,
   });
@@ -179,10 +173,11 @@ async function printEstimates({ bbox, margin, basemap, selectedZoom, dpi, fileSi
 async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir, concurrency }) {
   try {
     const sampledTiles = await downloadTiles(basemap, extent.zoom, sampleTiles(extent, SAMPLE_GRID_SIZE), {
-      cacheDir,
+      loadTile: cachedTileLoader({ cacheDir, basemapId: basemap.id, zoom: extent.zoom }),
       concurrency,
     });
-    const size = await estimateFileSize({ basemap, format, grayscale, tileCount: extent.tileCount, sampledTiles });
+    const sampleSizes = await tileSizes(sampledTiles);
+    const size = estimateFileSize({ basemap, format, grayscale, tileCount: extent.tileCount, sampleSizes });
     return size === undefined ? '?' : `≈ ${formatBytes(size)}`;
   } catch {
     // Sample unavailable (network, service error): the estimate is only informative.

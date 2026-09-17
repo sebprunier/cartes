@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 
-import { HttpError } from '../src/http.js';
+import { HttpError } from '../src/core/http.js';
+import { cachedTileLoader } from '../src/node/cache.js';
 import {
   TILE_SIZE,
   downloadTiles,
@@ -15,7 +16,7 @@ import {
   lonLatToPixel,
   sampleTiles,
   tilesInExtent,
-} from '../src/tiles.js';
+} from '../src/core/tiles.js';
 
 // Bounding box of Colombiers (86081), as returned by ADMIN EXPRESS.
 const COLOMBIERS_BBOX = [0.38344088, 46.75332418, 0.48673916, 46.80743244];
@@ -136,13 +137,16 @@ describe('downloadTiles', () => {
   afterEach(() => rm(cacheDir, { recursive: true, force: true }));
 
   const download = () =>
-    downloadTiles(basemap, extent.zoom, [...tilesInExtent(extent)], { cacheDir, concurrency: 3, retryDelayMs: 1 });
+    downloadTiles(basemap, extent.zoom, [...tilesInExtent(extent)], {
+      loadTile: cachedTileLoader({ cacheDir, basemapId: basemap.id, zoom: extent.zoom, retryDelayMs: 1 }),
+      concurrency: 3,
+    });
 
   it('downloads the tiles into the cache and reuses them', async () => {
     respond = () => 200;
     const tiles = await download();
     assert.equal(tiles.length, 16);
-    assert.ok(tiles.every((tile) => tile.path && existsSync(tile.path)));
+    assert.ok(tiles.every((tile) => tile.content && existsSync(tile.content)));
     assert.equal(requests.length, 16);
 
     await download();
@@ -152,14 +156,14 @@ describe('downloadTiles', () => {
   it('retries transient errors', async () => {
     respond = (url, count) => (count === 1 ? 400 : 200);
     const tiles = await download();
-    assert.ok(tiles.every((tile) => tile.path && !tile.error));
+    assert.ok(tiles.every((tile) => tile.content && !tile.error));
   });
 
   it('considers a tile missing when it keeps answering 404', async () => {
     respond = (url) => (url === '/4/1/2' ? 404 : 200);
     const tiles = await download();
     const missing = tiles.find((tile) => tile.x === 1 && tile.y === 2);
-    assert.equal(missing.path, null);
+    assert.equal(missing.content, null);
     assert.equal(missing.error, undefined);
     assert.equal(requests.filter((url) => url === '/4/1/2').length, 2);
   });
@@ -171,7 +175,7 @@ describe('downloadTiles', () => {
     assert.equal(failed.length, 1);
     assert.ok(failed[0].error instanceof HttpError);
     assert.equal(failed[0].error.status, 500);
-    assert.equal(tiles.filter((tile) => tile.path).length, 15);
+    assert.equal(tiles.filter((tile) => tile.content).length, 15);
   });
 
   it('aborts when too many tiles fail in a row', async () => {

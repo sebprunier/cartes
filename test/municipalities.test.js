@@ -9,7 +9,7 @@ import {
   normalizeName,
   resolveMunicipality,
   searchMunicipalities,
-} from '../src/municipalities.js';
+} from '../src/core/municipalities.js';
 
 function geocodingFeature(inseeCode, name, department) {
   return {

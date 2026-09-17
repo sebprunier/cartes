@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { fetchUpdateDate, updateDateFromRecord, withUpdateDates } from '../src/metadata.js';
+import { fetchUpdateDate, updateDateFromRecord, withUpdateDates } from '../src/core/metadata.js';
 
 function citationDate(date, type) {
   return `<gmd:date><gmd:CI_Date><gmd:date><gco:Date>${date}</gco:Date></gmd:date><gmd:dateType>
