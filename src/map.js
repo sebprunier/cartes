@@ -10,7 +10,6 @@ import { TILE_SIZE, lonLatToPixel } from './tiles.js';
 export const CHANNELS = 3;
 const OUTLINE_COLOR = 'rgb(200, 30, 90)';
 const ATTRIBUTION_COLOR = '#333333';
-const BOUNDARY_ATTRIBUTION = '© IGN – ADMIN EXPRESS';
 // Luminance coefficients (Rec. 601): grayscale stays on 3 channels so overlays keep their colors.
 const LUMINANCE = [0.299, 0.587, 0.114];
 // librsvg rejects SVGs larger than 32,767 px on a side: overlays are drawn block by block.
@@ -90,13 +89,20 @@ export function boundaryOutline(boundary, extent) {
 }
 
 /**
- * Text crediting the data sources, as required by the IGN open licence and the other data providers.
- * The municipality boundary comes from ADMIN EXPRESS, so it is credited when the outline is drawn.
+ * Text crediting the data sources with the date of their most recent update, as required by the IGN open licence,
+ * followed by the generation date of the map.
  */
-export function attributionText({ basemap, outline, date = new Date() }) {
-  const sources = [basemap.attribution];
-  if (outline) sources.push(BOUNDARY_ATTRIBUTION);
-  return `Sources : ${sources.join(' ; ')} · Carte générée le ${date.toLocaleDateString('fr-FR')}`;
+export function attributionText({ sources, date = new Date() }) {
+  const credits = sources.map(({ attribution, updateDate }) =>
+    updateDate ? `${attribution} (mise à jour du ${frenchDate(updateDate)})` : attribution,
+  );
+  return `Sources : ${credits.join(' ; ')} · Carte générée le ${date.toLocaleDateString('fr-FR')}`;
+}
+
+/** YYYY-MM-DD date written as DD/MM/YYYY, without time zone conversion. */
+function frenchDate(isoDate) {
+  const [year, month, day] = isoDate.split('-');
+  return `${day}/${month}/${year}`;
 }
 
 /**

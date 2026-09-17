@@ -132,20 +132,24 @@ describe('boundaryOutline', () => {
 });
 
 describe('attributionText', () => {
-  const basemap = { attribution: '© IGN – Plan IGN' };
   const date = new Date(2026, 8, 17);
 
-  it('credits the basemap, the boundary and the generation date', () => {
+  it('credits each source with the date of its most recent update, and the generation date', () => {
+    const sources = [
+      { attribution: '© IGN – Plan IGN', updateDate: '2026-08-05' },
+      { attribution: '© IGN – ADMIN EXPRESS', updateDate: '2026-08-27' },
+    ];
     assert.equal(
-      attributionText({ basemap, outline: true, date }),
-      'Sources : © IGN – Plan IGN ; © IGN – ADMIN EXPRESS · Carte générée le 17/09/2026',
+      attributionText({ sources, date }),
+      'Sources : © IGN – Plan IGN (mise à jour du 05/08/2026) ; © IGN – ADMIN EXPRESS (mise à jour du 27/08/2026)' +
+        ' · Carte générée le 17/09/2026',
     );
   });
 
-  it('does not credit the boundary when the outline is not drawn', () => {
+  it('credits a source without its update date when it is unknown', () => {
     assert.equal(
-      attributionText({ basemap, outline: false, date }),
-      'Sources : © IGN – Plan IGN · Carte générée le 17/09/2026',
+      attributionText({ sources: [{ attribution: '© IGN – BD ORTHO' }], date }),
+      'Sources : © IGN – BD ORTHO · Carte générée le 17/09/2026',
     );
   });
 });

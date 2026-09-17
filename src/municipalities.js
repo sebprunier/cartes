@@ -9,6 +9,9 @@ const MUNICIPALITIES_LAYER = 'ADMINEXPRESS-COG.LATEST:commune';
 // INSEE codes: 5 digits, or 2A/2B followed by 3 digits for Corsica.
 const INSEE_CODE_RE = /^(\d{5}|2[AB]\d{3})$/i;
 
+// Data source of the municipality boundaries, credited on maps where the boundary is drawn.
+export const BOUNDARY_SOURCE = { attribution: '© IGN – ADMIN EXPRESS', metadataId: 'IGNF_ADMIN-EXPRESS' };
+
 export class MunicipalityNotFound extends Error {}
 
 export function isInseeCode(input) {

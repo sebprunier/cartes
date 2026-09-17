@@ -19,6 +19,12 @@ describe('BASEMAPS', () => {
   });
 });
 
+describe('metadata ids', () => {
+  it('identify the dataset of every basemap in the Géoplateforme catalog', () => {
+    for (const basemap of Object.values(BASEMAPS)) assert.match(basemap.metadataId, /^IGNF_/, basemap.id);
+  });
+});
+
 describe('file size ratios', () => {
   it('are defined for every basemap, in color and grayscale, and every output format', () => {
     for (const basemap of Object.values(BASEMAPS)) {

@@ -31,6 +31,7 @@ node src/cli.js --aide
 | `src/tiles.js`          | calcul des tuiles à récupérer, téléchargement et cache                |
 | `src/map.js`            | assemblage de l'image, surcouches SVG et formats d'impression         |
 | `src/estimates.js`      | estimation de la mémoire nécessaire et du poids des fichiers          |
+| `src/metadata.js`       | dates de mise à jour des données, lues dans le catalogue de la Géoplateforme |
 | `src/http.js`           | requêtes HTTP                                                         |
 | `test/`                 | tests unitaires (`node:test`)                                         |
 

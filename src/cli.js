@@ -4,6 +4,7 @@
 import { BASEMAPS } from './basemaps.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import { estimateFileSize, formatBytes, imageMemory } from './estimates.js';
+import { withUpdateDates } from './metadata.js';
 import {
   assembleTiles,
   attributionLabel,
@@ -15,6 +16,7 @@ import {
   saveImage,
 } from './map.js';
 import {
+  BOUNDARY_SOURCE,
   MunicipalityNotFound,
   boundaryBbox,
   describeMunicipality,
@@ -126,8 +128,14 @@ async function generate(input, options) {
 
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
-  const attribution = attributionText({ basemap, outline });
-  overlays.push(await attributionLabel(attribution, extent));
+  const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+  if (sources.some((source) => !source.updateDate)) {
+    console.log(
+      "  Attention : date de mise à jour des données indisponible dans le catalogue de la Géoplateforme. " +
+        "La licence des données IGN demande de la mentionner : relancez la commande plus tard.",
+    );
+  }
+  overlays.push(await attributionLabel(attributionText({ sources }), extent));
   console.log(outline ? 'Tracé du contour et ajout de la mention des sources…' : 'Ajout de la mention des sources…');
   await drawOverlays(pixels, extent, overlays);
   console.log(`Enregistrement dans ${outputPath}…`);
