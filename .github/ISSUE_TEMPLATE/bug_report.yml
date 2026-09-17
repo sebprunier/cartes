@@ -1,0 +1,54 @@
+name: Signaler un bug
+description: Quelque chose ne fonctionne pas comme prévu.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler ce problème !
+
+        Pour une faille de sécurité, n'ouvrez pas d'issue publique : suivez la [politique de sécurité](https://github.com/sebprunier/cartes/blob/main/SECURITY.md).
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Que s'est-il passé ?
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Commande lancée
+      description: La commande complète, par exemple `cartes generer 86081 -z 16`.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Résultat obtenu
+      description: Messages affichés, erreur, ou description de la carte produite. Une capture d'écran peut aider.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Résultat attendu
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version de cartes
+      description: Numéro de version, ou commit utilisé (`git rev-parse --short HEAD`).
+  - type: input
+    id: node
+    attributes:
+      label: Version de Node.js
+      description: Résultat de `node --version`.
+      placeholder: v24.14.0
+  - type: input
+    id: os
+    attributes:
+      label: Système d'exploitation
+      placeholder: macOS 15, Ubuntu 24.04, Windows 11…

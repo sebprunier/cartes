@@ -1,0 +1,26 @@
+name: Proposer une idée
+description: Une nouvelle fonctionnalité ou une amélioration.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin
+      description: Quel problème rencontrez-vous, et dans quel contexte (type de commune, usage prévu de la carte…) ?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposition
+      description: La solution que vous imaginez.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+      description: D'autres solutions ou contournements auxquels vous avez pensé.
+  - type: textarea
+    id: context
+    attributes:
+      label: Informations complémentaires
+      description: Exemples de cartes, sources de données, captures d'écran…
