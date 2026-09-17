@@ -8,7 +8,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
-- Application de bureau (Electron) qui reprend l'interface de la page web et génère les cartes avec le même moteur que la ligne de commande : zooms 18 et 19, format TIFF, cache des tuiles sur disque et enregistrement direct dans le fichier choisi. Les installeurs macOS, Windows et Linux sont joints aux versions publiées.
+- Application de bureau (Electron) qui reprend l'interface de la page web et génère les cartes avec le même moteur que la ligne de commande : zooms 18 et 19, format TIFF, cache des tuiles sur disque et enregistrement direct dans le fichier choisi. Les installeurs macOS (Apple Silicon), Windows et Linux sont joints aux versions publiées.
 - Page web pour générer une carte sans rien installer, publiée sur <https://sebprunier.github.io/cartes/> : la recherche de commune, le téléchargement des tuiles et le rendu se font dans le navigateur, sans serveur intermédiaire. Elle propose les niveaux de zoom jusqu'à 17, au-delà desquels l'image dépasse ce qu'un navigateur sait produire, et renvoie alors vers la ligne de commande.
 
 ## [0.1.0] – 2026-09-17

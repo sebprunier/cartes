@@ -44,7 +44,9 @@ Pour la faire tourner en local : `npm run web`, puis <http://localhost:8000>.
 
 Une application de bureau (Electron) reprend l'interface de la page web, mais génère les cartes avec le même moteur que la ligne de commande : les zooms 18 et 19, le format TIFF et le cache des tuiles sur disque y sont disponibles, et la carte est écrite directement dans le fichier choisi.
 
-Les installeurs pour macOS, Windows et Linux sont joints à chaque [version publiée](https://github.com/sebprunier/cartes/releases). Ils ne sont pas signés, faute de certificat, ce qui demande une manipulation au premier lancement :
+Les installeurs pour macOS (Apple Silicon), Windows et Linux sont joints à chaque [version publiée](https://github.com/sebprunier/cartes/releases). Sur un Mac Intel, utilisez pour l'instant la page web ou la ligne de commande.
+
+Ces applications ne sont pas signées, faute de certificat, ce qui demande une manipulation au premier lancement :
 
 - **macOS** : faites un clic droit sur l'application, puis « Ouvrir », et confirmez. Si le système refuse toujours, lancez `xattr -dr com.apple.quarantine /Applications/cartes.app`.
 - **Windows** : SmartScreen affiche un avertissement ; cliquez sur « Informations complémentaires », puis « Exécuter quand même ».

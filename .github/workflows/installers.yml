@@ -15,11 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Les machines macOS Intel de GitHub sont rares et longues à obtenir : les Mac Intel passent par la
+        # page web ou la ligne de commande, en attendant un paquet universel construit sur Apple Silicon.
         include:
           - os: macos-latest
             label: macOS Apple Silicon
-          - os: macos-13
-            label: macOS Intel
           - os: windows-latest
             label: Windows
           - os: ubuntu-latest
