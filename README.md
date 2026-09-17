@@ -48,7 +48,8 @@ cartes generer 86081
 
 # Autres exemples
 cartes generer 86081 -z 16 --gris
-cartes generer 86081 -z 16 -f ortho-ign -o sorties/colombiers-ortho.jpg
+cartes generer 86081 -z 16 -f ortho-ign
+cartes generer 86081 -z 16 --format tif -o sorties/colombiers
 ```
 
 Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--output`, `--margin`, `--grayscale`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
@@ -59,7 +60,7 @@ cartes generate 86081 -z 16 --grayscale
 
 Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
 
-Les cartes sont écrites dans `sorties/` (PNG par défaut, JPEG ou TIFF selon l'extension passée à `-o`). Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
+Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes et satellite, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
 ## Fonctionnement
 

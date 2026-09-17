@@ -13,6 +13,15 @@ describe('tileUrl', () => {
   });
 });
 
+describe('BASEMAPS', () => {
+  it('produces JPEG for photographs and PNG for maps by default', () => {
+    assert.deepEqual(
+      Object.fromEntries(Object.values(BASEMAPS).map((basemap) => [basemap.id, basemap.outputFormat])),
+      { 'plan-ign': 'png', 'ortho-ign': 'jpg', 'esri-plan': 'png', 'esri-satellite': 'jpg' },
+    );
+  });
+});
+
 describe('withCurrentAttribution', () => {
   it('keeps the attribution of basemaps without attribution service, without calling it', async (t) => {
     const fetch = t.mock.method(globalThis, 'fetch', async () => Response.json({}));

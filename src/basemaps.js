@@ -14,6 +14,8 @@ function esriService(name) {
   return `https://server.arcgisonline.com/ArcGIS/rest/services/${name}/MapServer`;
 }
 
+// The output format is PNG for maps (sharp lines and texts), and JPEG for photographs, which PNG compresses
+// poorly: an aerial photograph weighs about 8 times more in PNG than in JPEG.
 // Esri requires "Powered by Esri" and the data sources published in the metadata of each service.
 // The attribution below is a copy of these sources, used when the metadata cannot be fetched.
 const BASEMAP_LIST = [
@@ -23,6 +25,7 @@ const BASEMAP_LIST = [
     url: geoplateformeWmts('GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'image/png'),
     maxZoom: 19,
     attribution: '© IGN – Plan IGN',
+    outputFormat: 'png',
   },
   {
     id: 'ortho-ign',
@@ -30,6 +33,7 @@ const BASEMAP_LIST = [
     url: geoplateformeWmts('ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg'),
     maxZoom: 19,
     attribution: '© IGN – BD ORTHO',
+    outputFormat: 'jpg',
   },
   {
     id: 'esri-plan',
@@ -41,6 +45,7 @@ const BASEMAP_LIST = [
       'Esri (Thailand), NGCC, (c) OpenStreetMap contributors, and the GIS User Community',
     attributionService: esriService('World_Street_Map'),
     poweredBy: 'Powered by Esri',
+    outputFormat: 'png',
   },
   {
     id: 'esri-satellite',
@@ -50,6 +55,7 @@ const BASEMAP_LIST = [
     attribution: 'Esri, Vantor, Earthstar Geographics, and the GIS User Community',
     attributionService: esriService('World_Imagery'),
     poweredBy: 'Powered by Esri',
+    outputFormat: 'jpg',
   },
 ];
 

@@ -2,7 +2,7 @@
 // Command line interface.
 
 import { BASEMAPS, withCurrentAttribution } from './basemaps.js';
-import { HELP, UsageError, parseCommandLine, parseInteger } from './command-line.js';
+import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import {
   assembleTiles,
   attributionLabel,
@@ -51,7 +51,10 @@ async function search(name, options) {
 
 function listBasemaps() {
   for (const basemap of Object.values(BASEMAPS)) {
-    console.log(`${basemap.id.padEnd(16)} ${basemap.name} (zoom max ${basemap.maxZoom}) — ${basemap.attribution}`);
+    console.log(
+      `${basemap.id.padEnd(16)} ${basemap.name} (zoom max ${basemap.maxZoom}, format ${basemap.outputFormat})` +
+        ` — ${basemap.attribution}`,
+    );
   }
 }
 
@@ -71,6 +74,13 @@ async function generate(input, options) {
   const boundary = await fetchBoundary(inseeCode);
   const bbox = boundaryBbox(boundary);
   const extent = extentFromBbox(bbox, zoom, margin);
+  const { grayscale } = options;
+  const outputPath = resolveOutputPath(
+    options,
+    basemap.outputFormat,
+    `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}-z${zoom}` +
+      `${grayscale ? '-gris' : ''}`,
+  );
 
   console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
   console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}\n`);
@@ -96,7 +106,6 @@ async function generate(input, options) {
   }
 
   console.log(`Assemblage d'une image de ${extent.width} × ${extent.height} px…`);
-  const { grayscale } = options;
   const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale });
   if (missing > 0) {
     console.log(
@@ -105,10 +114,6 @@ async function generate(input, options) {
     );
   }
 
-  const outputPath =
-    options.output ??
-    `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}-z${zoom}` +
-      `${grayscale ? '-gris' : ''}.png`;
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
   const attribution = attributionText({ basemap: await withCurrentAttribution(basemap), outline });

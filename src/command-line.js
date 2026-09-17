@@ -1,5 +1,6 @@
 // Command line parsing. Commands and options are shown in French, with English aliases.
 
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 export const HELP = `Génère une carte détaillée d'une commune en recollant des tuiles de fond de carte.
@@ -13,7 +14,8 @@ Options de « generer » :
   -d, --departement <code>  département, pour lever une homonymie, ex. 86
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
-  -o, --sortie <fichier>    fichier .png, .jpg ou .tif, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].png
+  -o, --sortie <fichier>    fichier de sortie, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].<format>
+      --format <format>     png, jpg ou tif ; défaut : jpg pour les photographies (ortho-ign, esri-satellite), png sinon
       --marge <fraction>    marge autour de la commune, défaut : 0.03
       --dpi <n>             résolution d'impression visée, défaut : 150
       --gris                fond de carte en niveaux de gris
@@ -36,6 +38,7 @@ export const OPTIONS = {
   basemap: { type: 'string', short: 'f', french: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
   output: { type: 'string', short: 'o', french: 'sortie' },
+  format: { type: 'string' },
   margin: { type: 'string', french: 'marge', default: '0.03' },
   dpi: { type: 'string', default: '150' },
   grayscale: { type: 'boolean', french: 'gris', default: false },
@@ -94,6 +97,32 @@ function checkOptions(tokens, config) {
       throw new UsageError(`L'option ${rawName} attend une valeur, et non « ${value} ».${hint}`);
     }
   }
+}
+
+// Output formats, by name or file extension.
+const OUTPUT_FORMATS = { png: 'png', jpg: 'jpg', jpeg: 'jpg', tif: 'tif', tiff: 'tif' };
+
+/**
+ * Path of the output file. The format comes from --format, else from the extension of --sortie, else from the
+ * default format; the extension of the format is added to a --sortie without extension and to the default path.
+ */
+export function resolveOutputPath({ output, format }, defaultFormat, defaultPathWithoutExtension) {
+  const requestedFormat = format === undefined ? undefined : OUTPUT_FORMATS[format.toLowerCase()];
+  if (format !== undefined && !requestedFormat) {
+    throw new UsageError(`Format inconnu : ${format}. Formats disponibles : png, jpg, tif.`);
+  }
+  if (output === undefined) return `${defaultPathWithoutExtension}.${requestedFormat ?? defaultFormat}`;
+
+  const extension = path.extname(output).slice(1);
+  if (!extension) return `${output}.${requestedFormat ?? defaultFormat}`;
+  const extensionFormat = OUTPUT_FORMATS[extension.toLowerCase()];
+  if (!extensionFormat) {
+    throw new UsageError(`Extension non gérée pour le fichier de sortie : .${extension} (utilisez .png, .jpg ou .tif).`);
+  }
+  if (requestedFormat && requestedFormat !== extensionFormat) {
+    throw new UsageError(`Le format demandé (${format}) ne correspond pas à l'extension du fichier de sortie : ${output}.`);
+  }
+  return output;
 }
 
 /** Parses an integer option value, checking its bounds. */
