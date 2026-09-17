@@ -44,12 +44,14 @@ const progressStatus = element('progress-status');
 const result = element('result');
 const errorLine = element('error');
 const zoomNote = element('zoom-note');
+const privacyNote = element('privacy-note');
 
 // The engine sets what the platform can do: highest zoom level and output formats.
 const MAX_ZOOM = engine.maxZoom;
 for (const [value, label] of engine.formats) formatChoice.append(new Option(label, value));
 if (engine.zoomNote) zoomNote.textContent = engine.zoomNote;
 else zoomNote.hidden = true;
+privacyNote.textContent = engine.privacyNote;
 
 let municipality;
 let pendingSearch;

@@ -8,6 +8,7 @@ export const engine = {
     ['png', 'PNG'],
     ['jpg', 'JPEG'],
   ],
+  privacyNote: "Tout se passe dans votre navigateur : aucune donnée n'est envoyée ailleurs.",
   zoomNote:
     "Au-delà du zoom 17, l'image dépasse ce qu'un navigateur sait produire : passez par la ligne de commande " +
     "ou l'application de bureau.",

@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 
-import { BrowserWindow, app, dialog, ipcMain } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS } from '../src/core/basemaps.js';
 import { estimateFileSize } from '../src/core/estimates.js';
@@ -37,6 +37,11 @@ function createWindow() {
       contextIsolation: true,
       sandbox: false, // Required for an ES module preload script.
     },
+  });
+  // Les liens de l'interface s'ouvrent dans le navigateur, et jamais dans la fenêtre de l'application.
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
   window.loadFile(path.join(import.meta.dirname, '..', 'dist-electron', 'renderer', 'index.html'));
 }

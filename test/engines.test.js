@@ -15,6 +15,7 @@ describe('rendering engines', () => {
       assert.equal(typeof engine.generate, 'function', name);
       assert.equal(typeof engine.cancel, 'function', name);
       assert.equal(typeof engine.zoomNote, 'string', name);
+      assert.equal(typeof engine.privacyNote, 'string', name);
       assert.ok(Number.isInteger(engine.maxZoom), name);
       assert.ok(engine.formats.length > 0, name);
       for (const [value, label] of engine.formats) {
