@@ -1,5 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Signaler une faille de sécurité
-    url: https://github.com/sebprunier/cartes/security/advisories/new
-    about: Pour une vulnérabilité, utilisez le signalement privé plutôt qu'une issue publique.
