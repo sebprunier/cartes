@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Ajouté
+
+- Page web pour générer une carte sans rien installer, publiée sur <https://sebprunier.github.io/cartes/> : la recherche de commune, le téléchargement des tuiles et le rendu se font dans le navigateur, sans serveur intermédiaire. Elle propose les niveaux de zoom jusqu'à 17, au-delà desquels l'image dépasse ce qu'un navigateur sait produire, et renvoie alors vers la ligne de commande.
+
 ## [0.1.0] – 2026-09-17
 
 Première version : un outil en ligne de commande qui génère la carte détaillée d'une commune française en recollant des tuiles de fond de carte, prête à imprimer en grand format.

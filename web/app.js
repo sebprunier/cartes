@@ -8,7 +8,10 @@ import { extentFromBbox, groundResolution } from './core/tiles.js';
 
 const ZOOM_LEVELS = 7; // Zoom levels shown in the table, up to the maximum of the basemap.
 const DEFAULT_ZOOM = 16;
+// Above this zoom level, the image goes beyond what browsers can draw: the command line takes over.
+const MAX_ZOOM = 17;
 const MARGIN = 0.03;
+const POIDS_INCONNU = '–';
 
 const element = (id) => document.getElementById(id);
 const champRecherche = element('recherche');
@@ -24,6 +27,9 @@ const caseGris = element('gris');
 const caseContour = element('contour');
 const tableauEstimations = element('estimations');
 const boutonEstimer = element('estimer');
+const chargementEstimation = element('chargement-estimation');
+const etatEstimation = element('etat-estimation');
+const noteEstimation = element('note-estimation');
 const boutonGenerer = element('generer');
 const boutonAnnuler = element('annuler');
 const progression = element('progression');
@@ -97,13 +103,11 @@ async function choisir(municipality) {
 }
 
 function remplirZooms() {
-  const { maxZoom } = BASEMAPS[choixFond.value];
+  const disponibles = zooms().filter((zoom) => zoom <= MAX_ZOOM);
   const choisi = Number(choixZoom.value) || DEFAULT_ZOOM;
   choixZoom.replaceChildren();
-  for (let zoom = maxZoom - ZOOM_LEVELS + 1; zoom <= maxZoom; zoom++) {
-    choixZoom.append(new Option(String(zoom), String(zoom)));
-  }
-  choixZoom.value = String(Math.min(Math.max(choisi, maxZoom - ZOOM_LEVELS + 1), maxZoom));
+  for (const zoom of disponibles) choixZoom.append(new Option(String(zoom), String(zoom)));
+  choixZoom.value = String(Math.min(Math.max(choisi, disponibles[0]), disponibles.at(-1)));
 }
 
 function zooms() {
@@ -123,6 +127,7 @@ function afficherEstimations() {
       const ligne = document.createElement('tr');
       ligne.dataset.zoom = String(zoom);
       if (zoom === Number(choixZoom.value)) ligne.classList.add('choisi');
+      if (zoom > MAX_ZOOM) ligne.classList.add('indisponible');
       for (const valeur of [
         zoom,
         groundResolution(latitude, zoom).toFixed(2),
@@ -130,31 +135,45 @@ function afficherEstimations() {
         extent.tileCount,
         `${largeurMm.toFixed(0)} × ${hauteurMm.toFixed(0)} mm (${paperFormat(largeurMm, hauteurMm)})`,
         formatBytes(imageMemory(extent)),
-        '',
+        zoom > MAX_ZOOM ? 'hors navigateur' : POIDS_INCONNU,
       ]) {
         const cellule = document.createElement('td');
         cellule.textContent = String(valeur);
         ligne.append(cellule);
       }
-      ligne.addEventListener('click', () => {
-        choixZoom.value = String(zoom);
-        afficherEstimations();
-      });
+      if (zoom <= MAX_ZOOM) {
+        ligne.addEventListener('click', () => {
+          choixZoom.value = String(zoom);
+          afficherEstimations();
+        });
+      }
       return ligne;
     }),
   );
 }
 
 function viderPoids() {
-  for (const ligne of tableauEstimations.tBodies[0].rows) ligne.cells[6].textContent = '';
+  for (const ligne of tableauEstimations.tBodies[0].rows) {
+    if (Number(ligne.dataset.zoom) <= MAX_ZOOM) ligne.cells[6].textContent = POIDS_INCONNU;
+  }
+}
+
+function celluleDuZoom(zoom) {
+  return [...tableauEstimations.tBodies[0].rows].find((row) => row.dataset.zoom === String(zoom))?.cells[6];
 }
 
 async function estimerPoids() {
   if (!commune) return;
+  const aEstimer = zooms().filter((zoom) => zoom <= MAX_ZOOM);
   boutonEstimer.disabled = true;
+  chargementEstimation.hidden = false;
+  noteEstimation.hidden = true;
   viderPoids();
   try {
-    for (const zoom of zooms()) {
+    for (const [index, zoom] of aEstimer.entries()) {
+      etatEstimation.textContent = `zoom ${zoom} (${index + 1} sur ${aEstimer.length})`;
+      const cellule = celluleDuZoom(zoom);
+      if (cellule) cellule.textContent = '…';
       const { size } = await demanderAuTravailleur({
         task: 'estimate',
         basemapId: choixFond.value,
@@ -164,13 +183,16 @@ async function estimerPoids() {
         format: choixFormat.value,
         grayscale: caseGris.checked,
       });
-      const ligne = [...tableauEstimations.tBodies[0].rows].find((row) => row.dataset.zoom === String(zoom));
-      if (ligne) ligne.cells[6].textContent = size === undefined ? '?' : `≈ ${formatBytes(size)}`;
+      if (cellule) cellule.textContent = size === undefined ? '?' : `≈ ${formatBytes(size)}`;
     }
   } catch (error) {
     afficherErreur(`Estimation impossible : ${error.message}`);
+    viderPoids();
   } finally {
     boutonEstimer.disabled = false;
+    chargementEstimation.hidden = true;
+    noteEstimation.hidden = false;
+    etatEstimation.textContent = '';
   }
 }
 

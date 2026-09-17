@@ -79,7 +79,14 @@
         </div>
         <p>
           <button id="estimer" type="button">Estimer le poids des fichiers</button>
-          <span class="note">Télécharge 36 tuiles par niveau de zoom.</span>
+          <span id="chargement-estimation" hidden
+            ><span class="rouet" aria-hidden="true"></span> Estimation en cours… <span id="etat-estimation"></span
+          ></span>
+          <span id="note-estimation" class="note">Télécharge 36 tuiles par niveau de zoom.</span>
+        </p>
+        <p class="note">
+          Au-delà du zoom 17, l'image dépasse ce qu'un navigateur sait produire : passez par la
+          <a href="https://github.com/sebprunier/cartes#utilisation">ligne de commande</a>.
         </p>
       </section>
 

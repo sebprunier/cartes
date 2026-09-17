@@ -157,6 +157,11 @@ td:first-child {
   text-align: left;
 }
 
+tr.indisponible {
+  color: var(--gris);
+  font-style: italic;
+}
+
 tr.choisi {
   background: #eef5ec;
   font-weight: 600;
@@ -174,6 +179,29 @@ footer {
 
 a {
   color: var(--vert);
+}
+
+.rouet {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid var(--bordure);
+  border-top-color: var(--bleu);
+  border-radius: 50%;
+  vertical-align: -0.1em;
+  animation: tourne 0.8s linear infinite;
+}
+
+@keyframes tourne {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rouet {
+    animation: none;
+  }
 }
 
 progress {
