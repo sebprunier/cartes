@@ -16,7 +16,7 @@ Options de « generer » :
   -o, --sortie <fichier>    fichier .png, .jpg ou .tif, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].png
       --marge <fraction>    marge autour de la commune, défaut : 0.03
       --dpi <n>             résolution d'impression visée, défaut : 150
-      --couleur             garder les couleurs du fond de carte (niveaux de gris par défaut)
+      --gris                fond de carte en niveaux de gris
       --sans-contour        ne pas tracer le contour de la commune
       --estimer             afficher les tailles par niveau de zoom sans rien télécharger
       --max-tuiles <n>      garde-fou sur le nombre de tuiles, défaut : 5000
@@ -25,7 +25,7 @@ Options de « generer » :
   -h, --aide                afficher cette aide
 
 Les commandes et options existent aussi en anglais : search, basemaps, generate, --department,
---basemap, --output, --margin, --color, --no-outline, --estimate, --max-tiles, --concurrency, --help.`;
+--basemap, --output, --margin, --grayscale, --no-outline, --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = { chercher: 'search', fonds: 'basemaps', generer: 'generate', générer: 'generate' };
@@ -38,7 +38,7 @@ export const OPTIONS = {
   output: { type: 'string', short: 'o', french: 'sortie' },
   margin: { type: 'string', french: 'marge', default: '0.03' },
   dpi: { type: 'string', default: '150' },
-  color: { type: 'boolean', french: 'couleur', default: false },
+  grayscale: { type: 'boolean', french: 'gris', default: false },
   'no-outline': { type: 'boolean', french: 'sans-contour', default: false },
   estimate: { type: 'boolean', french: 'estimer', default: false },
   'max-tiles': { type: 'string', french: 'max-tuiles', default: '5000' },

@@ -96,7 +96,7 @@ async function generate(input, options) {
   }
 
   console.log(`Assemblage d'une image de ${extent.width} × ${extent.height} px…`);
-  const grayscale = !options.color;
+  const { grayscale } = options;
   const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale });
   if (missing > 0) {
     console.log(

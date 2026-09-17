@@ -10,7 +10,7 @@ describe('parseCommandLine', () => {
     assert.equal(argument, '86081');
     assert.equal(options.basemap, 'plan-ign');
     assert.equal(options.zoom, '17');
-    assert.equal(options.color, false);
+    assert.equal(options.grayscale, false);
     assert.equal(options.department, undefined);
     assert.equal(options.cache, '.cache/tiles');
   });
@@ -18,11 +18,11 @@ describe('parseCommandLine', () => {
   it('accepts French and English names alike', () => {
     const french = parseCommandLine([
       'generer', '86081', '--departement', '86', '-f', 'ortho-ign', '--sortie', 'carte.jpg', '--marge', '0.1',
-      '--couleur', '--sans-contour', '--estimer', '--max-tuiles', '10', '--paralleles', '2',
+      '--gris', '--sans-contour', '--estimer', '--max-tuiles', '10', '--paralleles', '2',
     ]);
     const english = parseCommandLine([
       'generate', '86081', '--department', '86', '--basemap', 'ortho-ign', '--output', 'carte.jpg', '--margin', '0.1',
-      '--color', '--no-outline', '--estimate', '--max-tiles', '10', '--concurrency', '2',
+      '--grayscale', '--no-outline', '--estimate', '--max-tiles', '10', '--concurrency', '2',
     ]);
     assert.deepEqual(french, english);
     assert.equal(french.options.basemap, 'ortho-ign');
@@ -36,7 +36,7 @@ describe('parseCommandLine', () => {
   });
 
   it('rejects unknown options', () => {
-    assert.throws(() => parseCommandLine(['generer', '86081', '--gris']), { code: 'ERR_PARSE_ARGS_UNKNOWN_OPTION' });
+    assert.throws(() => parseCommandLine(['generer', '86081', '--couleur']), { code: 'ERR_PARSE_ARGS_UNKNOWN_OPTION' });
   });
 });
 

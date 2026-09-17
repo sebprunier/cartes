@@ -43,18 +43,18 @@ cartes chercher colombiers -d 86
 # Voir, pour chaque niveau de zoom, la taille de l'image et le format d'impression correspondant
 cartes generer colombiers -d 86 --estimer
 
-# Générer la carte (par défaut : Plan IGN en niveaux de gris, zoom 17, contour de la commune tracé)
+# Générer la carte (par défaut : Plan IGN, zoom 17, contour de la commune tracé)
 cartes generer 86081
 
 # Autres exemples
-cartes generer 86081 -z 16 --couleur
+cartes generer 86081 -z 16 --gris
 cartes generer 86081 -z 16 -f ortho-ign -o sorties/colombiers-ortho.jpg
 ```
 
-Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--output`, `--margin`, `--color`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
+Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--output`, `--margin`, `--grayscale`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
 
 ```sh
-cartes generate 86081 -z 16 --color
+cartes generate 86081 -z 16 --grayscale
 ```
 
 Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
