@@ -66,7 +66,7 @@ export function* tilesInExtent(extent) {
  * retries has a null path and an error, without stopping the others.
  * The download is aborted when too many tiles fail in a row (network down, service outage).
  */
-export async function downloadTiles(basemap, extent, cacheDir, concurrency, onProgress) {
+export async function downloadTiles(basemap, extent, { cacheDir, concurrency, onProgress, retryDelayMs = 1000 }) {
   const tiles = [...tilesInExtent(extent)];
   let next = 0;
   let done = 0;
@@ -78,7 +78,7 @@ export async function downloadTiles(basemap, extent, cacheDir, concurrency, onPr
       const tile = tiles[next++];
       const tilePath = path.join(cacheDir, basemap.id, String(extent.zoom), String(tile.x), `${tile.y}.tile`);
       try {
-        tile.path = await downloadTile(tileUrl(basemap, extent.zoom, tile.x, tile.y), tilePath);
+        tile.path = await downloadTile(tileUrl(basemap, extent.zoom, tile.x, tile.y), tilePath, retryDelayMs);
         consecutiveFailures = 0;
       } catch (error) {
         tile.path = null;
@@ -100,7 +100,7 @@ export async function downloadTiles(basemap, extent, cacheDir, concurrency, onPr
   return tiles;
 }
 
-async function downloadTile(url, tilePath) {
+async function downloadTile(url, tilePath, retryDelayMs) {
   if (await exists(tilePath)) return tilePath;
 
   for (let attempt = 1; ; attempt++) {
@@ -109,7 +109,7 @@ async function downloadTile(url, tilePath) {
       response = await request(url);
     } catch (error) {
       if (attempt === MAX_ATTEMPTS) throw error;
-      await sleep(2 ** (attempt - 1) * 1000);
+      await sleep(2 ** (attempt - 1) * retryDelayMs);
       continue;
     }
 
@@ -129,7 +129,7 @@ async function downloadTile(url, tilePath) {
     if (attempt === MAX_ATTEMPTS) {
       throw response.ok ? new Error(`La réponse n'est pas une image : ${url}`) : new HttpError(url, response.status);
     }
-    await sleep(2 ** (attempt - 1) * 1000);
+    await sleep(2 ** (attempt - 1) * retryDelayMs);
   }
 }
 
