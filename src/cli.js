@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Command line interface.
 
-import { BASEMAPS, withCurrentAttribution } from './basemaps.js';
+import { BASEMAPS } from './basemaps.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import { estimateFileSize, formatBytes, imageMemory } from './estimates.js';
 import {
@@ -126,7 +126,7 @@ async function generate(input, options) {
 
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
-  const attribution = attributionText({ basemap: await withCurrentAttribution(basemap), outline });
+  const attribution = attributionText({ basemap, outline });
   overlays.push(await attributionLabel(attribution, extent));
   console.log(outline ? 'Tracé du contour et ajout de la mention des sources…' : 'Ajout de la mention des sources…');
   await drawOverlays(pixels, extent, overlays);

@@ -61,7 +61,7 @@ cartes generate 86081 -z 16 --grayscale
 
 Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
 
-Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes et satellite, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format.
+Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format.
 
 Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom, qui restent ensuite en cache. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
@@ -92,9 +92,8 @@ Piste pour la suite : la Géoplateforme publie aussi le Plan IGN en **tuiles vec
 ## Sources des données et conditions d'utilisation
 
 - **IGN / Géoplateforme** (Plan IGN, photographies aériennes, ADMIN EXPRESS, géocodage) : données ouvertes sous licence ouverte Etalab, qui impose de mentionner la source.
-- **Esri** (`esri-plan`, `esri-satellite`) : Esri exige la mention « Powered by Esri » et la liste des sources de données publiée dans les métadonnées de chaque service. Ses conditions d'utilisation encadrent aussi le téléchargement massif et l'usage hors ligne des fonds de carte : à vérifier avant tout usage au-delà du test, et à plus forte raison pour un service en ligne.
 
-Chaque carte générée porte en bas à droite la mention des sources utilisées et sa date de génération, par exemple « Sources : © IGN – Plan IGN ; © IGN – ADMIN EXPRESS · Carte générée le 17/09/2026 ». Pour les fonds Esri, la liste des sources est lue dans les métadonnées du service au moment de la génération, et la mention inclut « Powered by Esri ».
+Chaque carte générée porte en bas à droite la mention des sources utilisées et sa date de génération, par exemple « Sources : © IGN – Plan IGN ; © IGN – ADMIN EXPRESS · Carte générée le 17/09/2026 ».
 
 La licence du projet porte sur son code : les cartes produites restent soumises aux conditions des fournisseurs de données ci-dessus.
 

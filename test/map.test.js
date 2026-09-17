@@ -148,14 +148,6 @@ describe('attributionText', () => {
       'Sources : © IGN – Plan IGN · Carte générée le 17/09/2026',
     );
   });
-
-  it('adds the "Powered by" mention required by the basemap provider', () => {
-    const esri = { attribution: 'Esri, Vantor', poweredBy: 'Powered by Esri' };
-    assert.equal(
-      attributionText({ basemap: esri, outline: true, date }),
-      'Sources : Esri, Vantor ; © IGN – ADMIN EXPRESS · Powered by Esri · Carte générée le 17/09/2026',
-    );
-  });
 });
 
 describe('attributionLabel', () => {
@@ -179,7 +171,7 @@ describe('attributionLabel', () => {
 
   it('wraps long texts at 60 % of the image width', async () => {
     const shortLabel = labelBox(await attributionLabel('Sources : © IGN', extent));
-    const longLabel = labelBox(await attributionLabel('Esri, HERE, Garmin, USGS, Intermap, NRCan, '.repeat(10), extent));
+    const longLabel = labelBox(await attributionLabel('© IGN – Plan IGN ; © IGN – ADMIN EXPRESS ; '.repeat(10), extent));
     assert.ok(longLabel.width <= extent.width * 0.6 + 20, `width ${longLabel.width}`);
     assert.ok(longLabel.height > 2 * shortLabel.height, `height ${longLabel.height}`);
   });

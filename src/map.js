@@ -96,10 +96,7 @@ export function boundaryOutline(boundary, extent) {
 export function attributionText({ basemap, outline, date = new Date() }) {
   const sources = [basemap.attribution];
   if (outline) sources.push(BOUNDARY_ATTRIBUTION);
-  const parts = [`Sources : ${sources.join(' ; ')}`];
-  if (basemap.poweredBy) parts.push(basemap.poweredBy);
-  parts.push(`Carte générée le ${date.toLocaleDateString('fr-FR')}`);
-  return parts.join(' · ');
+  return `Sources : ${sources.join(' ; ')} · Carte générée le ${date.toLocaleDateString('fr-FR')}`;
 }
 
 /**

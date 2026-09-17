@@ -15,7 +15,7 @@ Options de « generer » :
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
   -o, --sortie <fichier>    fichier de sortie, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].<format>
-      --format <format>     png, jpg ou tif ; défaut : jpg pour les photographies (ortho-ign, esri-satellite), png sinon
+      --format <format>     png, jpg ou tif ; défaut : jpg pour les photographies aériennes (ortho-ign), png sinon
       --marge <fraction>    marge autour de la commune, défaut : 0.03
       --dpi <n>             résolution d'impression visée, défaut : 150
       --gris                fond de carte en niveaux de gris
