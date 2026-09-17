@@ -1,0 +1,16 @@
+{
+  "name": "cartes",
+  "version": "0.1.0",
+  "description": "Génère des cartes détaillées d'une commune française, prêtes à imprimer en grand format",
+  "type": "module",
+  "bin": {
+    "cartes": "./src/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "private": true,
+  "dependencies": {
+    "sharp": "^0.35.4"
+  }
+}
