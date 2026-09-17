@@ -19,29 +19,35 @@ Sans `npm link`, remplacez `cartes` par `node src/cli.js` dans les exemples ci-d
 
 ```sh
 # Trouver une commune (et son code INSEE)
-cartes chercher colombiers -d 86
+cartes search colombiers -d 86
 
 # Voir, pour chaque niveau de zoom, la taille de l'image et le format d'impression correspondant
-cartes generer colombiers -d 86 --estimer
+cartes generate colombiers -d 86 --estimate
 
 # Générer la carte (par défaut : Plan IGN, zoom 17, contour de la commune tracé)
-cartes generer 86081
+cartes generate 86081
 
 # Autres exemples
-cartes generer 86081 -z 16 --gris
-cartes generer 86081 -z 16 -f ortho-ign -o sorties/colombiers-ortho.jpg
+cartes generate 86081 -z 16 --grayscale
+cartes generate 86081 -z 16 -b ortho-ign -o sorties/colombiers-ortho.jpg
 ```
 
-Options de `generer` : `cartes -h`. Fonds disponibles : `cartes fonds`.
+Les commandes et les options existent aussi en français : `chercher`, `fonds`, `generer`, `--departement`, `--fond`, `--sortie`, `--marge`, `--gris`, `--sans-contour`, `--estimer`, `--max-tuiles`, `--paralleles`, `--aide`. Par exemple :
 
-Les cartes sont écrites dans `sorties/` (PNG par défaut, JPEG ou TIFF selon l'extension passée à `-o`). Les tuiles téléchargées sont conservées dans `.cache/tuiles/` : relancer une commande ne retélécharge rien.
+```sh
+cartes generer 86081 -z 16 --gris
+```
+
+Toutes les options : `cartes -h`. Fonds disponibles : `cartes basemaps`.
+
+Les cartes sont écrites dans `sorties/` (PNG par défaut, JPEG ou TIFF selon l'extension passée à `-o`). Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
 ## Fonctionnement
 
 1. **Commune** : l'[API de géocodage de la Géoplateforme](https://data.geopf.fr/geocodage/openapi) (`type=municipality`) donne le code INSEE. En cas d'homonymes, l'outil liste les candidates et demande de préciser le département.
 2. **Contour** : récupéré depuis ADMIN EXPRESS via le service WFS de la Géoplateforme (couche `ADMINEXPRESS-COG.LATEST:commune`, filtre sur `code_insee`).
 3. **Emprise** : la bbox du contour, élargie d'une marge (3 % par défaut), est convertie en pixels Web Mercator au niveau de zoom demandé, ce qui donne la liste des tuiles à récupérer.
-4. **Téléchargement** : 6 requêtes simultanées, nouvelles tentatives en cas d'erreur serveur ou de limite de débit, cache sur disque.
+4. **Téléchargement** : 6 requêtes simultanées, nouvelles tentatives en cas d'erreur (la Géoplateforme renvoie parfois des erreurs passagères), cache sur disque.
 5. **Assemblage** : les tuiles sont recopiées dans une image aux dimensions exactes de l'emprise, puis le contour est superposé sous forme de calque SVG (le même mécanisme servira pour ajouter des données : points de collecte, zones de risques…).
 
 ## Ce qu'on apprend sur l'impression
@@ -56,7 +62,7 @@ Pour Colombiers (environ 8 × 6 km), à 150 dpi :
 | 16   | 5 104 × 3 904  | 86 × 66 cm      | A0     |
 | 17   | 10 207 × 7 807 | 173 × 132 cm    | > A0   |
 
-En A3, une image au zoom 17 serait réduite environ 4 fois et ses étiquettes mesureraient à peine 0,5 mm. Avec des tuiles raster, il faut donc choisir entre la finesse du détail et un petit format : `--estimer` aide à faire ce choix.
+En A3, une image au zoom 17 serait réduite environ 4 fois et ses étiquettes mesureraient à peine 0,5 mm. Avec des tuiles raster, il faut donc choisir entre la finesse du détail et un petit format : `--estimate` aide à faire ce choix.
 
 Piste pour la suite : la Géoplateforme publie aussi le Plan IGN en **tuiles vectorielles** (`https://data.geopf.fr/tms/1.0.0/PLAN.IGN/{z}/{x}/{y}.pbf`, avec les styles `standard` et `gris`). Rendues avec MapLibre à l'échelle et à la résolution voulues, elles donneraient des étiquettes dimensionnées pour le papier et nettes à 300 dpi, quel que soit le format.
 

@@ -1,185 +1,209 @@
 #!/usr/bin/env node
-// Interface en ligne de commande.
+// Command line interface. Commands and options are in English, with French aliases.
 
 import { parseArgs } from 'node:util';
 
-import { assembler, dessinerSurcouches, enregistrer, formatPapier, tailleImpressionMm, traceContour } from './carte.js';
+import { BASEMAPS } from './basemaps.js';
+import { assembleTiles, boundaryOutline, drawOverlays, paperFormat, printSizeMm, saveImage } from './map.js';
 import {
-  CommuneIntrouvable,
-  bbox,
-  choisirCommune,
-  decrire,
-  normaliser,
-  rechercherCommunes,
-  recupererContour,
-} from './communes.js';
-import { FONDS } from './fonds.js';
-import { empriseDepuisBbox, resolutionSol, telechargerTuiles } from './tuiles.js';
+  MunicipalityNotFound,
+  boundaryBbox,
+  describeMunicipality,
+  fetchBoundary,
+  normalizeName,
+  resolveMunicipality,
+  searchMunicipalities,
+} from './municipalities.js';
+import { downloadTiles, extentFromBbox, groundResolution } from './tiles.js';
 
-const AIDE = `Génère une carte détaillée d'une commune en recollant des tuiles de fond de carte.
+const HELP = `Génère une carte détaillée d'une commune en recollant des tuiles de fond de carte.
 
 Usage :
-  cartes chercher <nom> [-d <département>]   rechercher une commune par son nom
-  cartes fonds                                lister les fonds de carte disponibles
-  cartes generer <commune> [options]          générer la carte d'une commune (nom ou code INSEE)
+  cartes search <nom> [-d <département>]   rechercher une commune par son nom (alias : chercher)
+  cartes basemaps                          lister les fonds de carte disponibles (alias : fonds)
+  cartes generate <commune> [options]      générer la carte d'une commune, par nom ou code INSEE (alias : generer)
 
-Options de « generer » :
-  -d, --departement <code>  département, pour lever une homonymie (ex. 86)
-  -f, --fond <id>           fond de carte (défaut : plan-ign)
-  -z, --zoom <n>            niveau de zoom des tuiles (défaut : 17)
-  -o, --sortie <fichier>    fichier .png, .jpg ou .tif (défaut : sorties/<commune>-<fond>-z<zoom>.png)
-      --marge <fraction>    marge autour de la commune (défaut : 0.03)
-      --dpi <n>             résolution d'impression visée (défaut : 150)
-      --gris                fond de carte en niveaux de gris
-      --sans-contour        ne pas tracer le contour de la commune
-      --estimer             afficher les tailles par niveau de zoom sans rien télécharger
-      --max-tuiles <n>      garde-fou sur le nombre de tuiles (défaut : 5000)
-      --paralleles <n>      téléchargements simultanés (défaut : 6)
-      --cache <dossier>     dossier de cache des tuiles (défaut : .cache/tuiles)`;
+Options de « generate » (alias français entre parenthèses) :
+  -d, --department <code>   département, pour lever une homonymie, ex. 86 (--departement)
+  -b, --basemap <id>        fond de carte, défaut : plan-ign (--fond)
+  -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
+  -o, --output <fichier>    fichier .png, .jpg ou .tif, défaut : sorties/<commune>-<fond>-z<zoom>.png (--sortie)
+      --margin <fraction>   marge autour de la commune, défaut : 0.03 (--marge)
+      --dpi <n>             résolution d'impression visée, défaut : 150
+      --grayscale           fond de carte en niveaux de gris (--gris)
+      --no-outline          ne pas tracer le contour de la commune (--sans-contour)
+      --estimate            afficher les tailles par niveau de zoom sans rien télécharger (--estimer)
+      --max-tiles <n>       garde-fou sur le nombre de tuiles, défaut : 5000 (--max-tuiles)
+      --concurrency <n>     téléchargements simultanés, défaut : 6 (--paralleles)
+      --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
+  -h, --help                afficher cette aide (--aide)`;
+
+const COMMAND_ALIASES = { chercher: 'search', fonds: 'basemaps', generer: 'generate' };
 
 const OPTIONS = {
-  departement: { type: 'string', short: 'd' },
-  fond: { type: 'string', short: 'f', default: 'plan-ign' },
+  department: { type: 'string', short: 'd', alias: 'departement' },
+  basemap: { type: 'string', short: 'b', alias: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
-  sortie: { type: 'string', short: 'o' },
-  marge: { type: 'string', default: '0.03' },
+  output: { type: 'string', short: 'o', alias: 'sortie' },
+  margin: { type: 'string', alias: 'marge', default: '0.03' },
   dpi: { type: 'string', default: '150' },
-  gris: { type: 'boolean', default: false },
-  'sans-contour': { type: 'boolean', default: false },
-  estimer: { type: 'boolean', default: false },
-  'max-tuiles': { type: 'string', default: '5000' },
-  paralleles: { type: 'string', default: '6' },
-  cache: { type: 'string', default: '.cache/tuiles' },
-  aide: { type: 'boolean', short: 'h', default: false },
+  grayscale: { type: 'boolean', alias: 'gris', default: false },
+  'no-outline': { type: 'boolean', alias: 'sans-contour', default: false },
+  estimate: { type: 'boolean', alias: 'estimer', default: false },
+  'max-tiles': { type: 'string', alias: 'max-tuiles', default: '5000' },
+  concurrency: { type: 'string', alias: 'paralleles', default: '6' },
+  cache: { type: 'string', default: '.cache/tiles' },
+  help: { type: 'boolean', short: 'h', alias: 'aide', default: false },
 };
 
-class ErreurUtilisation extends Error {}
+class UsageError extends Error {}
+
+// True while the progress line has not been terminated by a line break.
+let progressLineOpen = false;
 
 async function main() {
-  const { values: options, positionals } = parseArgs({ options: OPTIONS, allowPositionals: true });
-  const [commande, argument] = positionals;
+  const { command, argument, options } = parseCommandLine();
 
-  if (options.aide || !commande) {
-    console.log(AIDE);
-  } else if (commande === 'chercher' && argument) {
-    await chercher(argument, options);
-  } else if (commande === 'fonds') {
-    fonds();
-  } else if (commande === 'generer' && argument) {
-    await generer(argument, options);
+  if (options.help || !command) {
+    console.log(HELP);
+  } else if (command === 'search' && argument) {
+    await search(argument, options);
+  } else if (command === 'basemaps') {
+    listBasemaps();
+  } else if (command === 'generate' && argument) {
+    await generate(argument, options);
   } else {
-    throw new ErreurUtilisation(`Commande invalide.\n\n${AIDE}`);
+    throw new UsageError(`Commande invalide.\n\n${HELP}`);
   }
 }
 
-async function chercher(nom, options) {
-  const communes = await rechercherCommunes(nom, options.departement);
-  if (communes.length === 0) throw new CommuneIntrouvable(`Aucune commune trouvée pour « ${nom} ».`);
-  for (const commune of communes) console.log(decrire(commune));
+/** Parses the command line, resolving French aliases to their English names. */
+function parseCommandLine() {
+  const config = {};
+  for (const [name, { type, short, alias }] of Object.entries(OPTIONS)) {
+    config[name] = short ? { type, short } : { type };
+    if (alias) config[alias] = { type };
+  }
+  const { values, positionals } = parseArgs({ options: config, allowPositionals: true });
+
+  const options = {};
+  for (const [name, { alias, default: defaultValue }] of Object.entries(OPTIONS)) {
+    options[name] = values[name] ?? (alias && values[alias]) ?? defaultValue;
+  }
+  const [command, argument] = positionals;
+  return { command: COMMAND_ALIASES[command] ?? command, argument, options };
 }
 
-function fonds() {
-  for (const fond of Object.values(FONDS)) {
-    console.log(`${fond.identifiant.padEnd(16)} ${fond.nom} (zoom max ${fond.zoomMax}) — ${fond.attribution}`);
+async function search(name, options) {
+  const municipalities = await searchMunicipalities(name, options.department);
+  if (municipalities.length === 0) throw new MunicipalityNotFound(`Aucune commune trouvée pour « ${name} ».`);
+  for (const municipality of municipalities) console.log(describeMunicipality(municipality));
+}
+
+function listBasemaps() {
+  for (const basemap of Object.values(BASEMAPS)) {
+    console.log(`${basemap.id.padEnd(16)} ${basemap.name} (zoom max ${basemap.maxZoom}) — ${basemap.attribution}`);
   }
 }
 
-async function generer(saisie, options) {
-  const fond = FONDS[options.fond];
-  if (!fond) throw new ErreurUtilisation(`Fond inconnu : ${options.fond}. Fonds disponibles : ${Object.keys(FONDS).join(', ')}`);
-  const zoom = entier(options.zoom, '--zoom', 0, fond.zoomMax);
-  const dpi = entier(options.dpi, '--dpi', 1);
-  const maxTuiles = entier(options['max-tuiles'], '--max-tuiles', 1);
-  const paralleles = entier(options.paralleles, '--paralleles', 1);
-  const marge = Number(options.marge);
-  if (!(marge >= 0)) throw new ErreurUtilisation('--marge doit être un nombre positif.');
+async function generate(input, options) {
+  const basemap = BASEMAPS[options.basemap];
+  if (!basemap) {
+    throw new UsageError(`Fond inconnu : ${options.basemap}. Fonds disponibles : ${Object.keys(BASEMAPS).join(', ')}`);
+  }
+  const zoom = parseInteger(options.zoom, '--zoom', 0, basemap.maxZoom);
+  const dpi = parseInteger(options.dpi, '--dpi', 1);
+  const maxTiles = parseInteger(options['max-tiles'], '--max-tiles', 1);
+  const concurrency = parseInteger(options.concurrency, '--concurrency', 1);
+  const margin = Number(options.margin);
+  if (!(margin >= 0)) throw new UsageError('--margin doit être un nombre positif.');
 
-  const codeInsee = await choisirCommune(saisie, options.departement);
-  const contour = await recupererContour(codeInsee);
-  const bboxCommune = bbox(contour);
-  const emprise = empriseDepuisBbox(bboxCommune, zoom, marge);
+  const inseeCode = await resolveMunicipality(input, options.department);
+  const boundary = await fetchBoundary(inseeCode);
+  const bbox = boundaryBbox(boundary);
+  const extent = extentFromBbox(bbox, zoom, margin);
 
-  console.log(`Commune       : ${contour.nom} (${contour.codeInsee})`);
-  console.log(`Fond de carte : ${fond.nom} — ${fond.attribution}\n`);
-  afficherEstimations(bboxCommune, marge, fond.zoomMax, zoom, dpi);
+  console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
+  console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}\n`);
+  printEstimates(bbox, margin, basemap.maxZoom, zoom, dpi);
   console.log();
-  if (options.estimer) return;
+  if (options.estimate) return;
 
-  if (emprise.nombreTuiles > maxTuiles) {
-    throw new ErreurUtilisation(
-      `${emprise.nombreTuiles} tuiles à télécharger, au-delà du garde-fou de ${maxTuiles}. ` +
-        'Baissez le zoom ou augmentez --max-tuiles.',
+  if (extent.tileCount > maxTiles) {
+    throw new UsageError(
+      `${extent.tileCount} tuiles à télécharger, au-delà du garde-fou de ${maxTiles}. ` +
+        'Baissez le zoom ou augmentez --max-tiles.',
     );
   }
 
-  const debut = performance.now();
-  console.log(`Téléchargement de ${emprise.nombreTuiles} tuiles (zoom ${zoom})…`);
-  const tuiles = await telechargerTuiles(fond, emprise, options.cache, paralleles, afficherProgression);
-  const enErreur = tuiles.filter((tuile) => tuile.erreur);
-  if (enErreur.length > 0) {
-    console.log(`  ${enErreur.length} tuile(s) en échec malgré plusieurs tentatives, par exemple : ${enErreur[0].erreur.message}`);
+  const start = performance.now();
+  console.log(`Téléchargement de ${extent.tileCount} tuiles (zoom ${zoom})…`);
+  const tiles = await downloadTiles(basemap, extent, options.cache, concurrency, printProgress);
+  const failedTiles = tiles.filter((tile) => tile.error);
+  if (failedTiles.length > 0) {
+    console.log(
+      `  ${failedTiles.length} tuile(s) en échec malgré plusieurs tentatives, par exemple : ${failedTiles[0].error.message}`,
+    );
   }
 
-  console.log(`Assemblage d'une image de ${emprise.largeur} × ${emprise.hauteur} px…`);
-  const { pixels, manquantes } = await assembler(emprise, tuiles, { gris: options.gris });
-  if (manquantes > 0) {
+  console.log(`Assemblage d'une image de ${extent.width} × ${extent.height} px…`);
+  const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale: options.grayscale });
+  if (missing > 0) {
     console.log(
-      `  Attention : ${manquantes} tuile(s) indisponible(s), laissée(s) en blanc. ` +
+      `  Attention : ${missing} tuile(s) indisponible(s), laissée(s) en blanc. ` +
         'Relancez la commande pour réessayer (les tuiles déjà téléchargées sont en cache).',
     );
   }
 
-  const sortie =
-    options.sortie ??
-    `sorties/${contour.codeInsee}-${normaliser(contour.nom).replaceAll(' ', '-')}-${fond.identifiant}-z${zoom}${options.gris ? '-gris' : ''}.png`;
-  if (!options['sans-contour']) {
+  const outputPath =
+    options.output ??
+    `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}-z${zoom}` +
+      `${options.grayscale ? '-gris' : ''}.png`;
+  if (!options['no-outline']) {
     console.log('Tracé du contour…');
-    await dessinerSurcouches(pixels, emprise, [traceContour(contour, emprise)]);
+    await drawOverlays(pixels, extent, [boundaryOutline(boundary, extent)]);
   }
-  console.log(`Enregistrement dans ${sortie}…`);
-  await enregistrer(pixels, emprise, sortie, { dpi });
-  console.log(`Terminé en ${Math.round((performance.now() - debut) / 1000)} s.`);
+  console.log(`Enregistrement dans ${outputPath}…`);
+  await saveImage(pixels, extent, outputPath, { dpi });
+  console.log(`Terminé en ${Math.round((performance.now() - start) / 1000)} s.`);
 }
 
-function afficherEstimations(bboxCommune, marge, zoomMax, zoomChoisi, dpi) {
-  const latitude = (bboxCommune[1] + bboxCommune[3]) / 2;
+function printEstimates(bbox, margin, maxZoom, selectedZoom, dpi) {
+  const latitude = (bbox[1] + bbox[3]) / 2;
   console.log(`   zoom   m/pixel           image (px)    tuiles   impression à ${dpi} dpi`);
-  for (let zoom = Math.max(0, Math.min(zoomChoisi, zoomMax - 6)); zoom <= zoomMax; zoom++) {
-    const { largeur, hauteur, nombreTuiles } = empriseDepuisBbox(bboxCommune, zoom, marge);
-    const [largeurMm, hauteurMm] = tailleImpressionMm(largeur, hauteur, dpi);
+  for (let zoom = Math.max(0, Math.min(selectedZoom, maxZoom - 6)); zoom <= maxZoom; zoom++) {
+    const { width, height, tileCount } = extentFromBbox(bbox, zoom, margin);
+    const [widthMm, heightMm] = printSizeMm(width, height, dpi);
     console.log(
-      ` ${zoom === zoomChoisi ? '→' : ' '} ${String(zoom).padStart(4)}   ${resolutionSol(latitude, zoom).toFixed(2).padStart(7)}` +
-        `   ${String(largeur).padStart(8)} × ${String(hauteur).padEnd(8)} ${String(nombreTuiles).padStart(7)}` +
-        `   ${largeurMm.toFixed(0).padStart(5)} × ${hauteurMm.toFixed(0).padEnd(5)} mm (${formatPapier(largeurMm, hauteurMm)})`,
+      ` ${zoom === selectedZoom ? '→' : ' '} ${String(zoom).padStart(4)}   ${groundResolution(latitude, zoom).toFixed(2).padStart(7)}` +
+        `   ${String(width).padStart(8)} × ${String(height).padEnd(8)} ${String(tileCount).padStart(7)}` +
+        `   ${widthMm.toFixed(0).padStart(5)} × ${heightMm.toFixed(0).padEnd(5)} mm (${paperFormat(widthMm, heightMm)})`,
     );
   }
 }
 
-// Vrai tant que la ligne de progression n'est pas terminée par un retour à la ligne.
-let progressionEnCours = false;
-
-function afficherProgression(faites, total) {
+function printProgress(done, total) {
   if (!process.stdout.isTTY) return;
-  process.stdout.write(`\r  ${faites}/${total} tuiles (${Math.floor((faites * 100) / total)} %)`);
-  progressionEnCours = faites < total;
-  if (!progressionEnCours) process.stdout.write('\n');
+  process.stdout.write(`\r  ${done}/${total} tuiles (${Math.floor((done * 100) / total)} %)`);
+  progressLineOpen = done < total;
+  if (!progressLineOpen) process.stdout.write('\n');
 }
 
-function entier(valeur, nom, min, max = Infinity) {
-  const nombre = Number(valeur);
-  if (!Number.isInteger(nombre) || nombre < min || nombre > max) {
-    const bornes = max === Infinity ? `supérieur ou égal à ${min}` : `compris entre ${min} et ${max}`;
-    throw new ErreurUtilisation(`${nom} doit être un entier ${bornes}.`);
+function parseInteger(value, name, min, max = Infinity) {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < min || number > max) {
+    const bounds = max === Infinity ? `supérieur ou égal à ${min}` : `compris entre ${min} et ${max}`;
+    throw new UsageError(`${name} doit être un entier ${bounds}.`);
   }
-  return nombre;
+  return number;
 }
 
-main().catch((erreur) => {
-  if (progressionEnCours) process.stdout.write('\n');
-  if (erreur instanceof CommuneIntrouvable || erreur instanceof ErreurUtilisation) {
-    console.error(erreur.message);
+main().catch((error) => {
+  if (progressLineOpen) process.stdout.write('\n');
+  if (error instanceof MunicipalityNotFound || error instanceof UsageError) {
+    console.error(error.message);
   } else {
-    console.error(`Erreur : ${erreur.message}${erreur.cause ? ` (${erreur.cause.message ?? erreur.cause})` : ''}`);
+    console.error(`Erreur : ${error.message}${error.cause ? ` (${error.cause.message ?? error.cause})` : ''}`);
   }
   process.exitCode = 1;
 });

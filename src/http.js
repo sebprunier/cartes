@@ -1,22 +1,22 @@
 const USER_AGENT = 'cartes/0.1 (generation de cartes communales)';
-const DELAI_MS = 30_000;
+const TIMEOUT_MS = 30_000;
 
-export class ErreurHttp extends Error {
-  constructor(url, statut) {
-    super(`HTTP ${statut} pour ${url}`);
-    this.statut = statut;
+export class HttpError extends Error {
+  constructor(url, status) {
+    super(`HTTP ${status} pour ${url}`);
+    this.status = status;
   }
 }
 
-export function requete(url) {
+export function request(url) {
   return fetch(url, {
     headers: { 'User-Agent': USER_AGENT },
-    signal: AbortSignal.timeout(DELAI_MS),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 }
 
-export async function requeteJson(url) {
-  const reponse = await requete(url);
-  if (!reponse.ok) throw new ErreurHttp(url, reponse.status);
-  return reponse.json();
+export async function requestJson(url) {
+  const response = await request(url);
+  if (!response.ok) throw new HttpError(url, response.status);
+  return response.json();
 }
