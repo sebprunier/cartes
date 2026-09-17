@@ -1,9 +1,17 @@
-# cartes
+<p align="center">
+  <img src="docs/images/logo.png" alt="Logo de cartes : une carte dépliée montrant le contour d'une commune" width="160">
+</p>
 
-[![CI](https://github.com/sebprunier/cartes/actions/workflows/ci.yml/badge.svg)](https://github.com/sebprunier/cartes/actions/workflows/ci.yml)
-[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+<h1 align="center">cartes</h1>
 
-Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format.
+<p align="center">
+  <a href="https://github.com/sebprunier/cartes/actions/workflows/ci.yml"><img src="https://github.com/sebprunier/cartes/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue.svg" alt="Licence MIT"></a>
+</p>
+
+<p align="center">
+  Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format.
+</p>
 
 > **État du projet** : prototype. L'outil en ligne de commande valide le principe, mais ses commandes et options peuvent encore évoluer.
 
