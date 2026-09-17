@@ -79,8 +79,10 @@ Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/). Pour p
 
 1. Dans le [journal des modifications](CHANGELOG.md), renommez la section « Non publié » en « [x.y.z] – date », ajoutez une nouvelle section « Non publié » vide au-dessus, et mettez à jour les liens en bas du fichier.
 2. Commitez ce changement, puis lancez `npm version x.y.z -m "Publie la version %s"` : la commande met à jour `package.json` et `package-lock.json`, crée le commit et le tag `vx.y.z`.
-3. Poussez le commit et le tag : `git push --follow-tags`.
-4. Créez la release GitHub à partir du tag, avec la section du journal comme notes de version : `gh release create vx.y.z --title "x.y.z" --notes-file <notes>`.
+3. Poussez le commit et le tag : `git push --follow-tags`. Le workflow « Installeurs » construit alors les applications de bureau pour macOS, Windows et Linux, et les joint à la release.
+4. Créez la release GitHub à partir du tag, avec la section du journal comme notes de version : `gh release create vx.y.z --title "x.y.z" --notes-file <notes>`. Si le workflow arrive avant, il crée une release provisoire : modifiez alors ses notes au lieu d'en créer une.
+
+Le workflow « Installeurs » se lance aussi à la demande, depuis l'onglet Actions, pour vérifier que l'empaquetage fonctionne sans publier de version.
 
 ## Licence
 

@@ -49,6 +49,11 @@
   "build": {
     "appId": "fr.cartes.app",
     "productName": "cartes",
+    "directories": {
+      "output": "dist-installers"
+    },
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "icon": "docs/images/logo.png",
     "files": [
       "electron/**",
       "dist-electron/**",
