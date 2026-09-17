@@ -99,6 +99,10 @@ La licence du projet porte sur son code : les cartes produites restent soumises 
 
 L'analyse détaillée des licences, des conditions d'accès aux services et des raisons du retrait des fonds de carte Esri est dans [Données utilisées et licences](docs/donnees-et-licences.md).
 
+## Versions
+
+Les évolutions de chaque version sont décrites dans le [journal des modifications](CHANGELOG.md). La version installée s'affiche avec `cartes --version`.
+
 ## Contribuer
 
 Les contributions sont les bienvenues ! Le [guide de contribution](CONTRIBUTING.md) explique comment préparer son environnement, lancer les tests et proposer une modification. Les participants s'engagent à respecter le [code de conduite](CODE_OF_CONDUCT.md).

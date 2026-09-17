@@ -1,0 +1,30 @@
+# Journal des modifications
+
+Les évolutions notables du projet sont consignées dans ce fichier.
+
+Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), et le projet suit le [versionnage sémantique](https://semver.org/lang/fr/). Tant que la version est en 0.x, les commandes et les options peuvent encore changer.
+
+## [Non publié]
+
+## [0.1.0] – 2026-09-17
+
+Première version : un outil en ligne de commande qui génère la carte détaillée d'une commune française en recollant des tuiles de fond de carte, prête à imprimer en grand format.
+
+### Ajouté
+
+- Commande `chercher` : recherche d'une commune par son nom, avec filtre par département.
+- Commande `fonds` : liste des fonds de carte disponibles.
+- Commande `generer` : carte d'une commune, désignée par son nom ou son code INSEE, recadrée sur son contour avec une marge.
+- Fonds de carte de l'IGN, via la Géoplateforme : Plan IGN (`plan-ign`) et photographies aériennes (`ortho-ign`), jusqu'au zoom 19.
+- Tracé du contour de la commune (ADMIN EXPRESS), y compris sur les très grandes images.
+- Option `--gris` : fond de carte en niveaux de gris.
+- Formats PNG, JPEG et TIFF, choisis avec `--format` ou l'extension du fichier de sortie : JPEG par défaut pour les photographies aériennes, PNG pour les plans. La résolution d'impression (`--dpi`) est enregistrée dans le fichier.
+- Mention des sources en bas à droite de chaque carte, avec la date de mise à jour des données, lue dans le catalogue de la Géoplateforme, et la date de génération de la carte.
+- Option `--estimer` : pour chaque niveau de zoom, dimensions de l'image, format papier à la résolution choisie, mémoire nécessaire et poids estimé du fichier.
+- Cache des tuiles téléchargées, téléchargements simultanés (`--paralleles`), nouvelles tentatives en cas d'erreur passagère de la Géoplateforme et garde-fou sur le nombre de tuiles (`--max-tuiles`).
+- Commandes, options et messages en français, avec des alias anglais pour les commandes et les options.
+- Option `--version`.
+- Documentation des données utilisées et de leurs licences.
+
+[Non publié]: https://github.com/sebprunier/cartes/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/sebprunier/cartes/releases/tag/v0.1.0

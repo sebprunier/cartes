@@ -54,9 +54,19 @@ Pour les essais manuels, ménagez les services publics utilisés : commencez par
 1. Pour un changement important, ouvrez d'abord une issue pour en discuter.
 2. Forkez le dépôt et créez une branche.
 3. Faites vos modifications, avec leurs tests, et vérifiez que `npm test` passe.
-4. Ouvrez une pull request qui décrit le changement et sa motivation.
+4. Pour une évolution notable pour les utilisateurs, ajoutez une ligne dans la section « Non publié » du [journal des modifications](CHANGELOG.md).
+5. Ouvrez une pull request qui décrit le changement et sa motivation.
 
 L'intégration continue (GitHub Actions) lance les tests sur Node.js 22, 24 et 26.
+
+## Publier une version
+
+Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/). Pour publier la version `x.y.z` :
+
+1. Dans le [journal des modifications](CHANGELOG.md), renommez la section « Non publié » en « [x.y.z] – date », ajoutez une nouvelle section « Non publié » vide au-dessus, et mettez à jour les liens en bas du fichier.
+2. Commitez ce changement, puis lancez `npm version x.y.z -m "Publie la version %s"` : la commande met à jour `package.json` et `package-lock.json`, crée le commit et le tag `vx.y.z`.
+3. Poussez le commit et le tag : `git push --follow-tags`.
+4. Créez la release GitHub à partir du tag, avec la section du journal comme notes de version : `gh release create vx.y.z --title "x.y.z" --notes-file <notes>`.
 
 ## Licence
 
