@@ -26,18 +26,18 @@
     <main>
       <section>
         <h2>1. Choisir la commune</h2>
-        <label for="recherche">Nom de la commune</label>
-        <input id="recherche" type="search" placeholder="Colombiers" autocomplete="off" />
-        <ul id="resultats" hidden></ul>
-        <p id="commune-choisie" hidden></p>
+        <label for="search">Nom de la commune</label>
+        <input id="search" type="search" placeholder="Colombiers" autocomplete="off" />
+        <ul id="results" hidden></ul>
+        <p id="selected-municipality" hidden></p>
       </section>
 
-      <section id="options" hidden>
+      <section id="settings" hidden>
         <h2>2. Régler la carte</h2>
-        <div class="reglages">
+        <div class="settings">
           <p>
-            <label for="fond">Fond de carte</label>
-            <select id="fond"></select>
+            <label for="basemap">Fond de carte</label>
+            <select id="basemap"></select>
           </p>
           <p>
             <label for="zoom">Niveau de zoom</label>
@@ -54,15 +54,15 @@
             <label for="dpi">Résolution visée (dpi)</label>
             <input id="dpi" type="number" value="150" min="50" max="600" step="10" />
           </p>
-          <p class="cases">
-            <label><input id="gris" type="checkbox" /> Niveaux de gris</label>
-            <label><input id="contour" type="checkbox" checked /> Tracer le contour de la commune</label>
+          <p class="checkboxes">
+            <label><input id="grayscale" type="checkbox" /> Niveaux de gris</label>
+            <label><input id="outline" type="checkbox" checked /> Tracer le contour de la commune</label>
           </p>
         </div>
 
         <h3>Tailles selon le niveau de zoom</h3>
-        <div class="tableau">
-          <table id="estimations">
+        <div class="table-wrapper">
+          <table id="estimates">
             <thead>
               <tr>
                 <th>Zoom</th>
@@ -78,11 +78,11 @@
           </table>
         </div>
         <p>
-          <button id="estimer" type="button">Estimer le poids des fichiers</button>
-          <span id="chargement-estimation" hidden
-            ><span class="rouet" aria-hidden="true"></span> Estimation en cours… <span id="etat-estimation"></span
+          <button id="estimate" type="button">Estimer le poids des fichiers</button>
+          <span id="estimate-spinner" hidden
+            ><span class="spinner" aria-hidden="true"></span> Estimation en cours… <span id="estimate-status"></span
           ></span>
-          <span id="note-estimation" class="note">Télécharge 36 tuiles par niveau de zoom.</span>
+          <span id="estimate-note" class="note">Télécharge 36 tuiles par niveau de zoom.</span>
         </p>
         <p class="note">
           Au-delà du zoom 17, l'image dépasse ce qu'un navigateur sait produire : passez par la
@@ -93,12 +93,12 @@
       <section id="generation" hidden>
         <h2>3. Générer la carte</h2>
         <p>
-          <button id="generer" type="button">Générer la carte</button>
-          <button id="annuler" type="button" hidden>Annuler</button>
+          <button id="generate" type="button">Générer la carte</button>
+          <button id="cancel" type="button" hidden>Annuler</button>
         </p>
-        <p id="progression" hidden><progress id="barre" max="100" value="0"></progress> <span id="etat"></span></p>
-        <p id="resultat" hidden></p>
-        <p id="erreur" class="erreur" hidden></p>
+        <p id="progress-line" hidden><progress id="progress-bar" max="100" value="0"></progress> <span id="progress-status"></span></p>
+        <p id="result" hidden></p>
+        <p id="error" class="error" hidden></p>
       </section>
     </main>
 

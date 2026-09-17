@@ -2,7 +2,13 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
-import { boundaryBbox, describeMunicipality, fetchBoundary, normalizeName, searchMunicipalities } from './core/municipalities.js';
+import {
+  boundaryBbox,
+  describeMunicipality,
+  fetchBoundary,
+  normalizeName,
+  searchMunicipalities,
+} from './core/municipalities.js';
 import { paperFormat, printSizeMm } from './core/print.js';
 import { extentFromBbox, groundResolution } from './core/tiles.js';
 
@@ -11,275 +17,278 @@ const DEFAULT_ZOOM = 16;
 // Above this zoom level, the image goes beyond what browsers can draw: the command line takes over.
 const MAX_ZOOM = 17;
 const MARGIN = 0.03;
-const POIDS_INCONNU = '–';
+const UNKNOWN_SIZE = '–';
+const FILE_SIZE_COLUMN = 6;
 
 const element = (id) => document.getElementById(id);
-const champRecherche = element('recherche');
-const listeResultats = element('resultats');
-const communeChoisie = element('commune-choisie');
-const sectionOptions = element('options');
-const sectionGeneration = element('generation');
-const choixFond = element('fond');
-const choixZoom = element('zoom');
-const choixFormat = element('format');
-const champDpi = element('dpi');
-const caseGris = element('gris');
-const caseContour = element('contour');
-const tableauEstimations = element('estimations');
-const boutonEstimer = element('estimer');
-const chargementEstimation = element('chargement-estimation');
-const etatEstimation = element('etat-estimation');
-const noteEstimation = element('note-estimation');
-const boutonGenerer = element('generer');
-const boutonAnnuler = element('annuler');
-const progression = element('progression');
-const barre = element('barre');
-const etat = element('etat');
-const resultat = element('resultat');
-const erreur = element('erreur');
+const searchField = element('search');
+const searchResults = element('results');
+const selectedMunicipality = element('selected-municipality');
+const settingsSection = element('settings');
+const generationSection = element('generation');
+const basemapChoice = element('basemap');
+const zoomChoice = element('zoom');
+const formatChoice = element('format');
+const dpiField = element('dpi');
+const grayscaleBox = element('grayscale');
+const outlineBox = element('outline');
+const estimatesTable = element('estimates');
+const estimateButton = element('estimate');
+const estimateSpinner = element('estimate-spinner');
+const estimateStatus = element('estimate-status');
+const estimateNote = element('estimate-note');
+const generateButton = element('generate');
+const cancelButton = element('cancel');
+const progressLine = element('progress-line');
+const progressBar = element('progress-bar');
+const progressStatus = element('progress-status');
+const result = element('result');
+const errorLine = element('error');
 
-let commune;
-let travailleur;
-let rechercheEnCours;
+let municipality;
+let worker;
+let pendingSearch;
 
 for (const basemap of Object.values(BASEMAPS)) {
-  choixFond.append(new Option(basemap.name, basemap.id));
+  basemapChoice.append(new Option(basemap.name, basemap.id));
 }
 
-champRecherche.addEventListener('input', debounce(rechercher, 300));
-choixFond.addEventListener('change', () => {
-  remplirZooms();
-  afficherEstimations();
+searchField.addEventListener('input', debounce(search, 300));
+basemapChoice.addEventListener('change', () => {
+  fillZooms();
+  showEstimates();
 });
-choixZoom.addEventListener('change', afficherEstimations);
-champDpi.addEventListener('change', afficherEstimations);
-choixFormat.addEventListener('change', () => viderPoids());
-caseGris.addEventListener('change', () => viderPoids());
-boutonEstimer.addEventListener('click', estimerPoids);
-boutonGenerer.addEventListener('click', generer);
-boutonAnnuler.addEventListener('click', annuler);
+zoomChoice.addEventListener('change', showEstimates);
+dpiField.addEventListener('change', showEstimates);
+formatChoice.addEventListener('change', clearFileSizes);
+grayscaleBox.addEventListener('change', clearFileSizes);
+estimateButton.addEventListener('click', estimateFileSizes);
+generateButton.addEventListener('click', generate);
+cancelButton.addEventListener('click', cancel);
 
-async function rechercher() {
-  const saisie = champRecherche.value.trim();
-  listeResultats.hidden = saisie.length < 2;
-  if (saisie.length < 2) return;
+async function search() {
+  const input = searchField.value.trim();
+  searchResults.hidden = input.length < 2;
+  if (input.length < 2) return;
 
-  const recherche = (rechercheEnCours = searchMunicipalities(saisie));
+  const currentSearch = (pendingSearch = searchMunicipalities(input));
   try {
-    const communes = await recherche;
-    if (recherche !== rechercheEnCours) return; // Une recherche plus récente a pris la main.
-    listeResultats.replaceChildren(
-      ...communes.map((municipality) => {
+    const municipalities = await currentSearch;
+    if (currentSearch !== pendingSearch) return; // A more recent search took over.
+    searchResults.replaceChildren(
+      ...municipalities.map((found) => {
         const item = document.createElement('li');
-        item.textContent = describeMunicipality(municipality);
-        item.addEventListener('click', () => choisir(municipality));
+        item.textContent = describeMunicipality(found);
+        item.addEventListener('click', () => select(found));
         return item;
       }),
     );
-    listeResultats.hidden = communes.length === 0;
+    searchResults.hidden = municipalities.length === 0;
   } catch (error) {
-    afficherErreur(`Recherche impossible : ${error.message}`);
+    showError(`Recherche impossible : ${error.message}`);
   }
 }
 
-async function choisir(municipality) {
-  listeResultats.hidden = true;
-  champRecherche.value = municipality.name;
+async function select(found) {
+  searchResults.hidden = true;
+  searchField.value = found.name;
   try {
-    const boundary = await fetchBoundary(municipality.inseeCode);
-    commune = { boundary, bbox: boundaryBbox(boundary), municipality };
+    const boundary = await fetchBoundary(found.inseeCode);
+    municipality = { boundary, bbox: boundaryBbox(boundary) };
   } catch (error) {
-    afficherErreur(`Contour indisponible : ${error.message}`);
+    showError(`Contour indisponible : ${error.message}`);
     return;
   }
-  communeChoisie.textContent = `${commune.boundary.name} (${commune.boundary.inseeCode})`;
-  communeChoisie.hidden = false;
-  sectionOptions.hidden = false;
-  sectionGeneration.hidden = false;
-  resultat.hidden = true;
-  erreur.hidden = true;
-  remplirZooms();
-  afficherEstimations();
+  selectedMunicipality.textContent = `${municipality.boundary.name} (${municipality.boundary.inseeCode})`;
+  selectedMunicipality.hidden = false;
+  settingsSection.hidden = false;
+  generationSection.hidden = false;
+  result.hidden = true;
+  errorLine.hidden = true;
+  fillZooms();
+  showEstimates();
 }
 
-function remplirZooms() {
-  const disponibles = zooms().filter((zoom) => zoom <= MAX_ZOOM);
-  const choisi = Number(choixZoom.value) || DEFAULT_ZOOM;
-  choixZoom.replaceChildren();
-  for (const zoom of disponibles) choixZoom.append(new Option(String(zoom), String(zoom)));
-  choixZoom.value = String(Math.min(Math.max(choisi, disponibles[0]), disponibles.at(-1)));
-}
-
-function zooms() {
-  const { maxZoom } = BASEMAPS[choixFond.value];
+function zoomLevels() {
+  const { maxZoom } = BASEMAPS[basemapChoice.value];
   return Array.from({ length: ZOOM_LEVELS }, (_, index) => maxZoom - ZOOM_LEVELS + 1 + index);
 }
 
-function afficherEstimations() {
-  if (!commune) return;
-  const dpi = Number(champDpi.value) || 150;
-  const latitude = (commune.bbox[1] + commune.bbox[3]) / 2;
-  const corps = tableauEstimations.tBodies[0];
-  corps.replaceChildren(
-    ...zooms().map((zoom) => {
-      const extent = extentFromBbox(commune.bbox, zoom, MARGIN);
-      const [largeurMm, hauteurMm] = printSizeMm(extent.width, extent.height, dpi);
-      const ligne = document.createElement('tr');
-      ligne.dataset.zoom = String(zoom);
-      if (zoom === Number(choixZoom.value)) ligne.classList.add('choisi');
-      if (zoom > MAX_ZOOM) ligne.classList.add('indisponible');
-      for (const valeur of [
+function fillZooms() {
+  const available = zoomLevels().filter((zoom) => zoom <= MAX_ZOOM);
+  const selected = Number(zoomChoice.value) || DEFAULT_ZOOM;
+  zoomChoice.replaceChildren();
+  for (const zoom of available) zoomChoice.append(new Option(String(zoom), String(zoom)));
+  zoomChoice.value = String(Math.min(Math.max(selected, available[0]), available.at(-1)));
+}
+
+function showEstimates() {
+  if (!municipality) return;
+  const dpi = Number(dpiField.value) || 150;
+  const latitude = (municipality.bbox[1] + municipality.bbox[3]) / 2;
+  estimatesTable.tBodies[0].replaceChildren(
+    ...zoomLevels().map((zoom) => {
+      const extent = extentFromBbox(municipality.bbox, zoom, MARGIN);
+      const [widthMm, heightMm] = printSizeMm(extent.width, extent.height, dpi);
+      const available = zoom <= MAX_ZOOM;
+      const row = document.createElement('tr');
+      row.dataset.zoom = String(zoom);
+      if (zoom === Number(zoomChoice.value)) row.classList.add('selected');
+      if (!available) row.classList.add('unavailable');
+      for (const value of [
         zoom,
         groundResolution(latitude, zoom).toFixed(2),
         `${extent.width} × ${extent.height}`,
         extent.tileCount,
-        `${largeurMm.toFixed(0)} × ${hauteurMm.toFixed(0)} mm (${paperFormat(largeurMm, hauteurMm)})`,
+        `${widthMm.toFixed(0)} × ${heightMm.toFixed(0)} mm (${paperFormat(widthMm, heightMm)})`,
         formatBytes(imageMemory(extent)),
-        zoom > MAX_ZOOM ? 'hors navigateur' : POIDS_INCONNU,
+        available ? UNKNOWN_SIZE : 'hors navigateur',
       ]) {
-        const cellule = document.createElement('td');
-        cellule.textContent = String(valeur);
-        ligne.append(cellule);
+        const cell = document.createElement('td');
+        cell.textContent = String(value);
+        row.append(cell);
       }
-      if (zoom <= MAX_ZOOM) {
-        ligne.addEventListener('click', () => {
-          choixZoom.value = String(zoom);
-          afficherEstimations();
+      if (available) {
+        row.addEventListener('click', () => {
+          zoomChoice.value = String(zoom);
+          showEstimates();
         });
       }
-      return ligne;
+      return row;
     }),
   );
 }
 
-function viderPoids() {
-  for (const ligne of tableauEstimations.tBodies[0].rows) {
-    if (Number(ligne.dataset.zoom) <= MAX_ZOOM) ligne.cells[6].textContent = POIDS_INCONNU;
+function clearFileSizes() {
+  for (const row of estimatesTable.tBodies[0].rows) {
+    if (Number(row.dataset.zoom) <= MAX_ZOOM) row.cells[FILE_SIZE_COLUMN].textContent = UNKNOWN_SIZE;
   }
 }
 
-function celluleDuZoom(zoom) {
-  return [...tableauEstimations.tBodies[0].rows].find((row) => row.dataset.zoom === String(zoom))?.cells[6];
+function fileSizeCell(zoom) {
+  return [...estimatesTable.tBodies[0].rows].find((row) => row.dataset.zoom === String(zoom))?.cells[FILE_SIZE_COLUMN];
 }
 
-async function estimerPoids() {
-  if (!commune) return;
-  const aEstimer = zooms().filter((zoom) => zoom <= MAX_ZOOM);
-  boutonEstimer.disabled = true;
-  chargementEstimation.hidden = false;
-  noteEstimation.hidden = true;
-  viderPoids();
+async function estimateFileSizes() {
+  if (!municipality) return;
+  const zooms = zoomLevels().filter((zoom) => zoom <= MAX_ZOOM);
+  estimateButton.disabled = true;
+  estimateSpinner.hidden = false;
+  estimateNote.hidden = true;
+  clearFileSizes();
   try {
-    for (const [index, zoom] of aEstimer.entries()) {
-      etatEstimation.textContent = `zoom ${zoom} (${index + 1} sur ${aEstimer.length})`;
-      const cellule = celluleDuZoom(zoom);
-      if (cellule) cellule.textContent = '…';
-      const { size } = await demanderAuTravailleur({
+    for (const [index, zoom] of zooms.entries()) {
+      estimateStatus.textContent = `zoom ${zoom} (${index + 1} sur ${zooms.length})`;
+      const cell = fileSizeCell(zoom);
+      if (cell) cell.textContent = '…';
+      const { size } = await askWorker({
         task: 'estimate',
-        basemapId: choixFond.value,
-        bbox: commune.bbox,
+        basemapId: basemapChoice.value,
+        bbox: municipality.bbox,
         zoom,
         margin: MARGIN,
-        format: choixFormat.value,
-        grayscale: caseGris.checked,
+        format: formatChoice.value,
+        grayscale: grayscaleBox.checked,
       });
-      if (cellule) cellule.textContent = size === undefined ? '?' : `≈ ${formatBytes(size)}`;
+      if (cell) cell.textContent = size === undefined ? '?' : `≈ ${formatBytes(size)}`;
     }
   } catch (error) {
-    afficherErreur(`Estimation impossible : ${error.message}`);
-    viderPoids();
+    showError(`Estimation impossible : ${error.message}`);
+    clearFileSizes();
   } finally {
-    boutonEstimer.disabled = false;
-    chargementEstimation.hidden = true;
-    noteEstimation.hidden = false;
-    etatEstimation.textContent = '';
+    estimateButton.disabled = false;
+    estimateSpinner.hidden = true;
+    estimateNote.hidden = false;
+    estimateStatus.textContent = '';
   }
 }
 
-async function generer() {
-  if (!commune) return;
-  boutonGenerer.disabled = true;
-  boutonAnnuler.hidden = false;
-  progression.hidden = false;
-  resultat.hidden = true;
-  erreur.hidden = true;
-  barre.value = 0;
-  etat.textContent = 'Téléchargement des tuiles…';
-  const debut = performance.now();
+async function generate() {
+  if (!municipality) return;
+  generateButton.disabled = true;
+  cancelButton.hidden = false;
+  progressLine.hidden = false;
+  result.hidden = true;
+  errorLine.hidden = true;
+  progressBar.value = 0;
+  progressStatus.textContent = 'Téléchargement des tuiles…';
+  const start = performance.now();
 
   try {
-    const carte = await demanderAuTravailleur(
+    const map = await askWorker(
       {
         task: 'generate',
-        basemapId: choixFond.value,
-        boundary: commune.boundary,
-        bbox: commune.bbox,
-        zoom: Number(choixZoom.value),
+        basemapId: basemapChoice.value,
+        boundary: municipality.boundary,
+        bbox: municipality.bbox,
+        zoom: Number(zoomChoice.value),
         margin: MARGIN,
-        format: choixFormat.value,
-        grayscale: caseGris.checked,
-        outline: caseContour.checked,
+        format: formatChoice.value,
+        grayscale: grayscaleBox.checked,
+        outline: outlineBox.checked,
       },
       ({ done, total }) => {
-        barre.value = (done / total) * 100;
-        etat.textContent = `${done} / ${total} tuiles`;
+        progressBar.value = (done / total) * 100;
+        progressStatus.textContent = `${done} / ${total} tuiles`;
       },
     );
-    afficherCarte(carte, Math.round((performance.now() - debut) / 1000));
+    showMap(map, Math.round((performance.now() - start) / 1000));
   } catch (error) {
-    afficherErreur(error.message);
+    showError(error.message);
   } finally {
-    boutonGenerer.disabled = false;
-    boutonAnnuler.hidden = true;
-    progression.hidden = true;
+    generateButton.disabled = false;
+    cancelButton.hidden = true;
+    progressLine.hidden = true;
   }
 }
 
-function afficherCarte(carte, secondes) {
-  const nom = `${commune.boundary.inseeCode}-${normalizeName(commune.boundary.name).replaceAll(' ', '-')}-${choixFond.value}-z${choixZoom.value}${caseGris.checked ? '-gris' : ''}.${choixFormat.value}`;
-  const lien = document.createElement('a');
-  lien.href = URL.createObjectURL(carte.blob);
-  lien.download = nom;
-  lien.textContent = `Télécharger ${nom} (${formatBytes(carte.blob.size)})`;
+function showMap(map, seconds) {
+  const name =
+    `${municipality.boundary.inseeCode}-${normalizeName(municipality.boundary.name).replaceAll(' ', '-')}` +
+    `-${basemapChoice.value}-z${zoomChoice.value}${grayscaleBox.checked ? '-gris' : ''}.${formatChoice.value}`;
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(map.blob);
+  link.download = name;
+  link.textContent = `Télécharger ${name} (${formatBytes(map.blob.size)})`;
 
-  resultat.replaceChildren(lien, document.createElement('br'));
   const details = document.createElement('span');
   details.className = 'note';
   details.textContent =
-    `Image de ${carte.width} × ${carte.height} px, générée en ${secondes} s` +
-    (carte.missing > 0 ? `, ${carte.missing} tuile(s) indisponible(s) laissée(s) en blanc` : '') +
-    (carte.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.');
-  resultat.append(details);
-  resultat.hidden = false;
+    `Image de ${map.width} × ${map.height} px, générée en ${seconds} s` +
+    (map.missing > 0 ? `, ${map.missing} tuile(s) indisponible(s) laissée(s) en blanc` : '') +
+    (map.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.');
+
+  result.replaceChildren(link, document.createElement('br'), details);
+  result.hidden = false;
 }
 
-function annuler() {
-  travailleur?.terminate();
-  travailleur = undefined;
-  boutonAnnuler.hidden = true;
-  progression.hidden = true;
-  boutonGenerer.disabled = false;
-  etat.textContent = '';
+function cancel() {
+  worker?.terminate();
+  worker = undefined;
+  cancelButton.hidden = true;
+  progressLine.hidden = true;
+  generateButton.disabled = false;
+  progressStatus.textContent = '';
 }
 
 /** Sends a task to a fresh worker and waits for its result, forwarding the progress messages. */
-function demanderAuTravailleur(message, onProgress) {
-  travailleur?.terminate();
-  travailleur = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+function askWorker(message, onProgress) {
+  worker?.terminate();
+  worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
   return new Promise((resolve, reject) => {
-    travailleur.onmessage = ({ data }) => {
+    worker.onmessage = ({ data }) => {
       if (data.progress) onProgress?.(data.progress);
       else if (data.error) reject(new Error(data.error));
       else if (data.done) resolve(data);
     };
-    travailleur.onerror = (event) => reject(new Error(event.message ?? 'Erreur inattendue'));
-    travailleur.postMessage(message);
+    worker.onerror = (event) => reject(new Error(event.message ?? 'Erreur inattendue'));
+    worker.postMessage(message);
   });
 }
 
-function afficherErreur(message) {
-  erreur.textContent = message;
-  erreur.hidden = false;
+function showError(message) {
+  errorLine.textContent = message;
+  errorLine.hidden = false;
 }
 
 function debounce(action, delay) {
