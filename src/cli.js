@@ -1,9 +1,18 @@
 #!/usr/bin/env node
 // Command line interface.
 
-import { BASEMAPS } from './basemaps.js';
+import { BASEMAPS, withCurrentAttribution } from './basemaps.js';
 import { HELP, UsageError, parseCommandLine, parseInteger } from './command-line.js';
-import { assembleTiles, boundaryOutline, drawOverlays, paperFormat, printSizeMm, saveImage } from './map.js';
+import {
+  assembleTiles,
+  attributionLabel,
+  attributionText,
+  boundaryOutline,
+  drawOverlays,
+  paperFormat,
+  printSizeMm,
+  saveImage,
+} from './map.js';
 import {
   MunicipalityNotFound,
   boundaryBbox,
@@ -100,10 +109,12 @@ async function generate(input, options) {
     options.output ??
     `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}-z${zoom}` +
       `${grayscale ? '-gris' : ''}.png`;
-  if (!options['no-outline']) {
-    console.log('Tracé du contour…');
-    await drawOverlays(pixels, extent, [boundaryOutline(boundary, extent)]);
-  }
+  const outline = !options['no-outline'];
+  const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
+  const attribution = attributionText({ basemap: await withCurrentAttribution(basemap), outline });
+  overlays.push(await attributionLabel(attribution, extent));
+  console.log(outline ? 'Tracé du contour et ajout de la mention des sources…' : 'Ajout de la mention des sources…');
+  await drawOverlays(pixels, extent, overlays);
   console.log(`Enregistrement dans ${outputPath}…`);
   await saveImage(pixels, extent, outputPath, { dpi });
   console.log(`Terminé en ${Math.round((performance.now() - start) / 1000)} s.`);

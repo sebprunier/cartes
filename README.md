@@ -67,7 +67,7 @@ Les cartes sont écrites dans `sorties/` (PNG par défaut, JPEG ou TIFF selon l'
 2. **Contour** : récupéré depuis ADMIN EXPRESS via le service WFS de la Géoplateforme (couche `ADMINEXPRESS-COG.LATEST:commune`, filtre sur `code_insee`).
 3. **Emprise** : la bbox du contour, élargie d'une marge (3 % par défaut), est convertie en pixels Web Mercator au niveau de zoom demandé, ce qui donne la liste des tuiles à récupérer.
 4. **Téléchargement** : 6 requêtes simultanées, nouvelles tentatives en cas d'erreur (la Géoplateforme renvoie parfois des erreurs passagères), cache sur disque.
-5. **Assemblage** : les tuiles sont recopiées dans une image aux dimensions exactes de l'emprise, puis le contour est superposé sous forme de calque SVG (le même mécanisme servira pour ajouter des données : points de collecte, zones de risques…).
+5. **Assemblage** : les tuiles sont recopiées dans une image aux dimensions exactes de l'emprise, puis le contour et la mention des sources sont superposés sous forme de calques SVG (le même mécanisme servira pour ajouter des données : points de collecte, zones de risques…).
 
 ## Ce qu'on apprend sur l'impression
 
@@ -87,8 +87,10 @@ Piste pour la suite : la Géoplateforme publie aussi le Plan IGN en **tuiles vec
 
 ## Sources des données et conditions d'utilisation
 
-- **IGN / Géoplateforme** (Plan IGN, photographies aériennes, ADMIN EXPRESS, géocodage) : données ouvertes, mention « © IGN » obligatoire sur les cartes produites.
-- **Esri** (`esri-plan`, `esri-satellite`) : les conditions d'utilisation d'ArcGIS Online encadrent le téléchargement massif et l'usage hors ligne des fonds de carte. À vérifier avant tout usage au-delà du test, et à plus forte raison pour un service en ligne.
+- **IGN / Géoplateforme** (Plan IGN, photographies aériennes, ADMIN EXPRESS, géocodage) : données ouvertes sous licence ouverte Etalab, qui impose de mentionner la source.
+- **Esri** (`esri-plan`, `esri-satellite`) : Esri exige la mention « Powered by Esri » et la liste des sources de données publiée dans les métadonnées de chaque service. Ses conditions d'utilisation encadrent aussi le téléchargement massif et l'usage hors ligne des fonds de carte : à vérifier avant tout usage au-delà du test, et à plus forte raison pour un service en ligne.
+
+Chaque carte générée porte en bas à droite la mention des sources utilisées et sa date de génération, par exemple « Sources : © IGN – Plan IGN ; © IGN – ADMIN EXPRESS · Carte générée le 17/09/2026 ». Pour les fonds Esri, la liste des sources est lue dans les métadonnées du service au moment de la génération, et la mention inclut « Powered by Esri ».
 
 La licence du projet porte sur son code : les cartes produites restent soumises aux conditions des fournisseurs de données ci-dessus.
 

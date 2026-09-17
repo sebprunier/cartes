@@ -9,6 +9,8 @@ import { TILE_SIZE, lonLatToPixel } from './tiles.js';
 
 const CHANNELS = 3;
 const OUTLINE_COLOR = 'rgb(200, 30, 90)';
+const ATTRIBUTION_COLOR = '#333333';
+const BOUNDARY_ATTRIBUTION = '© IGN – ADMIN EXPRESS';
 // Luminance coefficients (Rec. 601): grayscale stays on 3 channels so overlays keep their colors.
 const LUMINANCE = [0.299, 0.587, 0.114];
 // librsvg rejects SVGs larger than 32,767 px on a side: overlays are drawn block by block.
@@ -85,6 +87,56 @@ export function boundaryOutline(boundary, extent) {
     })
     .join('');
   return `<path d="${pathData}" fill="none" stroke="${OUTLINE_COLOR}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>`;
+}
+
+/**
+ * Text crediting the data sources, as required by the IGN open licence and the other data providers.
+ * The municipality boundary comes from ADMIN EXPRESS, so it is credited when the outline is drawn.
+ */
+export function attributionText({ basemap, outline, date = new Date() }) {
+  const sources = [basemap.attribution];
+  if (outline) sources.push(BOUNDARY_ATTRIBUTION);
+  const parts = [`Sources : ${sources.join(' ; ')}`];
+  if (basemap.poweredBy) parts.push(basemap.poweredBy);
+  parts.push(`Carte générée le ${date.toLocaleDateString('fr-FR')}`);
+  return parts.join(' · ');
+}
+
+/**
+ * SVG elements showing a text in the bottom right corner of the image, on a light background.
+ * The text is rendered by sharp so that the background fits its actual size; its size is proportional
+ * to the image size, so that it stays readable wherever the image is scaled to when printed.
+ * Long texts wrap at 60 % of the image width.
+ */
+export async function attributionLabel(text, extent) {
+  const fontSize = Math.max(12, Math.round(Math.max(extent.width, extent.height) / 150));
+  const padding = Math.round(fontSize / 2);
+  const { data, info } = await sharp({
+    text: {
+      text: `<span foreground="${ATTRIBUTION_COLOR}">${escapeMarkup(text)}</span>`,
+      font: `sans ${fontSize}`,
+      width: Math.round(extent.width * 0.6),
+      wrap: 'word',
+      dpi: 72,
+      rgba: true,
+    },
+  })
+    .png()
+    .toBuffer({ resolveWithObject: true });
+
+  const boxWidth = info.width + 2 * padding;
+  const boxHeight = info.height + 2 * padding;
+  const x = extent.width - boxWidth - padding;
+  const y = extent.height - boxHeight - padding;
+  return (
+    `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>` +
+    `<image x="${x + padding}" y="${y + padding}" width="${info.width}" height="${info.height}" ` +
+    `href="data:image/png;base64,${data.toString('base64')}"/>`
+  );
+}
+
+function escapeMarkup(text) {
+  return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
 /** Draws SVG elements (in image pixels) directly into the pixels, block by block. */

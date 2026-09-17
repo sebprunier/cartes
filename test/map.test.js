@@ -6,7 +6,16 @@ import { after, before, describe, it } from 'node:test';
 
 import sharp from 'sharp';
 
-import { assembleTiles, boundaryOutline, drawOverlays, paperFormat, printSizeMm, saveImage } from '../src/map.js';
+import {
+  assembleTiles,
+  attributionLabel,
+  attributionText,
+  boundaryOutline,
+  drawOverlays,
+  paperFormat,
+  printSizeMm,
+  saveImage,
+} from '../src/map.js';
 import { lonLatToPixel } from '../src/tiles.js';
 
 let tempDir;
@@ -119,6 +128,77 @@ describe('boundaryOutline', () => {
     assert.match(outline, /^<path d="M/);
     assert.equal(outline.match(/M/g).length, 2);
     assert.ok(outline.includes(`M${(x - extent.xMin).toFixed(1)},${(y - extent.yMin).toFixed(1)}L`));
+  });
+});
+
+describe('attributionText', () => {
+  const basemap = { attribution: '© IGN – Plan IGN' };
+  const date = new Date(2026, 8, 17);
+
+  it('credits the basemap, the boundary and the generation date', () => {
+    assert.equal(
+      attributionText({ basemap, outline: true, date }),
+      'Sources : © IGN – Plan IGN ; © IGN – ADMIN EXPRESS · Carte générée le 17/09/2026',
+    );
+  });
+
+  it('does not credit the boundary when the outline is not drawn', () => {
+    assert.equal(
+      attributionText({ basemap, outline: false, date }),
+      'Sources : © IGN – Plan IGN · Carte générée le 17/09/2026',
+    );
+  });
+
+  it('adds the "Powered by" mention required by the basemap provider', () => {
+    const esri = { attribution: 'Esri, Vantor', poweredBy: 'Powered by Esri' };
+    assert.equal(
+      attributionText({ basemap: esri, outline: true, date }),
+      'Sources : Esri, Vantor ; © IGN – ADMIN EXPRESS · Powered by Esri · Carte générée le 17/09/2026',
+    );
+  });
+});
+
+describe('attributionLabel', () => {
+  const extent = { width: 3000, height: 1500 };
+  const text = 'Sources : © IGN – Plan IGN & <données>';
+
+  function labelBox(label) {
+    const [, x, y, width, height] = label.match(/<rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"/).map(Number);
+    return { x, y, width, height };
+  }
+
+  it('places the label in the bottom right corner', async () => {
+    const label = await attributionLabel(text, extent);
+    const box = labelBox(label);
+    const padding = 10; // Half of the font size, which is the largest image side divided by 150.
+    assert.equal(box.x + box.width + padding, extent.width);
+    assert.equal(box.y + box.height + padding, extent.height);
+    assert.ok(box.width > 2 * padding && box.height > 2 * padding);
+    assert.match(label, /<image [^>]*href="data:image\/png;base64,/);
+  });
+
+  it('wraps long texts at 60 % of the image width', async () => {
+    const shortLabel = labelBox(await attributionLabel('Sources : © IGN', extent));
+    const longLabel = labelBox(await attributionLabel('Esri, HERE, Garmin, USGS, Intermap, NRCan, '.repeat(10), extent));
+    assert.ok(longLabel.width <= extent.width * 0.6 + 20, `width ${longLabel.width}`);
+    assert.ok(longLabel.height > 2 * shortLabel.height, `height ${longLabel.height}`);
+  });
+
+  it('draws a readable text on a light background', async () => {
+    const pixels = Buffer.alloc(extent.width * extent.height * 3, 0);
+    const label = await attributionLabel(text, extent);
+    const box = labelBox(label);
+    await drawOverlays(pixels, extent, [label]);
+
+    assert.ok(pixelAt(pixels, extent.width, box.x + 1, box.y + 1).every((value) => value > 200), 'background');
+    assert.deepEqual(pixelAt(pixels, extent.width, box.x - 1, box.y - 1), [0, 0, 0], 'outside the label');
+    let darkPixels = 0;
+    for (let y = box.y; y < box.y + box.height; y++) {
+      for (let x = box.x; x < box.x + box.width; x++) {
+        if (pixelAt(pixels, extent.width, x, y)[0] < 100) darkPixels++;
+      }
+    }
+    assert.ok(darkPixels > 100, 'text');
   });
 });
 
