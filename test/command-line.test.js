@@ -35,8 +35,35 @@ describe('parseCommandLine', () => {
     assert.equal(parseCommandLine(['générer', 'x']).command, 'generate');
   });
 
-  it('rejects unknown options', () => {
-    assert.throws(() => parseCommandLine(['generer', '86081', '--couleur']), { code: 'ERR_PARSE_ARGS_UNKNOWN_OPTION' });
+  it('rejects unknown options with a message in French', () => {
+    assert.throws(() => parseCommandLine(['generer', '86081', '--couleur']), {
+      message: 'Option inconnue : --couleur. La liste des options est disponible avec cartes --aide.',
+    });
+    assert.throws(() => parseCommandLine(['generer', '86081', '-x']), /Option inconnue : -x\./);
+  });
+
+  it('rejects string options without value', () => {
+    assert.throws(() => parseCommandLine(['generer', '86081', '--max-tuiles']), {
+      message: "L'option --max-tuiles attend une valeur.",
+    });
+    assert.throws(() => parseCommandLine(['generer', '86081', '-z', '--gris']), {
+      message: "L'option -z attend une valeur, et non « --gris ».",
+    });
+    assert.throws(() => parseCommandLine(['generer', '86081', '--marge', '-1']), {
+      message: "L'option --marge attend une valeur, et non « -1 ». Pour une valeur négative, écrivez --marge=-1.",
+    });
+  });
+
+  it('accepts values starting with a dash when written inline', () => {
+    assert.equal(parseCommandLine(['generer', '86081', '--marge=-1']).options.margin, '-1');
+  });
+
+  it('rejects values given to boolean options', () => {
+    assert.throws(() => parseCommandLine(['generer', '86081', '--gris=oui']), (error) => {
+      assert.ok(error instanceof UsageError);
+      assert.equal(error.message, "L'option --gris ne prend pas de valeur.");
+      return true;
+    });
   });
 });
 

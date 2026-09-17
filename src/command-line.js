@@ -56,7 +56,15 @@ export function parseCommandLine(args = process.argv.slice(2)) {
     config[name] = short ? { type, short } : { type };
     if (french) config[french] = { type };
   }
-  const { values, positionals } = parseArgs({ args, options: config, allowPositionals: true });
+  // Parsed in non strict mode so that option errors are reported in French by checkOptions.
+  const { values, positionals, tokens } = parseArgs({
+    args,
+    options: config,
+    allowPositionals: true,
+    strict: false,
+    tokens: true,
+  });
+  checkOptions(tokens, config);
 
   const options = {};
   for (const [name, { french, default: defaultValue }] of Object.entries(OPTIONS)) {
@@ -64,6 +72,28 @@ export function parseCommandLine(args = process.argv.slice(2)) {
   }
   const [command, argument] = positionals;
   return { command: FRENCH_COMMANDS[command] ?? command, argument, options };
+}
+
+/** Reports, in French, the option errors that parseArgs reports in strict mode. */
+function checkOptions(tokens, config) {
+  for (const { kind, name, rawName, value, inlineValue } of tokens) {
+    if (kind !== 'option') continue;
+    const option = config[name];
+    if (!option) {
+      throw new UsageError(`Option inconnue : ${rawName}. La liste des options est disponible avec cartes --aide.`);
+    }
+    if (option.type === 'boolean' && value !== undefined) {
+      throw new UsageError(`L'option ${rawName} ne prend pas de valeur.`);
+    }
+    if (option.type === 'string' && value === undefined) {
+      throw new UsageError(`L'option ${rawName} attend une valeur.`);
+    }
+    if (option.type === 'string' && !inlineValue && value.startsWith('-')) {
+      // The value looks like another option: most likely a forgotten value, or a negative number.
+      const hint = /^-\d/.test(value) ? ` Pour une valeur négative, écrivez ${rawName}=${value}.` : '';
+      throw new UsageError(`L'option ${rawName} attend une valeur, et non « ${value} ».${hint}`);
+    }
+  }
 }
 
 /** Parses an integer option value, checking its bounds. */
