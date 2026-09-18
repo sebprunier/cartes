@@ -22,3 +22,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # La page et la documentation doivent se construire, pas seulement passer les tests.
+      - run: npm run build:web
