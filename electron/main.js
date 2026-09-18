@@ -1,5 +1,6 @@
 // Main process: window, and generation of the maps with the same code as the command line.
 
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
@@ -54,6 +55,13 @@ function createWindow() {
   });
   window.loadFile(path.join(import.meta.dirname, '..', 'dist-electron', 'renderer', 'index.html'));
 }
+
+// Tile of the preview, drawn by the interface: downloaded once, then read from the cache of the maps.
+ipcMain.handle('tile', async (event, url, { basemapId, zoom, x, y }) => {
+  const load = cachedTileLoader({ cacheDir: cacheDir(), basemapId, zoom });
+  const tilePath = await load(url, { x, y });
+  return tilePath ? await readFile(tilePath) : null;
+});
 
 ipcMain.handle('estimate', async (event, request) => {
   const { basemap, extent } = plan(request);

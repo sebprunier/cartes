@@ -14,6 +14,9 @@ export const engine = {
     'Les zooms les plus élevés demandent beaucoup de mémoire : environ 1 Go au zoom 18 et 4 Go au zoom 19 pour ' +
     'une commune de taille moyenne. La colonne « Mémoire » indique la valeur exacte.',
 
+  // The tiles of the preview go through the main process, which keeps them in the same cache as the maps.
+  loadTile: (url, tile) => window.cartes.tile(url, tile),
+
   estimate: (request) => window.cartes.estimate(request),
   generate: (request, onProgress) => window.cartes.generate(request, onProgress),
   cancel: () => window.cartes.cancel(),

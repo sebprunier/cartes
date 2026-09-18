@@ -25,6 +25,11 @@ describe('rendering engines', () => {
     }
   });
 
+  it('let the desktop application load the tiles of the preview through its main process', () => {
+    assert.equal(typeof desktopEngine.loadTile, 'function');
+    assert.equal(webEngine.loadTile, undefined); // In a browser, the page downloads them itself.
+  });
+
   it('give the desktop application at least the capabilities of the web page', () => {
     assert.ok(desktopEngine.maxZoom >= webEngine.maxZoom);
     const desktopFormats = desktopEngine.formats.map(([value]) => value);

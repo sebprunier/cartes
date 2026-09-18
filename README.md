@@ -38,6 +38,8 @@ Une page web permet de générer une carte sans rien installer : <https://sebpru
 
 Elle a deux limites par rapport à la ligne de commande : la taille des images est bornée par le navigateur (environ 268 millions de pixels sur Chrome, soit le zoom 17 pour une commune de la taille de Colombiers, davantage pour une petite commune) et le format TIFF n'est pas disponible. Tous les niveaux de zoom sont proposés : si l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger quoi que ce soit et renvoie vers la ligne de commande ou l'application de bureau.
 
+Avant de générer, un aperçu montre la carte telle qu'elle sera : la commune entière réduite, avec son contour, les données ajoutées, la légende et la mention des sources, et un extrait à l'échelle réelle, qui dit si les étiquettes seront lisibles une fois imprimées. Un clic sur la miniature déplace l'extrait. L'aperçu est dessiné par le même code que la carte finale, et ne télécharge qu'une vingtaine de tuiles.
+
 Pour la faire tourner en local : `npm run web`, puis <http://localhost:8000>.
 
 ## Application de bureau

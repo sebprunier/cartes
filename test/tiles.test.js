@@ -12,6 +12,7 @@ import {
   TILE_SIZE,
   downloadTiles,
   extentFromBbox,
+  extentWindow,
   groundResolution,
   lonLatToPixel,
   sampleTiles,
@@ -52,6 +53,32 @@ describe('groundResolution', () => {
 
   it('decreases with the cosine of the latitude', () => {
     assert.ok(Math.abs(groundResolution(60, 10) - groundResolution(0, 10) / 2) < 1e-9);
+  });
+});
+
+describe('extentWindow', () => {
+  const extent = extentFromBbox(COLOMBIERS_BBOX, 16, 0.03);
+
+  it('takes a window of the asked size at the center of the extent', () => {
+    const window = extentWindow(extent, 700, 420);
+    assert.equal(window.width, 700);
+    assert.equal(window.height, 420);
+    assert.equal(window.zoom, extent.zoom);
+    assert.equal(window.xMin + 350, extent.xMin + Math.round(extent.width / 2));
+    assert.equal(window.tileCount, [...tilesInExtent(window)].length);
+  });
+
+  it('places the window where asked, without ever leaving the extent', () => {
+    const corner = extentWindow(extent, 700, 420, { x: 0, y: 0 });
+    assert.deepEqual([corner.xMin, corner.yMin], [extent.xMin, extent.yMin]);
+    const opposite = extentWindow(extent, 700, 420, { x: 1, y: 1 });
+    assert.deepEqual([opposite.xMax, opposite.yMax], [extent.xMax, extent.yMax]);
+  });
+
+  it('gives the whole extent back when it is smaller than the window', () => {
+    const small = extentFromBbox(COLOMBIERS_BBOX, 12, 0.03);
+    const window = extentWindow(small, 700, 420);
+    assert.deepEqual([window.width, window.height], [small.width, small.height]);
   });
 });
 

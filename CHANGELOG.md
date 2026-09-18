@@ -13,6 +13,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- Aperçu avant génération, sur la page web et dans l'application : la commune entière réduite (contour, données, légende et mention des sources comprises) et un extrait à l'échelle réelle, pour juger de la lisibilité des étiquettes à l'impression. Un clic sur la miniature déplace l'extrait. L'aperçu emprunte le code de rendu de la carte finale et ne télécharge qu'une vingtaine de tuiles.
 - Ajout des données de la commune sur les cartes : fichiers GeoJSON (uMap, QGIS) ou CSV avec des colonnes de latitude et de longitude, avec leurs étiquettes, leurs couleurs et une légende. Disponible dans les trois outils : option `--donnees` en ligne de commande, glisser-déposer sur la page web et dans l'application de bureau.
 - Catégories : les objets d'un même fichier sont regroupés par une propriété (`categorie`, `category`, `type`, `groupe` par défaut), avec une couleur et une ligne de légende par catégorie. Les options `--donnees-categorie` et `--donnees-couleur` désignent les propriétés à utiliser ; la page web et l'application les proposent dans une liste déroulante.
 - Placement des étiquettes : une étiquette qui en recouvrirait une autre, ou un autre point, est déplacée autour de son point, et abandonnée s'il n'y a pas la place.

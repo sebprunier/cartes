@@ -11,6 +11,7 @@ import {
   searchMunicipalities,
 } from './core/municipalities.js';
 import { paperFormat, printSizeMm } from './core/print.js';
+import { renderDetail, renderPreview } from './preview.js';
 import { extentFromBbox, groundResolution } from './core/tiles.js';
 import { engine } from './engine.js';
 
@@ -31,6 +32,15 @@ const fileInput = element('data-files');
 const layersList = element('layers');
 const legendChoice = element('legend-choice');
 const legendBox = element('legend');
+const previewSection = element('preview');
+const previewButton = element('preview-button');
+const previewProgress = element('preview-progress');
+const previewStatus = element('preview-status');
+const previewViews = element('preview-views');
+const previewOverview = element('preview-overview');
+const previewOverviewCaption = element('preview-overview-caption');
+const previewDetail = element('preview-detail');
+const previewDetailCaption = element('preview-detail-caption');
 const generationSection = element('generation');
 const basemapChoice = element('basemap');
 const zoomChoice = element('zoom');
@@ -72,11 +82,20 @@ searchField.addEventListener('input', debounce(search, 300));
 basemapChoice.addEventListener('change', () => {
   fillZooms();
   showEstimates();
+  agePreview();
 });
-zoomChoice.addEventListener('change', showEstimates);
+zoomChoice.addEventListener('change', () => {
+  showEstimates();
+  agePreview();
+});
 dpiField.addEventListener('change', showEstimates);
 formatChoice.addEventListener('change', clearFileSizes);
-grayscaleBox.addEventListener('change', clearFileSizes);
+grayscaleBox.addEventListener('change', () => {
+  clearFileSizes();
+  agePreview();
+});
+outlineBox.addEventListener('change', agePreview);
+legendBox.addEventListener('change', agePreview);
 fileInput.addEventListener('change', () => addFiles(fileInput.files));
 dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
@@ -89,6 +108,7 @@ dropZone.addEventListener('drop', (event) => {
   addFiles(event.dataTransfer.files);
 });
 estimateButton.addEventListener('click', estimateFileSizes);
+previewButton.addEventListener('click', showPreview);
 generateButton.addEventListener('click', generate);
 cancelButton.addEventListener('click', cancel);
 
@@ -129,7 +149,10 @@ async function select(found) {
   selectedMunicipality.hidden = false;
   settingsSection.hidden = false;
   dataSection.hidden = false;
+  previewSection.hidden = false;
   generationSection.hidden = false;
+  previewViews.hidden = true;
+  agePreview();
   result.hidden = true;
   errorLine.hidden = true;
   fillZooms();
@@ -149,6 +172,90 @@ async function addFiles(files) {
   }
   fileInput.value = '';
   showLayers();
+  agePreview();
+}
+
+/** Says that the settings changed since the preview was drawn, so that it is not taken for the current map. */
+function agePreview() {
+  previewButton.textContent = previewViews.hidden ? "Afficher l'aperçu" : "Actualiser l'aperçu";
+  previewStatus.textContent = previewViews.hidden ? '' : 'Réglages modifiés depuis cet aperçu.';
+}
+
+/** The map request behind the preview shown, to redraw its detail elsewhere without asking everything again. */
+function previewRequest() {
+  return {
+    basemapId: basemapChoice.value,
+    boundary: municipality.boundary,
+    bbox: municipality.bbox,
+    zoom: Number(zoomChoice.value),
+    margin: MARGIN,
+    grayscale: grayscaleBox.checked,
+    outline: outlineBox.checked,
+    layers,
+    legend: legendBox.checked,
+  };
+}
+
+/** Draws the two views of the map as it would be generated, with the current settings. */
+async function showPreview() {
+  if (!municipality) return;
+  await drawPreview(async (request) => {
+    const { overview, overviewZoom, ...detail } = await renderPreview(request);
+    previewOverview.replaceChildren(overviewCanvas(overview, request));
+    previewOverviewCaption.textContent =
+      `Commune entière, réduite (zoom ${overviewZoom}) : la légende et la mention des sources y paraissent ` +
+      'plus grandes que sur la carte finale.';
+    return detail;
+  });
+}
+
+/** Redraws the detail at the point clicked on the miniature, the rest of the preview being unchanged. */
+async function moveDetail(request, center) {
+  await drawPreview(() => renderDetail(request, center));
+}
+
+/** Runs a drawing, showing its progress, and places the detail it returns. */
+async function drawPreview(draw) {
+  const request = previewRequest();
+  previewButton.disabled = true;
+  previewProgress.hidden = false;
+  previewStatus.textContent = '';
+  try {
+    const { detail, wholeMap } = await draw(request);
+    previewDetail.replaceChildren(displayable(detail));
+    previewDetailCaption.textContent = wholeMap
+      ? `Carte entière au zoom ${request.zoom}, à l'échelle réelle.`
+      : `Extrait au zoom ${request.zoom}, à l'échelle réelle : un pixel de l'aperçu est un pixel de la carte. ` +
+        'Cliquez sur la miniature pour le déplacer.';
+    previewViews.hidden = false;
+    previewButton.textContent = "Actualiser l'aperçu";
+  } catch (error) {
+    showError(`Aperçu impossible : ${error.message}`);
+  } finally {
+    previewButton.disabled = false;
+    previewProgress.hidden = true;
+  }
+}
+
+/** The miniature, on which a click chooses the part of the map shown in the detail. */
+function overviewCanvas(offscreen, request) {
+  const canvas = displayable(offscreen);
+  canvas.className = 'clickable';
+  canvas.title = "Cliquez pour déplacer l'extrait";
+  canvas.addEventListener('click', (event) => {
+    const { left, top, width, height } = canvas.getBoundingClientRect();
+    moveDetail(request, { x: (event.clientX - left) / width, y: (event.clientY - top) / height });
+  });
+  return canvas;
+}
+
+/** A canvas of the page showing what was drawn away from it, in an OffscreenCanvas. */
+function displayable(offscreen) {
+  const canvas = document.createElement('canvas');
+  canvas.width = offscreen.width;
+  canvas.height = offscreen.height;
+  canvas.getContext('bitmaprenderer').transferFromImageBitmap(offscreen.transferToImageBitmap());
+  return canvas;
 }
 
 function showLayers() {
@@ -171,6 +278,7 @@ function layerItem(layer, index) {
   name.setAttribute('aria-label', 'Nom du jeu de données');
   name.addEventListener('input', () => {
     layer.name = name.value;
+    agePreview();
   });
   name.addEventListener('blur', () => {
     if (name.value.trim()) return;
@@ -185,6 +293,7 @@ function layerItem(layer, index) {
   remove.addEventListener('click', () => {
     layers.splice(index, 1);
     showLayers();
+    agePreview();
   });
   header.append(symbol, name, count, remove);
   item.append(header);
@@ -236,6 +345,7 @@ function propertyChoice(label, selected, noneLabel, properties, onChange) {
 function update(index, change) {
   layers[index] = applyProperties({ ...layers[index], ...change }, index);
   showLayers();
+  agePreview();
 }
 
 

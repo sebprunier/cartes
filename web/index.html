@@ -98,8 +98,33 @@
         </p>
       </section>
 
+      <section id="preview" hidden>
+        <h2>4. Aperçu <span class="note">(facultatif)</span></h2>
+        <p class="note">
+          L'aperçu est dessiné comme la carte finale : la commune entière réduite, et un extrait de son centre à
+          l'échelle réelle, qui montre ce que donneront les étiquettes une fois imprimées.
+        </p>
+        <p>
+          <button id="preview-button" type="button">Afficher l'aperçu</button>
+          <span id="preview-progress" hidden
+            ><span class="spinner" aria-hidden="true"></span> Téléchargement des tuiles…</span
+          >
+          <span id="preview-status" class="note"></span>
+        </p>
+        <div id="preview-views" hidden>
+          <figure>
+            <div id="preview-overview"></div>
+            <figcaption id="preview-overview-caption"></figcaption>
+          </figure>
+          <figure>
+            <div id="preview-detail"></div>
+            <figcaption id="preview-detail-caption"></figcaption>
+          </figure>
+        </div>
+      </section>
+
       <section id="generation" hidden>
-        <h2>4. Générer la carte</h2>
+        <h2>5. Générer la carte</h2>
         <p>
           <button id="generate" type="button">Générer la carte</button>
           <button id="cancel" type="button" hidden>Annuler</button>

@@ -31,15 +31,36 @@ export function extentFromBbox([lonMin, latMin, lonMax, latMax], zoom, margin = 
   const [x1, y1] = lonLatToPixel(lonMax, latMin, zoom);
   const marginX = (x1 - x0) * margin;
   const marginY = (y1 - y0) * margin;
-  const extent = {
+  return extentFromPixels(
     zoom,
-    xMin: Math.floor(x0 - marginX),
-    yMin: Math.floor(y0 - marginY),
-    xMax: Math.ceil(x1 + marginX),
-    yMax: Math.ceil(y1 + marginY),
-  };
-  extent.width = extent.xMax - extent.xMin;
-  extent.height = extent.yMax - extent.yMin;
+    Math.floor(x0 - marginX),
+    Math.floor(y0 - marginY),
+    Math.ceil(x1 + marginX),
+    Math.ceil(y1 + marginY),
+  );
+}
+
+/**
+ * Extent of a window of the given size inside a larger extent, never bigger than it and always within it.
+ * `center` places it, as a fraction of the extent. It shows a part of a map at its real size, without
+ * downloading the whole map.
+ */
+export function extentWindow(extent, width, height, center = { x: 0.5, y: 0.5 }) {
+  const windowWidth = Math.min(width, extent.width);
+  const windowHeight = Math.min(height, extent.height);
+  const xMin = extent.xMin + clamp(Math.round(center.x * extent.width - windowWidth / 2), extent.width - windowWidth);
+  const yMin =
+    extent.yMin + clamp(Math.round(center.y * extent.height - windowHeight / 2), extent.height - windowHeight);
+  return extentFromPixels(extent.zoom, xMin, yMin, xMin + windowWidth, yMin + windowHeight);
+}
+
+function clamp(value, max) {
+  return Math.max(0, Math.min(value, max));
+}
+
+/** Extent covering a rectangle of the pixel plane of a zoom level, with the tiles it needs. */
+function extentFromPixels(zoom, xMin, yMin, xMax, yMax) {
+  const extent = { zoom, xMin, yMin, xMax, yMax, width: xMax - xMin, height: yMax - yMin };
   extent.tiles = {
     xMin: Math.floor(extent.xMin / TILE_SIZE),
     yMin: Math.floor(extent.yMin / TILE_SIZE),
