@@ -49,7 +49,10 @@ async function estimate({ basemapId, bbox, zoom, margin, format, grayscale, mapL
 
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
-  for (const layer of chooseMapLayers(mapLayers)) layers.push({ layer, sampleSizes: await sizesOf(layer) });
+  // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
+  for (const layer of chooseMapLayers(mapLayers).filter((candidate) => !isVectorLayer(candidate))) {
+    layers.push({ layer, sampleSizes: await sizesOf(layer) });
+  }
   return {
     zoom,
     size: estimateFileSize({ basemap, format, grayscale, zoom, tileCount: extent.tileCount, sampleSizes, layers }),

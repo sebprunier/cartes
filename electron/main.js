@@ -85,7 +85,8 @@ ipcMain.handle('estimate', async (event, request) => {
 
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
-  for (const layer of chooseMapLayers(request.mapLayers ?? [])) {
+  // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
+  for (const layer of chooseMapLayers(request.mapLayers ?? []).filter((candidate) => !isVectorLayer(candidate))) {
     layers.push({ layer, sampleSizes: await sizesOf(layer) });
   }
   return {

@@ -28,6 +28,7 @@
         <input id="search" type="search" placeholder="Colombiers" autocomplete="off" />
         <ul id="results" hidden></ul>
         <p id="selected-municipality" hidden></p>
+        <p id="search-error" class="error" hidden></p>
       </section>
 
       <section id="settings" hidden>
@@ -100,6 +101,7 @@
         <p class="checkboxes" id="legend-choice" hidden>
           <label><input id="legend" type="checkbox" checked /> Afficher la légende</label>
         </p>
+        <p id="data-error" class="error" hidden></p>
       </section>
 
       <section id="preview" hidden>
@@ -113,6 +115,7 @@
           >
           <span id="estimate-result"></span>
         </p>
+        <p id="estimate-error" class="error" hidden></p>
         <p id="estimate-note" class="note">
           Télécharge 36 tuiles par source, au niveau de zoom choisi, et tient compte des données publiques cochées.
         </p>
@@ -128,6 +131,7 @@
             ><span class="spinner" aria-hidden="true"></span> Téléchargement des tuiles…</span
           >
         </p>
+        <p id="preview-error" class="error" hidden></p>
         <div id="preview-views" hidden>
           <figure>
             <div id="preview-overview"></div>

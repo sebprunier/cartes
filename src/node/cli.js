@@ -284,7 +284,9 @@ async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir,
     };
     const sampleSizes = await sizesOf(basemap);
     const layers = [];
-    for (const layer of mapLayers) layers.push({ layer, sampleSizes: await sizesOf(layer) });
+    for (const layer of mapLayers.filter((candidate) => !isVectorLayer(candidate))) {
+      layers.push({ layer, sampleSizes: await sizesOf(layer) });
+    }
     const size = estimateFileSize({
       basemap,
       format,

@@ -48,10 +48,8 @@ const MAP_LAYER_LIST = [
       Moyen: { fill: '#e8913c', label: 'Aléa moyen' },
       Fort: { fill: '#c0392b', label: 'Aléa fort' },
     },
-    fileSizeRatios: {
-      color: { png: 1, pngPalette: 0.4, jpg: 0.4, tif: 1.2 },
-      grayscale: { png: 1, pngPalette: 0.4, jpg: 0.45, tif: 1.4 },
-    },
+    // No weight ratio: a layer drawn as a wash of translucent color does not add to the file, it flattens the
+    // image and makes it compress slightly better. Measured on Colombiers: −7 % in PNG, −16 % in JPEG.
   },
 ];
 

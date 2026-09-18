@@ -21,10 +21,14 @@ describe('MAP_LAYERS', () => {
       // The open licence asks for the update date: either read from the catalog, or written here.
       assert.ok(layer.metadataId || layer.updateDate, `${id} date de mise à jour`);
       assert.ok(layer.minZoom <= layer.maxZoom, id);
-      // The weight a layer adds to the file is measured, as for the basemaps.
-      for (const mode of ['color', 'grayscale']) {
-        for (const format of ['png', 'jpg', 'tif']) {
-          assert.ok(layer.fileSizeRatios[mode][format] > 0, `${id} ${mode} ${format}`);
+      // A layer laid down as images carries measured weight ratios; one we draw ourselves adds nothing.
+      if (isVectorLayer(layer)) {
+        assert.equal(layer.fileSizeRatios, undefined, id);
+      } else {
+        for (const mode of ['color', 'grayscale']) {
+          for (const format of ['png', 'jpg', 'tif']) {
+            assert.ok(layer.fileSizeRatios[mode][format] > 0, `${id} ${mode} ${format}`);
+          }
         }
       }
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);

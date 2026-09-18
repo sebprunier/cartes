@@ -57,6 +57,10 @@ const cancelButton = element('cancel');
 const progressLine = element('progress-line');
 const result = element('result');
 const errorLine = element('error');
+const searchError = element('search-error');
+const dataError = element('data-error');
+const estimateError = element('estimate-error');
+const previewError = element('preview-error');
 const zoomNote = element('zoom-note');
 const privacyNote = element('privacy-note');
 
@@ -210,7 +214,7 @@ async function search() {
     );
     searchResults.hidden = municipalities.length === 0;
   } catch (error) {
-    showError(`Recherche impossible : ${error.message}`);
+    showError(`Recherche impossible : ${error.message}`, searchError);
   }
 }
 
@@ -221,7 +225,7 @@ async function select(found) {
     const boundary = await fetchBoundary(found.inseeCode);
     municipality = { boundary, bbox: boundaryBbox(boundary) };
   } catch (error) {
-    showError(`Contour indisponible : ${error.message}`);
+    showError(`Contour indisponible : ${error.message}`, searchError);
     return;
   }
   selectedMunicipality.textContent = `${municipality.boundary.name} (${municipality.boundary.inseeCode})`;
@@ -233,7 +237,7 @@ async function select(found) {
   previewViews.hidden = true;
   clearPreview();
   result.hidden = true;
-  errorLine.hidden = true;
+  clearErrors();
   fillZooms();
   showEstimates();
 }
@@ -246,7 +250,7 @@ async function addFiles(files) {
       // The name titles the legend and appears in the sources mention: the file name is only a first guess.
       layers.push({ ...layer, defaultName: layer.name });
     } catch (error) {
-      showError(error instanceof LayerError ? `${file.name} : ${error.message}` : error.message);
+      showError(error instanceof LayerError ? `${file.name} : ${error.message}` : error.message, dataError);
     }
   }
   fileInput.value = '';
@@ -315,7 +319,7 @@ async function drawPreview(draw) {
         'Cliquez sur la miniature pour le déplacer.';
     previewViews.hidden = false;
   } catch (error) {
-    showError(`Aperçu impossible : ${error.message}`);
+    showError(`Aperçu impossible : ${error.message}`, previewError);
   } finally {
     previewButton.disabled = false;
     previewProgress.hidden = true;
@@ -520,7 +524,7 @@ async function estimateWeight() {
         : `≈ ${formatBytes(size)} en ${formatChoice.options[formatChoice.selectedIndex].text} au zoom ${zoom}` +
           `${names.length > 0 ? `, avec ${names.join(' et ')}` : ''}, à ±30 % environ.`;
   } catch (error) {
-    showError(`Estimation impossible : ${error.message}`);
+    showError(`Estimation impossible : ${error.message}`, estimateError);
   } finally {
     estimateButton.disabled = false;
     estimateSpinner.hidden = true;
@@ -532,7 +536,7 @@ async function generate() {
   generateButton.disabled = true;
   cancelButton.hidden = false;
   result.hidden = true;
-  errorLine.hidden = true;
+  clearErrors();
   showProgressSources();
   const start = performance.now();
 
@@ -638,9 +642,18 @@ function cancel() {
   generateButton.disabled = false;
 }
 
-function showError(message) {
-  errorLine.textContent = message;
-  errorLine.hidden = false;
+/** Shows a failure where the action that caused it sits, rather than at the bottom of the page. */
+function showError(message, line = errorLine) {
+  clearErrors();
+  line.textContent = message;
+  line.hidden = false;
+}
+
+function clearErrors() {
+  for (const line of [errorLine, searchError, dataError, estimateError, previewError]) {
+    line.textContent = '';
+    line.hidden = true;
+  }
 }
 
 function debounce(action, delay) {

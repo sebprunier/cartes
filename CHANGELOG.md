@@ -6,6 +6,11 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Corrigé
+
+- L'estimation du poids échouait dès qu'une couche dessinée par l'outil, comme l'aléa argiles, était cochée : elle cherchait à en télécharger les tuiles, qui n'existent pas. Une telle couche n'entre plus dans le calcul, la mesure montrant qu'elle allège même légèrement le fichier.
+- Les messages d'erreur s'affichent à l'endroit de l'action qui les provoque, et non plus tous au bas de la page.
+
 ### Modifié
 
 - Les surcouches ne sont plus dessinées entièrement dans chaque bloc de l'image, mais seulement dans ceux où elles tombent. Une carte au zoom 17 portant 5 000 objets ajoutés passe de 8,9 à 2,5 secondes de tracé, et une carte sans données ajoutées y gagne aussi : la légende et la mention des sources n'étaient analysées que pour être ignorées dans la plupart des blocs.
