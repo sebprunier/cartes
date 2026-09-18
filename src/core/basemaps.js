@@ -13,6 +13,8 @@ function geoplateformeWmts(layer, imageFormat) {
 // poorly: an aerial photograph weighs about 8 times more in PNG than in JPEG.
 // The file size ratios are the size of a generated file divided by the total size of its tiles, in color or in
 // grayscale, by output format. They were measured on Colombiers (86) at two zoom levels, to estimate file sizes.
+// `pngPalette` is the ratio of a PNG written with a 256 color palette, which the command line and the desktop
+// application use for maps: it halves the file, and stays lighter than a JPEG without softening the labels.
 const BASEMAP_LIST = [
   {
     id: 'plan-ign',
@@ -22,7 +24,10 @@ const BASEMAP_LIST = [
     attribution: '© IGN – Plan IGN',
     metadataId: 'IGNF_PLAN-IGN',
     outputFormat: 'png',
-    fileSizeRatios: { color: { png: 1, jpg: 0.6, tif: 1.4 }, grayscale: { png: 0.9, jpg: 0.55, tif: 0.9 } },
+    fileSizeRatios: {
+      color: { png: 1, pngPalette: 0.45, jpg: 0.6, tif: 1.4 },
+      grayscale: { png: 0.9, pngPalette: 0.45, jpg: 0.55, tif: 0.9 },
+    },
   },
   {
     id: 'ortho-ign',
@@ -37,6 +42,14 @@ const BASEMAP_LIST = [
 ];
 
 export const BASEMAPS = Object.fromEntries(BASEMAP_LIST.map((basemap) => [basemap.id, basemap]));
+
+/**
+ * Whether a PNG of this basemap can be written with a 256 color palette: a map uses few colors, so the palette
+ * is invisible and halves the file, whereas a photograph would show bands. Browsers cannot write one.
+ */
+export function canUsePalette(basemap, format) {
+  return format === 'png' && basemap.outputFormat === 'png';
+}
 
 export function tileUrl(basemap, z, x, y) {
   return basemap.url.replace('{z}', z).replace('{x}', x).replace('{y}', y);

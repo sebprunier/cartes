@@ -10,12 +10,22 @@ describe('imageMemory', () => {
 });
 
 describe('estimateFileSize', () => {
-  const basemap = { fileSizeRatios: { color: { png: 1, jpg: 0.5, tif: 2 }, grayscale: { png: 0.8, jpg: 0.4, tif: 1 } } };
+  const basemap = {
+    fileSizeRatios: {
+      color: { png: 1, pngPalette: 0.45, jpg: 0.5, tif: 2 },
+      grayscale: { png: 0.8, pngPalette: 0.45, jpg: 0.4, tif: 1 },
+    },
+  };
   const sampleSizes = [1000, 3000];
 
   it('multiplies the average size of the sampled tiles by the tile count and the ratio', () => {
     assert.equal(estimateFileSize({ basemap, format: 'jpg', tileCount: 100, sampleSizes }), 100_000);
     assert.equal(estimateFileSize({ basemap, format: 'tif', grayscale: true, tileCount: 100, sampleSizes }), 200_000);
+  });
+
+  it('uses the palette ratio when the PNG is written with a color palette', () => {
+    assert.equal(estimateFileSize({ basemap, format: 'png', tileCount: 100, sampleSizes }), 200_000);
+    assert.equal(estimateFileSize({ basemap, format: 'png', palette: true, tileCount: 100, sampleSizes }), 90_000);
   });
 
   it('returns undefined when the sample is empty', () => {

@@ -100,6 +100,8 @@ Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
 
 Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format.
 
+Le PNG d'un plan est écrit avec une palette de 256 couleurs, invisible à l'œil sur une carte qui en utilise peu : le fichier pèse environ moitié moins, et reste plus léger qu'un JPEG sans en flouter les étiquettes (Colombiers au zoom 16 : 2,7 Mo en PNG palettisé, 3,2 Mo en JPEG, 5,9 Mo en PNG classique). La page web ne sait pas produire de palette, le navigateur ne le permettant pas.
+
 Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom, qui restent ensuite en cache. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
 ## Ajouter ses propres données

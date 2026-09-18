@@ -10,12 +10,14 @@ export function imageMemory(extent) {
 /**
  * Estimated size in bytes of the file generated from `tileCount` tiles, from the sizes of a sample of these
  * tiles, and from the file size ratio of the basemap for the output format, in color or in grayscale.
+ * `palette` tells that the PNG will be written with a color palette, which the platforms do not all support.
  * Returns undefined when the sample is empty.
  */
-export function estimateFileSize({ basemap, format, grayscale, tileCount, sampleSizes }) {
+export function estimateFileSize({ basemap, format, grayscale, palette = false, tileCount, sampleSizes }) {
   if (sampleSizes.length === 0) return undefined;
   const averageTileSize = sampleSizes.reduce((total, size) => total + size, 0) / sampleSizes.length;
-  return averageTileSize * tileCount * basemap.fileSizeRatios[grayscale ? 'grayscale' : 'color'][format];
+  const ratios = basemap.fileSizeRatios[grayscale ? 'grayscale' : 'color'];
+  return averageTileSize * tileCount * ((palette && ratios.pngPalette) || ratios[format]);
 }
 
 /** Size in bytes written in French units: Ko, Mo or Go. */

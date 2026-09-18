@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { BASEMAPS, tileUrl } from '../src/core/basemaps.js';
+import { BASEMAPS, canUsePalette, tileUrl } from '../src/core/basemaps.js';
 
 describe('tileUrl', () => {
   it('fills the zoom level and tile indices', () => {
@@ -16,6 +16,23 @@ describe('BASEMAPS', () => {
       Object.fromEntries(Object.values(BASEMAPS).map((basemap) => [basemap.id, basemap.outputFormat])),
       { 'plan-ign': 'png', 'ortho-ign': 'jpg' },
     );
+  });
+});
+
+describe('canUsePalette', () => {
+  it('allows a palette for a map written in PNG, and never for a photograph', () => {
+    assert.equal(canUsePalette(BASEMAPS['plan-ign'], 'png'), true);
+    assert.equal(canUsePalette(BASEMAPS['plan-ign'], 'jpg'), false);
+    assert.equal(canUsePalette(BASEMAPS['ortho-ign'], 'png'), false);
+  });
+
+  it('comes with a measured ratio wherever it is allowed', () => {
+    for (const basemap of Object.values(BASEMAPS)) {
+      if (!canUsePalette(basemap, 'png')) continue;
+      for (const mode of ['color', 'grayscale']) {
+        assert.ok(basemap.fileSizeRatios[mode].pngPalette > 0, `${basemap.id} ${mode}`);
+      }
+    }
   });
 });
 

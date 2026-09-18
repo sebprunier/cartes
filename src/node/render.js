@@ -193,14 +193,14 @@ export async function drawOverlays(pixels, extent, svgElements) {
 }
 
 /** Saves the image; the format depends on the extension (.png, .jpg or .tif). */
-export async function saveImage(pixels, extent, outputPath, { dpi }) {
+export async function saveImage(pixels, extent, outputPath, { dpi, palette = false }) {
   let image = sharp(pixels, {
     raw: { width: extent.width, height: extent.height, channels: CHANNELS },
     limitInputPixels: false,
   });
 
   const extension = path.extname(outputPath).toLowerCase();
-  if (extension === '.png') image = image.png();
+  if (extension === '.png') image = image.png({ palette });
   else if (extension === '.jpg' || extension === '.jpeg') image = image.jpeg({ quality: 92 });
   else if (extension === '.tif' || extension === '.tiff') image = image.tiff({ compression: 'lzw' });
   else throw new Error(`Format de sortie non géré : ${extension} (utilisez .png, .jpg ou .tif)`);

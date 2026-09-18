@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 
-import { BASEMAPS } from '../src/core/basemaps.js';
+import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
 import { estimateFileSize } from '../src/core/estimates.js';
 import { withUpdateDates } from '../src/core/metadata.js';
 import { layersSource } from '../src/core/layers.js';
@@ -67,6 +67,7 @@ ipcMain.handle('estimate', async (event, request) => {
       basemap,
       format: request.format,
       grayscale: request.grayscale,
+      palette: canUsePalette(basemap, request.format),
       tileCount: extent.tileCount,
       sampleSizes,
     }),
@@ -103,7 +104,10 @@ ipcMain.handle('generate', async (event, request) => {
     if (request.legend !== false) overlays.push(await legendOverlay(layers, extent));
     overlays.push(await attributionLabel(attributionText({ sources }), extent));
     await drawOverlays(pixels, extent, overlays);
-    await saveImage(pixels, extent, filePath, { dpi: request.dpi ?? 150 });
+    await saveImage(pixels, extent, filePath, {
+      dpi: request.dpi ?? 150,
+      palette: canUsePalette(basemap, request.format),
+    });
 
     return {
       path: filePath,

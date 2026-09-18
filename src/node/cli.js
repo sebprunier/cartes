@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 
-import { BASEMAPS } from '../core/basemaps.js';
+import { BASEMAPS, canUsePalette } from '../core/basemaps.js';
 import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
 import { withUpdateDates } from '../core/metadata.js';
 import {
@@ -168,7 +168,7 @@ async function generate(input, options) {
   console.log(outline ? 'Tracé du contour et ajout de la mention des sources…' : 'Ajout de la mention des sources…');
   await drawOverlays(pixels, extent, overlays);
   console.log(`Enregistrement dans ${outputPath}…`);
-  await saveImage(pixels, extent, outputPath, { dpi });
+  await saveImage(pixels, extent, outputPath, { dpi, palette: canUsePalette(basemap, format) });
   console.log(`Terminé en ${Math.round((performance.now() - start) / 1000)} s.`);
 }
 
@@ -206,7 +206,14 @@ async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir,
       concurrency,
     });
     const sampleSizes = await tileSizes(sampledTiles);
-    const size = estimateFileSize({ basemap, format, grayscale, tileCount: extent.tileCount, sampleSizes });
+    const size = estimateFileSize({
+      basemap,
+      format,
+      grayscale,
+      palette: canUsePalette(basemap, format),
+      tileCount: extent.tileCount,
+      sampleSizes,
+    });
     return size === undefined ? '?' : `≈ ${formatBytes(size)}`;
   } catch {
     // Sample unavailable (network, service error): the estimate is only informative.
