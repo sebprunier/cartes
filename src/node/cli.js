@@ -91,6 +91,7 @@ async function generate(input, options) {
     try {
       return readLayer(readFileSync(file, 'utf8'), {
         fileName: basename(file),
+        name: options['data-title'][index],
         index,
         categoryProperty: options['data-category'],
         colorProperty: options['data-color'],

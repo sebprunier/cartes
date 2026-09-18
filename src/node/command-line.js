@@ -15,6 +15,8 @@ Options de « generer » :
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
       --donnees <fichier>   données à ajouter sur la carte (.geojson ou .csv), répétable
+      --donnees-titre <titre>   nom du jeu de données, pour la légende et la mention des sources ; par défaut,
+                            le nom du fichier ; répétable, dans l'ordre des fichiers
       --donnees-categorie <propriete>
                             propriété qui porte la catégorie des objets : une entrée de légende et une couleur
                             par catégorie ; par défaut : categorie, catégorie, category, type, groupe
@@ -37,7 +39,7 @@ Options de « generer » :
   -v, --version             afficher la version de cartes
 
 Les commandes et options existent aussi en anglais : search, basemaps, generate, --department, --basemap,
---data, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
+--data, --data-title, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
 --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
@@ -49,6 +51,7 @@ export const OPTIONS = {
   basemap: { type: 'string', short: 'f', french: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
+  'data-title': { type: 'string', french: 'donnees-titre', multiple: true, default: [] },
   'data-category': { type: 'string', french: 'donnees-categorie' },
   'data-color': { type: 'string', french: 'donnees-couleur' },
   output: { type: 'string', short: 'o', french: 'sortie' },

@@ -16,17 +16,18 @@ const LONGITUDE_KEYS = ['longitude', 'lon', 'lng', 'long', 'x'];
 export class LayerError extends Error {}
 
 /**
- * Reads a layer from the content of a file. The format comes from the file name (.geojson, .json, .csv).
+ * Reads a layer from the content of a file. The format comes from the file name (.geojson, .json, .csv), and
+ * its name from `name`, else from the file name: it titles the legend and appears in the sources mention.
  * Features are grouped by their category property, which gives one legend entry and one color per category;
  * `categoryProperty` and `colorProperty` choose these properties, otherwise the usual names are looked up.
  */
-export function readLayer(text, { fileName, color, index = 0, categoryProperty, colorProperty } = {}) {
+export function readLayer(text, { fileName, name, color, index = 0, categoryProperty, colorProperty } = {}) {
   const features = /\.csv$/i.test(fileName) ? readCsv(text) : readGeoJson(text);
   if (features.length === 0) throw new LayerError(`Aucune donnée trouvée dans ${fileName}.`);
 
   const properties = [...new Set(features.flatMap((feature) => Object.keys(feature.properties)))];
   const layer = {
-    name: layerName(fileName),
+    name: name?.trim() || layerName(fileName),
     color: color ?? PALETTE[index % PALETTE.length],
     features,
     properties,

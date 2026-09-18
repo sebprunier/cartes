@@ -140,7 +140,9 @@ async function select(found) {
 async function addFiles(files) {
   for (const file of files) {
     try {
-      layers.push(readLayer(await file.text(), { fileName: file.name, index: layers.length }));
+      const layer = readLayer(await file.text(), { fileName: file.name, index: layers.length });
+      // The name titles the legend and appears in the sources mention: the file name is only a first guess.
+      layers.push({ ...layer, defaultName: layer.name });
     } catch (error) {
       showError(error instanceof LayerError ? `${file.name} : ${error.message}` : error.message);
     }
@@ -162,8 +164,21 @@ function layerItem(layer, index) {
   const symbol = document.createElement('span');
   symbol.className = 'symbol';
   symbol.style.background = layer.color;
-  const name = document.createElement('span');
-  name.textContent = `${layer.name} (${layer.features.length} élément${layer.features.length > 1 ? 's' : ''})`;
+  const name = document.createElement('input');
+  name.type = 'text';
+  name.className = 'layer-name';
+  name.value = layer.name;
+  name.setAttribute('aria-label', 'Nom du jeu de données');
+  name.addEventListener('input', () => {
+    layer.name = name.value;
+  });
+  name.addEventListener('blur', () => {
+    if (name.value.trim()) return;
+    layer.name = name.value = layer.defaultName;
+  });
+  const count = document.createElement('span');
+  count.className = 'layer-count';
+  count.textContent = `${layer.features.length} élément${layer.features.length > 1 ? 's' : ''}`;
   const remove = document.createElement('button');
   remove.type = 'button';
   remove.textContent = 'Retirer';
@@ -171,7 +186,7 @@ function layerItem(layer, index) {
     layers.splice(index, 1);
     showLayers();
   });
-  header.append(symbol, name, remove);
+  header.append(symbol, name, count, remove);
   item.append(header);
 
   if (layer.properties.length > 0) {

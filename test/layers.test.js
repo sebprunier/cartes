@@ -68,6 +68,13 @@ describe('readLayer, GeoJSON', () => {
     assert.equal(layer.features[1].style.strokeWidth, 8);
   });
 
+  it('names the layer after the file, or after the name given', () => {
+    const point = geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] })]);
+    assert.equal(readLayer(point, { fileName: 'apport-volontaire.geojson' }).name, 'Apport volontaire');
+    assert.equal(readLayer(point, { fileName: 'a.geojson', name: "Points d'apport" }).name, "Points d'apport");
+    assert.equal(readLayer(point, { fileName: 'a.geojson', name: '  ' }).name, 'A');
+  });
+
   it('gives a color from the palette to each layer', () => {
     const point = geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] })]);
     const first = readLayer(point, { fileName: 'a.geojson', index: 0 });
