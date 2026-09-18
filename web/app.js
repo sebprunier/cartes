@@ -19,8 +19,7 @@ import { engine } from './engine.js';
 const ZOOM_LEVELS = 7; // Zoom levels shown in the table, up to the maximum of the basemap.
 const DEFAULT_ZOOM = 16;
 const MARGIN = 0.03;
-const UNKNOWN_SIZE = '–';
-const FILE_SIZE_COLUMN = 6;
+
 
 const element = (id) => document.getElementById(id);
 const searchField = element('search');
@@ -53,8 +52,7 @@ const mapLayerList = element('map-layers');
 const estimatesTable = element('estimates');
 const estimateButton = element('estimate');
 const estimateSpinner = element('estimate-spinner');
-const estimateStatus = element('estimate-status');
-const estimateNote = element('estimate-note');
+const estimateResult = element('estimate-result');
 const generateButton = element('generate');
 const cancelButton = element('cancel');
 const progressLine = element('progress-line');
@@ -99,8 +97,8 @@ function showMapLayers() {
       box.addEventListener('change', () => {
         opacity.hidden = !box.checked;
         showMapLayerWarnings();
-        // A layer weighs as much as the basemap: the sizes already shown no longer hold.
-        clearFileSizes();
+        // A layer weighs as much as the basemap: the weight already shown no longer holds.
+        clearWeight();
         agePreview();
       });
 
@@ -161,17 +159,19 @@ searchField.addEventListener('input', debounce(search, 300));
 basemapChoice.addEventListener('change', () => {
   fillZooms();
   showEstimates();
+  clearWeight();
   agePreview();
 });
 zoomChoice.addEventListener('change', () => {
   showEstimates();
   showMapLayerWarnings();
+  clearWeight();
   agePreview();
 });
 dpiField.addEventListener('change', showEstimates);
-formatChoice.addEventListener('change', clearFileSizes);
+formatChoice.addEventListener('change', clearWeight);
 grayscaleBox.addEventListener('change', () => {
-  clearFileSizes();
+  clearWeight();
   agePreview();
 });
 outlineBox.addEventListener('change', agePreview);
@@ -187,7 +187,7 @@ dropZone.addEventListener('drop', (event) => {
   dropZone.classList.remove('over');
   addFiles(event.dataTransfer.files);
 });
-estimateButton.addEventListener('click', estimateFileSizes);
+estimateButton.addEventListener('click', estimateWeight);
 previewButton.addEventListener('click', showPreview);
 generateButton.addEventListener('click', generate);
 cancelButton.addEventListener('click', cancel);
@@ -459,11 +459,9 @@ function showEstimates() {
     ...zoomLevels().map((zoom) => {
       const extent = extentFromBbox(municipality.bbox, zoom, MARGIN);
       const [widthMm, heightMm] = printSizeMm(extent.width, extent.height, dpi);
-      const available = zoom <= MAX_ZOOM;
       const row = document.createElement('tr');
       row.dataset.zoom = String(zoom);
       if (zoom === Number(zoomChoice.value)) row.classList.add('selected');
-      if (!available) row.classList.add('unavailable');
       for (const value of [
         zoom,
         groundResolution(latitude, zoom).toFixed(2),
@@ -471,64 +469,57 @@ function showEstimates() {
         extent.tileCount,
         `${widthMm.toFixed(0)} × ${heightMm.toFixed(0)} mm (${paperFormat(widthMm, heightMm)})`,
         formatBytes(imageMemory(extent)),
-        available ? UNKNOWN_SIZE : 'hors navigateur',
       ]) {
         const cell = document.createElement('td');
         cell.textContent = String(value);
         row.append(cell);
       }
-      if (available) {
-        row.addEventListener('click', () => {
-          zoomChoice.value = String(zoom);
-          showEstimates();
-        });
-      }
+      row.addEventListener('click', () => {
+        zoomChoice.value = String(zoom);
+        showEstimates();
+        showMapLayerWarnings();
+        clearWeight();
+        agePreview();
+      });
       return row;
     }),
   );
 }
 
-function clearFileSizes() {
-  for (const row of estimatesTable.tBodies[0].rows) {
-    if (Number(row.dataset.zoom) <= MAX_ZOOM) row.cells[FILE_SIZE_COLUMN].textContent = UNKNOWN_SIZE;
-  }
+/** Forgets the weight shown: it was estimated for settings that have changed since. */
+function clearWeight() {
+  estimateResult.textContent = '';
 }
 
-function fileSizeCell(zoom) {
-  return [...estimatesTable.tBodies[0].rows].find((row) => row.dataset.zoom === String(zoom))?.cells[FILE_SIZE_COLUMN];
-}
-
-async function estimateFileSizes() {
+/** Weight of the file for the settings chosen, layers included, at the chosen zoom level only. */
+async function estimateWeight() {
   if (!municipality) return;
-  const zooms = zoomLevels().filter((zoom) => zoom <= MAX_ZOOM);
+  const zoom = Number(zoomChoice.value);
+  const layers = chosenMapLayers();
   estimateButton.disabled = true;
   estimateSpinner.hidden = false;
-  estimateNote.hidden = true;
-  clearFileSizes();
+  clearWeight();
   try {
-    for (const [index, zoom] of zooms.entries()) {
-      estimateStatus.textContent = `zoom ${zoom} (${index + 1} sur ${zooms.length})`;
-      const cell = fileSizeCell(zoom);
-      if (cell) cell.textContent = '…';
-      const { size } = await engine.estimate({
-        basemapId: basemapChoice.value,
-        bbox: municipality.bbox,
-        zoom,
-        margin: MARGIN,
-        format: formatChoice.value,
-        grayscale: grayscaleBox.checked,
-        mapLayers: chosenMapLayers(),
-      });
-      if (cell) cell.textContent = size === undefined ? '?' : `≈ ${formatBytes(size)}`;
-    }
+    const { size } = await engine.estimate({
+      basemapId: basemapChoice.value,
+      bbox: municipality.bbox,
+      zoom,
+      margin: MARGIN,
+      format: formatChoice.value,
+      grayscale: grayscaleBox.checked,
+      mapLayers: layers,
+    });
+    const names = layers.map(({ id }) => MAP_LAYERS[id].name.toLowerCase());
+    estimateResult.textContent =
+      size === undefined
+        ? 'Estimation indisponible : réessayez plus tard.'
+        : `≈ ${formatBytes(size)} en ${formatChoice.options[formatChoice.selectedIndex].text} au zoom ${zoom}` +
+          `${names.length > 0 ? `, avec ${names.join(' et ')}` : ''}, à ±30 % environ.`;
   } catch (error) {
     showError(`Estimation impossible : ${error.message}`);
-    clearFileSizes();
   } finally {
     estimateButton.disabled = false;
     estimateSpinner.hidden = true;
-    estimateNote.hidden = false;
-    estimateStatus.textContent = '';
   }
 }
 

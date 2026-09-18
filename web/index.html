@@ -55,7 +55,7 @@
           </p>
         </div>
 
-        <h3>Tailles selon le niveau de zoom</h3>
+        <h3>Dimensions selon le niveau de zoom</h3>
         <div class="table-wrapper">
           <table id="estimates">
             <thead>
@@ -66,19 +66,11 @@
                 <th>Tuiles</th>
                 <th>Impression</th>
                 <th>Mémoire</th>
-                <th>Fichier</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-        <p>
-          <button id="estimate" type="button">Estimer le poids des fichiers</button>
-          <span id="estimate-spinner" hidden
-            ><span class="spinner" aria-hidden="true"></span> Estimation en cours… <span id="estimate-status"></span
-          ></span>
-          <span id="estimate-note" class="note">Télécharge 36 tuiles par niveau de zoom.</span>
-        </p>
         <p id="zoom-note" class="note"></p>
       </section>
 
@@ -111,7 +103,21 @@
       </section>
 
       <section id="preview" hidden>
-        <h2>4. Aperçu <span class="note">(facultatif)</span></h2>
+        <h2>4. Vérifier avant de générer <span class="note">(facultatif)</span></h2>
+
+        <h3>Poids du fichier</h3>
+        <p>
+          <button id="estimate" type="button">Estimer le poids</button>
+          <span id="estimate-spinner" hidden
+            ><span class="spinner" aria-hidden="true"></span> Estimation en cours…</span
+          >
+          <span id="estimate-result"></span>
+        </p>
+        <p id="estimate-note" class="note">
+          Télécharge 36 tuiles par source, au niveau de zoom choisi, et tient compte des données publiques cochées.
+        </p>
+
+        <h3>Aperçu de la carte</h3>
         <p class="note">
           L'aperçu est dessiné comme la carte finale : la commune entière réduite, et un extrait de son centre à
           l'échelle réelle, qui montre ce que donneront les étiquettes une fois imprimées.
