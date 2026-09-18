@@ -79,7 +79,7 @@ cartes generer colombiers -d 86 --estimer
 cartes generer 86081
 
 # Ajouter ses propres données (points de collecte, zones…)
-cartes generer 86081 --donnees exemples/points-de-collecte.geojson
+cartes generer 86081 --donnees exemples/colombiers-apport-volontaire.geojson
 
 # Une entrée de légende et une couleur par catégorie, lues dans une propriété des objets
 cartes generer 86081 --donnees exemples/colombiers-apport-volontaire.geojson --donnees-categorie dechets
@@ -116,7 +116,7 @@ Un fichier de la commune peut être superposé à la carte : points de collecte,
 
 Sur la page web et dans l'application, les propriétés utilisées pour la légende et pour les couleurs se choisissent dans une liste déroulante, sous chaque fichier ajouté.
 
-Le dossier [`exemples/`](exemples/) contient deux fichiers : un exemple fictif, et les points d'apport volontaire de Colombiers (source : Grand Châtellerault), avec leurs catégories.
+Le dossier [`exemples/`](exemples/) contient les points d'apport volontaire de Colombiers (source : Grand Châtellerault), avec leurs catégories, dans les deux formats acceptés : [GeoJSON](exemples/colombiers-apport-volontaire.geojson) et [CSV](exemples/colombiers-apport-volontaire.csv).
 
 ## Fonctionnement
 
