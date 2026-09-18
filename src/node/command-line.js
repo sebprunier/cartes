@@ -34,17 +34,30 @@ Options de « generer » :
       --gris                fond de carte en niveaux de gris
       --sans-contour        ne pas tracer le contour de la commune
       --sans-legende        ne pas afficher la légende des données ajoutées
-      --estimer             afficher, par niveau de zoom, les dimensions, la mémoire et le poids estimé du fichier,
-                            sans générer la carte (un échantillon de tuiles est téléchargé)
+      --estimer             afficher un tableau des niveaux de zoom — dimensions de l'image, format papier,
+                            mémoire nécessaire et poids estimé du fichier — puis s'arrêter sans générer la carte.
+                            Un échantillon de 36 tuiles par niveau est téléchargé, puis gardé en cache.
       --max-tuiles <n>      garde-fou sur le nombre de tuiles, défaut : 5000
       --paralleles <n>      téléchargements simultanés, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   -h, --aide                afficher cette aide
   -v, --version             afficher la version de cartes
 
+Exemples :
+  cartes generer 86081                                  la carte de Colombiers, au zoom par défaut
+  cartes generer Colombiers -d 86 -z 16                 par son nom, en levant l'homonymie, au zoom 16
+  cartes generer 86081 -f ortho-ign -z 16               sur les photographies aériennes
+  cartes generer 86081 --couches cadastre --couches argiles   avec deux couches superposées
+  cartes generer 86081 --donnees points.geojson         avec ses propres données
+  cartes generer 86081 --estimer                        avant de se lancer : dimensions et poids par zoom
+
+Le niveau de zoom décide de la taille de l'image, donc du format papier : le choisir d'après le format visé
+plutôt que d'après le détail souhaité. La documentation l'explique :
+https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html
+
 Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, --department,
---basemap, --maplayers, --maplayers-opacity, --data, --data-title, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
---estimate, --max-tiles, --concurrency, --help.`;
+--basemap, --maplayers, --maplayers-opacity, --data, --data-title, --data-category, --data-color, --output,
+--margin, --grayscale, --no-outline, --no-legend, --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = {

@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { UsageError, parseCommandLine, parseInteger, resolveOutputPath } from '../src/node/command-line.js';
+import {
+  FRENCH_COMMANDS,
+  HELP,
+  OPTIONS,
+  UsageError,
+  parseCommandLine,
+  parseInteger,
+  resolveOutputPath,
+} from '../src/node/command-line.js';
 
 describe('parseCommandLine', () => {
   it('applies the default values', () => {
@@ -39,6 +47,20 @@ describe('parseCommandLine', () => {
     assert.equal(parseCommandLine(['chercher', 'x']).command, 'search');
     assert.equal(parseCommandLine(['fonds']).command, 'basemaps');
     assert.equal(parseCommandLine(['générer', 'x']).command, 'generate');
+  });
+
+  it('describes every option and every command in the help, so that none stays hidden', () => {
+    for (const [name, { french }] of Object.entries(OPTIONS)) {
+      assert.ok(HELP.includes(`--${french ?? name}`), `option ${name}`);
+    }
+    for (const command of Object.keys(FRENCH_COMMANDS)) {
+      assert.ok(HELP.includes(`cartes ${command}`) || command.startsWith('gén'), `commande ${command}`);
+    }
+  });
+
+  it('shows examples, a beginner rarely starting from a list of options', () => {
+    assert.match(HELP, /Exemples :/);
+    assert.match(HELP, /cartes generer 86081/);
   });
 
   it('rejects unknown options with a message in French', () => {

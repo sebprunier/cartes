@@ -40,23 +40,67 @@
         <div class="settings">
           <p>
             <label for="basemap">Fond de carte</label>
-            <select id="basemap"></select>
+            <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-basemap">
+              ?<span class="visually-hidden"> Aide sur le fond de carte</span>
+            </button>
+            <select id="basemap" aria-describedby="hint-basemap"></select>
+            <span class="hint" id="hint-basemap" hidden>
+              Le plan IGN montre les noms de rues, les bâtiments et les limites. Les photographies aériennes
+              montrent le terrain tel qu'il est : plus parlant en réunion, moins lisible une fois imprimé.
+            </span>
           </p>
           <p>
             <label for="zoom">Niveau de zoom</label>
-            <select id="zoom"></select>
+            <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-zoom">
+              ?<span class="visually-hidden"> Aide sur le niveau de zoom</span>
+            </button>
+            <select id="zoom" aria-describedby="hint-zoom"></select>
+            <span class="hint" id="hint-zoom" hidden>
+              Il décide de la taille de l'image, donc du format papier. Monter d'un niveau double la largeur
+              sans agrandir le texte des rues : une carte au zoom 17 réduite en A3 devient illisible. Choisissez
+              d'après le format visé, et vérifiez avec l'aperçu.
+              <a href="https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html" target="_blank" rel="noopener">En savoir plus</a>
+            </span>
           </p>
           <p>
             <label for="format">Format du fichier</label>
-            <select id="format"></select>
+            <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-format">
+              ?<span class="visually-hidden"> Aide sur le format du fichier</span>
+            </button>
+            <select id="format" aria-describedby="hint-format"></select>
+            <span class="hint" id="hint-format" hidden>
+              PNG pour un plan : le texte et les traits restent nets. JPEG pour les photographies aériennes,
+              qu'un PNG alourdit environ huit fois.
+            </span>
           </p>
           <p>
             <label for="dpi">Résolution visée (dpi)</label>
-            <input id="dpi" type="number" value="150" min="50" max="600" step="10" />
+            <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-dpi">
+              ?<span class="visually-hidden"> Aide sur la résolution</span>
+            </button>
+            <input id="dpi" type="number" value="150" min="50" max="600" step="10" aria-describedby="hint-dpi" />
+            <span class="hint" id="hint-dpi" hidden>
+              Ne change pas l'image, mais la taille à laquelle elle s'imprimera : 150 pour une affiche regardée
+              à un mètre, 300 pour un document tenu en main, qui sera deux fois plus petit sur le papier.
+            </span>
           </p>
           <p class="checkboxes">
-            <label><input id="grayscale" type="checkbox" /> Niveaux de gris</label>
-            <label><input id="outline" type="checkbox" checked /> Tracer le contour de la commune</label>
+            <label><input id="grayscale" type="checkbox" aria-describedby="hint-grayscale" /> Niveaux de gris</label>
+            <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-grayscale">
+              ?<span class="visually-hidden"> Aide sur les niveaux de gris</span>
+            </button>
+            <span class="hint" id="hint-grayscale" hidden>
+              Met le fond de carte en gris, pour une impression en noir et blanc ou pour faire ressortir ce
+              qu'on pose dessus : le contour, les couches et vos données gardent leurs couleurs.
+            </span>
+            <label><input id="outline" type="checkbox" checked aria-describedby="hint-outline" /> Tracer le contour de la commune</label>
+            <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-outline">
+              ?<span class="visually-hidden"> Aide sur le contour</span>
+            </button>
+            <span class="hint" id="hint-outline" hidden>
+              Trace la limite officielle de la commune, d'après ADMIN EXPRESS. À décocher pour une carte qui
+              déborde volontairement sur les communes voisines.
+            </span>
           </p>
         </div>
 
@@ -117,7 +161,14 @@
         <input id="data-files" type="file" accept=".geojson,.json,.csv" multiple hidden />
         <ul id="layers"></ul>
         <p class="checkboxes" id="legend-choice" hidden>
-          <label><input id="legend" type="checkbox" checked /> Afficher la légende</label>
+          <label><input id="legend" type="checkbox" checked aria-describedby="hint-legend" /> Afficher la légende</label>
+          <button type="button" class="hint-toggle" aria-expanded="false" aria-controls="hint-legend">
+            ?<span class="visually-hidden"> Aide sur la légende</span>
+          </button>
+          <span class="hint" id="hint-legend" hidden>
+            Ajoute en bas à gauche un encadré qui explique les couleurs et les symboles : une ligne par
+            catégorie de vos données, et la légende que publie le service pour les couches qui en ont une.
+          </span>
         </p>
         <p id="data-error" class="error" hidden></p>
       </section>

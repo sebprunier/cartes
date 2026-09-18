@@ -21,6 +21,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- Chaque réglage de l'interface peut s'expliquer : un « ? » à côté du libellé ouvre une phrase qui dit ce que le champ change sur la carte imprimée, et renvoie à la documentation quand il y a plus à dire.
+- L'aide de la ligne de commande se termine par des exemples, et un test vérifie qu'aucune option n'y manque.
 - Documentation utilisateur en ligne, sur <https://sebprunier.github.io/cartes/documentation/> : prise en main, choix du zoom et du format papier, ajout de données, application de bureau, ligne de commande, sources et licences, problèmes courants. Les pages sont écrites en Markdown dans `docs/` et restent lisibles telles quelles sur GitHub.
 
 - La légende d'une couche servie par un WMS est celle que le service publie : elle est ajoutée telle quelle à la légende de la carte, à la taille du texte qui l'entoure.

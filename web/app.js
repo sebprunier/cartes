@@ -200,6 +200,17 @@ addMapLayerButton.addEventListener('click', () => {
 closeLayerChooser.addEventListener('click', () => layerChooser.close());
 layerSearch.addEventListener('input', showLayerChoices);
 
+// Each field can explain itself, on demand: a hint shown by a button, rather than on hover, which neither a
+// touchscreen nor a keyboard can reach.
+for (const toggle of document.querySelectorAll('.hint-toggle')) {
+  const hint = element(toggle.getAttribute('aria-controls'));
+  toggle.addEventListener('click', () => {
+    const shown = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!shown));
+    hint.hidden = shown;
+  });
+}
+
 searchField.addEventListener('input', debounce(search, 300));
 basemapChoice.addEventListener('change', () => {
   fillZooms();
