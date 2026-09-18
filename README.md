@@ -36,7 +36,7 @@ Le projet est né de ce besoin à Colombiers, dans la Vienne. L'idée : partir d
 
 Une page web permet de générer une carte sans rien installer : <https://sebprunier.github.io/cartes/>. Tout s'y passe dans le navigateur, qui télécharge lui-même les tuiles ; aucune donnée ne transite par un serveur tiers.
 
-Elle a deux limites par rapport à la ligne de commande : la taille des images est bornée par le navigateur (environ 268 millions de pixels sur Chrome, soit le zoom 17 pour une commune de la taille de Colombiers) et le format TIFF n'est pas disponible.
+Elle a deux limites par rapport à la ligne de commande : la taille des images est bornée par le navigateur (environ 268 millions de pixels sur Chrome, soit le zoom 17 pour une commune de la taille de Colombiers, davantage pour une petite commune) et le format TIFF n'est pas disponible. Tous les niveaux de zoom sont proposés : si l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger quoi que ce soit et renvoie vers la ligne de commande ou l'application de bureau.
 
 Pour la faire tourner en local : `npm run web`, puis <http://localhost:8000>.
 

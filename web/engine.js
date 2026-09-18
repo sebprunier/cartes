@@ -2,16 +2,18 @@
 // The Electron application provides another engine with the same interface.
 
 export const engine = {
-  // Above this zoom level, the image goes beyond what browsers can draw.
-  maxZoom: 17,
+  // All the zoom levels of the basemaps are offered: how far a browser can go depends on the size of the
+  // municipality and on the machine, and the canvas refuses what it cannot draw before anything is downloaded.
+  maxZoom: 19,
   formats: [
     ['png', 'PNG'],
     ['jpg', 'JPEG'],
   ],
   privacyNote: "Tout se passe dans votre navigateur : aucune donnée n'est envoyée ailleurs.",
   zoomNote:
-    "Au-delà du zoom 17, l'image dépasse ce qu'un navigateur sait produire : passez par la ligne de commande " +
-    "ou l'application de bureau.",
+    'Les zooms les plus élevés produisent de très grandes images, qu’un navigateur finit par refuser de ' +
+    'dessiner : cela dépend de la taille de la commune et de la machine. La ligne de commande et ' +
+    "l'application de bureau n'ont pas cette limite.",
 
   estimate: (request) => askWorker({ task: 'estimate', ...request }),
   generate: (request, onProgress) => askWorker({ task: 'generate', ...request }, onProgress),

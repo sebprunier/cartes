@@ -52,8 +52,9 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
   const extent = extentFromBbox(bbox, zoom, margin);
   if (!canRender(extent.width, extent.height)) {
     throw new Error(
-      `Ce navigateur ne peut pas produire une image de ${extent.width} × ${extent.height} px. ` +
-        'Choisissez un niveau de zoom plus faible.',
+      `Ce navigateur ne peut pas produire une image de ${extent.width} × ${extent.height} px (zoom ${zoom}). ` +
+        'Choisissez un niveau de zoom plus faible, ou passez par la ligne de commande ou par l’application ' +
+        'de bureau, qui n’ont pas cette limite.',
     );
   }
 

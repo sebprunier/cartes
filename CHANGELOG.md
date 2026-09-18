@@ -9,6 +9,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 ### Modifié
 
 - Le PNG d'un plan est écrit avec une palette de 256 couleurs en ligne de commande et dans l'application : le fichier pèse environ moitié moins (2,7 Mo au lieu de 5,9 pour Colombiers au zoom 16), sans perte visible sur les étiquettes. L'estimation de poids en tient compte.
+- La page web propose tous les niveaux de zoom, et non plus jusqu'au 17 : une petite commune tient dans un navigateur au zoom 18 ou 19. Quand l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger la moindre tuile et renvoie vers la ligne de commande ou l'application de bureau.
 
 ### Ajouté
 
