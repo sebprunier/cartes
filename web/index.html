@@ -107,23 +107,10 @@
       <section id="preview" hidden>
         <h2>4. Vérifier avant de générer <span class="note">(facultatif)</span></h2>
 
-        <h3>Poids du fichier</h3>
-        <p>
-          <button id="estimate" type="button">Estimer le poids</button>
-          <span id="estimate-spinner" hidden
-            ><span class="spinner" aria-hidden="true"></span> Estimation en cours…</span
-          >
-          <span id="estimate-result"></span>
-        </p>
-        <p id="estimate-error" class="error" hidden></p>
-        <p id="estimate-note" class="note">
-          Télécharge 36 tuiles par source, au niveau de zoom choisi, et tient compte des données publiques cochées.
-        </p>
-
-        <h3>Aperçu de la carte</h3>
         <p class="note">
           L'aperçu est dessiné comme la carte finale : la commune entière réduite, et un extrait de son centre à
-          l'échelle réelle, qui montre ce que donneront les étiquettes une fois imprimées.
+          l'échelle réelle, qui montre ce que donneront les étiquettes une fois imprimées. Le poids du fichier
+          est estimé au passage.
         </p>
         <p>
           <button id="preview-button" type="button">Afficher l'aperçu</button>
@@ -131,6 +118,7 @@
             ><span class="spinner" aria-hidden="true"></span> Téléchargement des tuiles…</span
           >
         </p>
+        <p id="estimate-result" class="note"></p>
         <p id="preview-error" class="error" hidden></p>
         <div id="preview-views" hidden>
           <figure>

@@ -111,7 +111,7 @@ Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour 
 
 Le PNG d'un plan est écrit avec une palette de 256 couleurs, invisible à l'œil sur une carte qui en utilise peu : le fichier pèse environ moitié moins, et reste plus léger qu'un JPEG sans en flouter les étiquettes (Colombiers au zoom 16 : 2,7 Mo en PNG palettisé, 3,2 Mo en JPEG, 5,9 Mo en PNG classique). La page web ne sait pas produire de palette, le navigateur ne le permettant pas.
 
-Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom et par couche cochée, qui restent ensuite en cache. Sur la page web et dans l'application, l'estimation porte sur le seul niveau de zoom choisi, à l'étape « Vérifier avant de générer », à côté de l'aperçu. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
+Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom et par couche cochée, qui restent ensuite en cache. Sur la page web et dans l'application, l'estimation porte sur le seul niveau de zoom choisi et s'obtient en même temps que l'aperçu, à l'étape « Vérifier avant de générer ». Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
 ## Ajouter des données à la carte
 

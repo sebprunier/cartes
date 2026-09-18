@@ -49,8 +49,6 @@ const grayscaleBox = element('grayscale');
 const outlineBox = element('outline');
 const mapLayerList = element('map-layers');
 const estimatesTable = element('estimates');
-const estimateButton = element('estimate');
-const estimateSpinner = element('estimate-spinner');
 const estimateResult = element('estimate-result');
 const generateButton = element('generate');
 const cancelButton = element('cancel');
@@ -59,7 +57,6 @@ const result = element('result');
 const errorLine = element('error');
 const searchError = element('search-error');
 const dataError = element('data-error');
-const estimateError = element('estimate-error');
 const previewError = element('preview-error');
 const zoomNote = element('zoom-note');
 const privacyNote = element('privacy-note');
@@ -100,8 +97,6 @@ function showMapLayers() {
       box.addEventListener('change', () => {
         opacity.hidden = !box.checked;
         showMapLayerWarnings();
-        // A layer weighs as much as the basemap: the weight already shown no longer holds.
-        clearWeight();
         clearPreview();
       });
 
@@ -162,21 +157,16 @@ searchField.addEventListener('input', debounce(search, 300));
 basemapChoice.addEventListener('change', () => {
   fillZooms();
   showEstimates();
-  clearWeight();
   clearPreview();
 });
 zoomChoice.addEventListener('change', () => {
   showEstimates();
   showMapLayerWarnings();
-  clearWeight();
   clearPreview();
 });
 dpiField.addEventListener('change', showEstimates);
-formatChoice.addEventListener('change', clearWeight);
-grayscaleBox.addEventListener('change', () => {
-  clearWeight();
-  clearPreview();
-});
+formatChoice.addEventListener('change', clearPreview);
+grayscaleBox.addEventListener('change', clearPreview);
 outlineBox.addEventListener('change', clearPreview);
 legendBox.addEventListener('change', clearPreview);
 fileInput.addEventListener('change', () => addFiles(fileInput.files));
@@ -190,7 +180,6 @@ dropZone.addEventListener('drop', (event) => {
   dropZone.classList.remove('over');
   addFiles(event.dataTransfer.files);
 });
-estimateButton.addEventListener('click', estimateWeight);
 previewButton.addEventListener('click', showPreview);
 generateButton.addEventListener('click', generate);
 cancelButton.addEventListener('click', cancel);
@@ -269,6 +258,7 @@ function clearPreview() {
   previewDetail.replaceChildren();
   previewDetailCaption.textContent = '';
   previewButton.textContent = "Afficher l'aperçu";
+  estimateResult.textContent = '';
 }
 
 /** The map request behind the preview shown, to redraw its detail elsewhere without asking everything again. */
@@ -287,9 +277,16 @@ function previewRequest() {
   };
 }
 
-/** Draws the two views of the map as it would be generated, with the current settings. */
+/**
+ * Shows what the map will be: its two views, and the weight of the file. Both answer the same question before
+ * generating, and both download a sample of tiles, so a single action runs them together.
+ */
 async function showPreview() {
   if (!municipality) return;
+  await Promise.all([drawPreviewViews(), estimateWeight()]);
+}
+
+async function drawPreviewViews() {
   await drawPreview(async (request) => {
     const { overview, overviewZoom, ...detail } = await renderPreview(request);
     previewOverview.replaceChildren(overviewCanvas(overview, request));
@@ -486,7 +483,6 @@ function showEstimates() {
         zoomChoice.value = String(zoom);
         showEstimates();
         showMapLayerWarnings();
-        clearWeight();
         clearPreview();
       });
       return row;
@@ -494,19 +490,10 @@ function showEstimates() {
   );
 }
 
-/** Forgets the weight shown: it was estimated for settings that have changed since. */
-function clearWeight() {
-  estimateResult.textContent = '';
-}
-
 /** Weight of the file for the settings chosen, layers included, at the chosen zoom level only. */
 async function estimateWeight() {
-  if (!municipality) return;
   const zoom = Number(zoomChoice.value);
   const layers = chosenMapLayers();
-  estimateButton.disabled = true;
-  estimateSpinner.hidden = false;
-  clearWeight();
   try {
     const { size } = await engine.estimate({
       basemapId: basemapChoice.value,
@@ -524,10 +511,7 @@ async function estimateWeight() {
         : `≈ ${formatBytes(size)} en ${formatChoice.options[formatChoice.selectedIndex].text} au zoom ${zoom}` +
           `${names.length > 0 ? `, avec ${names.join(' et ')}` : ''}, à ±30 % environ.`;
   } catch (error) {
-    showError(`Estimation impossible : ${error.message}`, estimateError);
-  } finally {
-    estimateButton.disabled = false;
-    estimateSpinner.hidden = true;
+    showError(`Estimation impossible : ${error.message}`, previewError);
   }
 }
 
@@ -650,7 +634,7 @@ function showError(message, line = errorLine) {
 }
 
 function clearErrors() {
-  for (const line of [errorLine, searchError, dataError, estimateError, previewError]) {
+  for (const line of [errorLine, searchError, dataError, previewError]) {
     line.textContent = '';
     line.hidden = true;
   }
