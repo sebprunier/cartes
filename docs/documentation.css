@@ -1,10 +1,18 @@
 /* Mise en page propre à la documentation : un menu à gauche, le texte à droite. */
 
+/* La feuille de l'outil borne le corps de page à la largeur d'un formulaire : la documentation a besoin de
+   plus, pour son menu et ses tableaux. */
+body {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 header {
   display: flex;
   gap: 1rem;
   align-items: center;
-  max-width: 60rem;
+  max-width: 68rem;
   margin: 0 auto;
   padding: 1.5rem 1rem 0;
 }
@@ -22,7 +30,7 @@ header p {
   display: flex;
   gap: 2rem;
   align-items: flex-start;
-  max-width: 60rem;
+  max-width: 68rem;
   margin: 0 auto;
   padding: 1rem;
 }
@@ -77,10 +85,20 @@ header p {
 
 .documentation main th,
 .documentation main td {
-  padding: 0.35rem 0.5rem;
+  padding: 0.4rem 0.6rem;
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
+  /* La feuille de l'outil garde ses tableaux de chiffres sur une ligne ; un texte, lui, doit revenir. */
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+/* Un nom de couche ou une adresse n'a pas d'espace où revenir : sans cela, la colonne pousse le tableau
+   hors du cadre. Réservé aux cellules, pour que le texte courant coupe encore entre les mots. */
+.documentation main td code,
+.documentation main th code {
+  overflow-wrap: anywhere;
 }
 
 .documentation main code {
@@ -110,7 +128,7 @@ header p {
 }
 
 footer {
-  max-width: 60rem;
+  max-width: 68rem;
   margin: 0 auto;
   padding: 0 1rem 2rem;
 }
