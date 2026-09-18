@@ -35,6 +35,7 @@ node src/cli.js --aide
 | `src/core/pmtiles.js` | lecture d'une archive PMTiles par plages d'octets |
 | `src/core/mvt.js` | décodage des tuiles vectorielles (protobuf) |
 | `src/core/vectortiles.js` | tuiles d'une couche vectorielle, et formes en pixels |
+| `src/core/wms.js` | requêtes d'images à un service WMS, par blocs |
 | `src/core/municipalities.js` | recherche des communes et récupération de leur contour |
 | `src/core/metadata.js` | dates de mise à jour des données, lues dans le catalogue de la Géoplateforme |
 | `src/core/tiles.js` | calcul des tuiles, échantillonnage et téléchargement |

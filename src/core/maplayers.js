@@ -28,6 +28,22 @@ const MAP_LAYER_LIST = [
     },
   },
   {
+    id: 'ppr-inondation',
+    name: 'PPR inondation',
+    description: 'Zonage réglementaire des plans de prévention du risque inondation, à partir du zoom 13.',
+    kind: 'wms',
+    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    wmsLayers: 'PPRN_ZONE_INOND',
+    dataMaxZoom: 16,
+    minZoom: 13,
+    maxZoom: 19,
+    zoomNote: 'En dessous du zoom 13, le service ne dessine pas ce zonage.',
+    opacity: 0.55,
+    attribution: '© BRGM – Géorisques, PPR inondation',
+    // The service publishes no update date: the map credits the day the zoning was read instead.
+    datedByConsultation: true,
+  },
+  {
     id: 'argiles',
     name: 'Retrait-gonflement des argiles',
     description: 'Aléa de retrait-gonflement des argiles, millésime 2026, par niveau.',
@@ -88,6 +104,16 @@ function checkOpacity(value, layer) {
 /** Whether a layer is drawn by us, from vector tiles, rather than laid down as ready-made images. */
 export function isVectorLayer(layer) {
   return layer.kind === 'vector';
+}
+
+/** Whether a layer comes from a service that draws the area asked for, instead of serving ready-made tiles. */
+export function isWmsLayer(layer) {
+  return layer.kind === 'wms';
+}
+
+/** Whether a layer is laid down as tiles, downloaded and cached like a basemap. */
+export function isTileLayer(layer) {
+  return !isVectorLayer(layer) && !isWmsLayer(layer);
 }
 
 /**

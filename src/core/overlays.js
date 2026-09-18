@@ -12,9 +12,13 @@ export const ATTRIBUTION_BACKGROUND = 'rgba(255, 255, 255, 0.85)';
  * followed by the generation date of the map.
  */
 export function attributionText({ sources, date = new Date() }) {
-  const credits = sources.map(({ attribution, updateDate }) =>
-    updateDate ? `${attribution} (mise à jour du ${frenchDate(updateDate)})` : attribution,
-  );
+  const credits = sources.map(({ attribution, updateDate, datedByConsultation }) => {
+    if (updateDate) return `${attribution} (mise à jour du ${frenchDate(updateDate)})`;
+    // A service that publishes no update date is credited with the day it was read, as the licence asks for
+    // the freshness of the data one way or another.
+    if (datedByConsultation) return `${attribution} (consulté le ${date.toLocaleDateString('fr-FR')})`;
+    return attribution;
+  });
   return `Sources : ${credits.join(' ; ')} · Carte générée le ${date.toLocaleDateString('fr-FR')}`;
 }
 

@@ -19,6 +19,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- Couche du zonage réglementaire des PPR inondation (Géorisques), servie par un WMS : l'outil lui demande deux ou trois grandes images plutôt que des centaines de tuiles. Sous l'échelle où le service accepte de dessiner, l'image est demandée plus grande puis réduite, pour que l'aperçu la montre quand même.
 - Couche de l'aléa retrait-gonflement des argiles (millésime 2026, BRGM via la DINUM), dessinée par l'outil à partir de tuiles vectorielles : les zones restent nettes à l'impression et leurs niveaux figurent dans la légende. L'archive n'est lue que par morceaux, quelques kilooctets suffisant pour une commune.
 - Couches superposables au fond de carte, choisies dans un catalogue : la première est le cadastre (Parcellaire Express de l'IGN), en semi-transparence et citée dans la mention des sources. Option `--couches` et commande `cartes couches` en ligne de commande, cases à cocher sur la page web et dans l'application. L'opacité, 0,6 par défaut, se règle avec `--couches-opacite` ou avec un curseur dans l'interface.
 - L'aperçu s'efface quand un réglage change, comme le poids estimé : une image qui ne correspond plus aux réglages induit en erreur, même accompagnée d'un avertissement.

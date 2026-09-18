@@ -504,7 +504,7 @@ async function estimateWeight() {
       grayscale: grayscaleBox.checked,
       mapLayers: layers,
     });
-    const names = layers.map(({ id }) => MAP_LAYERS[id].name.toLowerCase());
+    const names = layers.map(({ id }) => MAP_LAYERS[id].name);
     estimateResult.textContent =
       size === undefined
         ? 'Estimation indisponible : réessayez plus tard.'

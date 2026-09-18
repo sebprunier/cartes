@@ -6,7 +6,9 @@ import {
   MAP_LAYERS,
   MapLayerError,
   chooseMapLayers,
+  isTileLayer,
   isVectorLayer,
+  isWmsLayer,
   mapLayerLegendEntries,
   mapLayerZoomWarning,
 } from '../src/core/maplayers.js';
@@ -18,11 +20,12 @@ describe('MAP_LAYERS', () => {
       for (const field of ['name', 'description', 'url', 'attribution']) {
         assert.ok(layer[field], `${id} ${field}`);
       }
-      // The open licence asks for the update date: either read from the catalog, or written here.
-      assert.ok(layer.metadataId || layer.updateDate, `${id} date de mise à jour`);
+      // The open licence asks for the freshness of the data: a date read from a catalog, written here, or
+      // failing that the day the service was read.
+      assert.ok(layer.metadataId || layer.updateDate || layer.datedByConsultation, `${id} date`);
       assert.ok(layer.minZoom <= layer.maxZoom, id);
-      // A layer laid down as images carries measured weight ratios; one we draw ourselves adds nothing.
-      if (isVectorLayer(layer)) {
+      // A layer laid down as tiles carries measured weight ratios; the others are not sampled at all.
+      if (!isTileLayer(layer)) {
         assert.equal(layer.fileSizeRatios, undefined, id);
       } else {
         for (const mode of ['color', 'grayscale']) {
@@ -49,6 +52,14 @@ describe('MAP_LAYERS', () => {
         mapLayerLegendEntries(layer, new Set(['Fort'])).map(({ label }) => label),
         [layer.styles.Fort.label],
       );
+    }
+  });
+
+  it('sorts every layer into one way of getting its drawing', () => {
+    for (const layer of Object.values(MAP_LAYERS)) {
+      const ways = [isTileLayer(layer), isVectorLayer(layer), isWmsLayer(layer)].filter(Boolean);
+      assert.equal(ways.length, 1, layer.id);
+      if (isWmsLayer(layer)) assert.ok(layer.wmsLayers, layer.id);
     }
   });
 

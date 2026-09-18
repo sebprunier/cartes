@@ -8,23 +8,27 @@ import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
 import {
   chooseMapLayers,
+  isTileLayer,
   isVectorLayer,
+  isWmsLayer,
   mapLayerLegendEntries,
   vectorStyleOf,
 } from '../src/core/maplayers.js';
+import { wmsRequests } from '../src/core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../src/core/vectortiles.js';
 import { estimateFileSize } from '../src/core/estimates.js';
 import { withUpdateDates } from '../src/core/metadata.js';
 import { layersSource } from '../src/core/layers.js';
 import { BOUNDARY_SOURCE } from '../src/core/municipalities.js';
 import { attributionText } from '../src/core/overlays.js';
-import { downloadTiles, extentFromBbox, sampleTiles, tilesInExtent } from '../src/core/tiles.js';
+import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from '../src/core/tiles.js';
 import { cachedTileLoader, tileSizes } from '../src/node/cache.js';
 import {
   assembleTiles,
   attributionLabel,
   boundaryOutline,
   drawMapLayer,
+  drawWmsLayer,
   vectorOverlays,
   drawOverlays,
   layerOverlays,
@@ -86,7 +90,7 @@ ipcMain.handle('estimate', async (event, request) => {
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
   // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
-  for (const layer of chooseMapLayers(request.mapLayers ?? []).filter((candidate) => !isVectorLayer(candidate))) {
+  for (const layer of chooseMapLayers(request.mapLayers ?? []).filter(isTileLayer)) {
     layers.push({ layer, sampleSizes: await sizesOf(layer) });
   }
   return {
@@ -133,6 +137,16 @@ ipcMain.handle('generate', async (event, request) => {
         vectorShapes.push(...vectorTileShapes(vectorTiles, extent, { styleOf: vectorStyleOf(layer) }));
         legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, vectorTiles)));
         event.sender.send('progress', { sourceId: layer.id, done: 1, total: 1 });
+        continue;
+      }
+
+      if (isWmsLayer(layer)) {
+        const blocks = wmsRequests(layer, extent);
+        for (const [index, block] of blocks.entries()) {
+          block.content = await fetchTile(block.url);
+          event.sender.send('progress', { sourceId: layer.id, done: index + 1, total: blocks.length });
+        }
+        await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
         continue;
       }
 

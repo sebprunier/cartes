@@ -50,6 +50,16 @@ export async function drawTile(context, extent, tile, { grayscale = false, opaci
   bitmap.close();
 }
 
+/** Draws one image of a WMS layer at its place, scaled when it was asked for at a lower resolution. */
+export async function drawWmsBlock(context, block, content, { opacity = 1 } = {}) {
+  const bitmap = await createImageBitmap(new Blob([content]));
+  context.save();
+  context.globalAlpha = opacity;
+  context.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, block.x, block.y, block.width, block.height);
+  context.restore();
+  bitmap.close();
+}
+
 /** Draws the municipality boundary, from the same path as the one used by the command line. */
 export function drawBoundary(context, boundary, extent) {
   context.save();

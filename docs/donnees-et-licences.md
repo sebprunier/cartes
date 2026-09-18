@@ -19,6 +19,7 @@ Ce document explique d'où viennent les données utilisées par `cartes`, sous q
 | Plan IGN | fond de carte `plan-ign` | WMTS, couche `GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2` | [IGNF_PLAN-IGN](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PLAN-IGN) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0) |
 | BD ORTHO (photographies aériennes) | fond de carte `ortho-ign` | WMTS, couche `ORTHOIMAGERY.ORTHOPHOTOS` | [IGNF_BD-ORTHO](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_BD-ORTHO) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0) |
 | Parcellaire Express (PCI) | couche `cadastre`, superposée au fond de carte | WMTS, couche `CADASTRALPARCELS.PARCELLAIRE_EXPRESS` | [IGNF_PARCELLAIRE-EXPRESS-PCI](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PARCELLAIRE-EXPRESS-PCI) | Aucune contrainte d'utilisation, avec un lien vers la licence ouverte 2.0 d'Etalab |
+| Zonage réglementaire des PPR inondation | couche `ppr-inondation` | WMS de Géorisques, couche `PPRN_ZONE_INOND` | [Géorisques](https://www.georisques.gouv.fr/) | Licence Ouverte (mentions légales du site) |
 | Retrait-gonflement des argiles, millésime 2026 | couche `argiles`, dessinée à partir de tuiles vectorielles | archive PMTiles publiée sur data.gouv.fr | [Carte des risques retrait-gonflement des argiles – 2026](https://www.data.gouv.fr/datasets/carte-des-risques-retrait-gonflement-des-argiles-2026) | Licence Ouverte 2.0 (déclarée par le jeu de données) |
 | ADMIN EXPRESS | contour de la commune | WFS, couche `ADMINEXPRESS-COG.LATEST:commune` | [IGNF_ADMIN-EXPRESS](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_ADMIN-EXPRESS) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0), avec un lien vers la licence ouverte 2.0 d'Etalab |
 | Géocodage | recherche d'une commune par son nom | API de géocodage | – | non analysée |
@@ -26,6 +27,8 @@ Ce document explique d'où viennent les données utilisées par `cartes`, sous q
 Le géocodage sert uniquement à retrouver le code INSEE d'une commune : ses résultats n'apparaissent pas sur les cartes. Sa licence n'a donc pas été analysée.
 
 Les fiches du Plan IGN et de la BD ORTHO nomment la licence sans préciser sa version. Celles d'ADMIN EXPRESS et du Parcellaire Express renvoient vers le [texte de la licence ouverte 2.0](https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf), analysé ci-dessous.
+
+Les mentions légales de Géorisques indiquent que « la Licence Ouverte / Open Licence s'applique à l'ensemble des réutilisations libres gratuites de données publiques » et que, sauf mention contraire, les contenus du site sont sous licence Etalab 2.0. Le service ne publie pas de date de mise à jour pour son zonage : la carte le crédite donc de la date à laquelle il a été consulté, qui est celle de la génération.
 
 La carte des argiles est publiée par la Direction interministérielle du numérique à partir de la donnée de Géorisques, produite par le BRGM. Elle est déclarée sous licence ouverte 2.0 sur data.gouv.fr, et la carte la crédite avec la date de sa publication (1er avril 2026). Attention à ce qu'elle dit : cet aléa est cartographié à l'échelle départementale et **ne vaut pas étude de sol**. Une carte communale sert à situer les secteurs concernés, pas à conclure pour une parcelle donnée.
 

@@ -9,12 +9,15 @@ import {
   MAP_LAYERS,
   MapLayerError,
   chooseMapLayers,
+  isTileLayer,
   isVectorLayer,
+  isWmsLayer,
   mapLayerLegendEntries,
   mapLayerZoomWarning,
   vectorStyleOf,
 } from '../core/maplayers.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
+import { wmsRequests } from '../core/wms.js';
 import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
 import { withUpdateDates } from '../core/metadata.js';
 import {
@@ -30,7 +33,14 @@ import {
 import { LayerError, layerWarning, layersSource, readLayer } from '../core/layers.js';
 import { attributionText } from '../core/overlays.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
-import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from '../core/tiles.js';
+import {
+  downloadTiles,
+  extentFromBbox,
+  fetchTile,
+  groundResolution,
+  sampleTiles,
+  tilesInExtent,
+} from '../core/tiles.js';
 import { cachedTileLoader, tileSizes } from './cache.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import {
@@ -38,6 +48,7 @@ import {
   attributionLabel,
   boundaryOutline,
   drawMapLayer,
+  drawWmsLayer,
   vectorOverlays,
   drawOverlays,
   layerOverlays,
@@ -210,6 +221,18 @@ async function generate(input, options) {
       continue;
     }
 
+    if (isWmsLayer(layer)) {
+      const blocks = wmsRequests(layer, extent);
+      console.log(`Téléchargement de ${blocks.length} image(s) pour « ${layer.name} »…`);
+      for (const [index, block] of blocks.entries()) {
+        block.content = await fetchTile(block.url);
+        printProgress(index + 1, blocks.length);
+      }
+      const missingBlocks = await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
+      if (missingBlocks > 0) console.log(`  ${missingBlocks} image(s) indisponible(s) : le fond reste visible.`);
+      continue;
+    }
+
     console.log(`Téléchargement de ${extent.tileCount} tuiles pour « ${layer.name} »…`);
     const layerTiles = await downloadTiles(layer, zoom, [...tilesInExtent(extent)], {
       loadTile: cachedTileLoader({ cacheDir: options.cache, basemapId: layer.id, zoom }),
@@ -284,7 +307,7 @@ async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir,
     };
     const sampleSizes = await sizesOf(basemap);
     const layers = [];
-    for (const layer of mapLayers.filter((candidate) => !isVectorLayer(candidate))) {
+    for (const layer of mapLayers.filter(isTileLayer)) {
       layers.push({ layer, sampleSizes: await sizesOf(layer) });
     }
     const size = estimateFileSize({

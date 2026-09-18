@@ -125,16 +125,20 @@ Des données ouvertes, téléchargées au moment de la génération, sans fichie
 | --- | --- | --- |
 | `cadastre` | limites et numéros des parcelles, à partir du zoom 16 | IGN – Parcellaire Express (PCI) |
 | `argiles` | aléa de retrait-gonflement des argiles (faible, moyen, fort), millésime 2026 | BRGM, via la DINUM |
+| `ppr-inondation` | zonage réglementaire des plans de prévention du risque inondation, à partir du zoom 13 | BRGM – Géorisques |
 
 ```sh
 cartes generer 86081 -z 16 --couches cadastre
 cartes generer 86081 -z 15 --couches argiles
+cartes generer 86066 -z 15 --couches ppr-inondation
 
 # Une couche plus discrète : 25 % au lieu des 60 % par défaut
 cartes generer 86081 -z 16 --couches cadastre --couches-opacite 0.25
 ```
 
 Une couche est dessinée en semi-transparence pour laisser lire le fond de carte, et sa source est citée dans la mention des sources avec sa date de mise à jour. L'opacité par défaut vient du catalogue ; `--couches-opacite` la remplace (répétable, dans l'ordre des couches), et l'interface propose un curseur sous chaque couche cochée. Comme le contour de la commune et les données ajoutées, une couche garde ses couleurs quand le fond passe en niveaux de gris : `--gris` sert justement à faire ressortir ce qui est posé dessus. Une couche qui montre moins de choses au niveau de zoom demandé le signale avant de télécharger quoi que ce soit.
+
+Le zonage des PPR inondation vient d'un service qui dessine l'image de l'emprise demandée, et non de tuiles toutes faites : l'outil réclame deux ou trois grandes images plutôt que des centaines de tuiles, ce qui est plus rapide et plus respectueux d'un service public. Ses couleurs sont celles du service, dont la [légende officielle](https://mapsref.brgm.fr/wxs/georisques/risques?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=PPRN_ZONE_INOND&format=image/png&STYLE=inspire_common:DEFAULT) distingue neuf classes : la carte ne les recopie pas dans sa propre légende.
 
 L'aléa argiles est dessiné par l'outil, à partir de tuiles vectorielles, et non recopié depuis des images : les zones restent nettes quelle que soit la taille d'impression, et leurs niveaux apparaissent dans la légende. La donnée s'arrête au zoom 12 ; au-delà, les mêmes contours sont dessinés en plus grand, nets mais pas plus précis. Seuls quelques kilooctets sont téléchargés, l'outil ne lisant que la partie de l'archive qui couvre la commune.
 

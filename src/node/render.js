@@ -81,6 +81,27 @@ export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) 
 }
 
 /**
+ * Draws the images of a WMS layer over the assembled image, each at its place, scaled when it was asked for
+ * at a lower resolution than the map. Returns the number of blocks that could not be drawn.
+ */
+export async function drawWmsLayer(pixels, extent, blocks, { opacity = 1 } = {}) {
+  let missing = 0;
+  for (const block of blocks) {
+    if (!block.content) {
+      missing++;
+      continue;
+    }
+    let image = sharp(block.content).ensureAlpha();
+    if (block.pixelWidth !== block.width || block.pixelHeight !== block.height) {
+      image = image.resize(block.width, block.height);
+    }
+    const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+    blendPixels({ data, width: info.width, height: info.height }, pixels, block.x, block.y, extent.width, extent.height, opacity);
+  }
+  return missing;
+}
+
+/**
  * Overlay drawing the municipality boundary. Like every overlay, it carries the area it covers, so that
  * `drawOverlays` gives it only to the blocks of the image where it falls.
  */

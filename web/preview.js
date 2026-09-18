@@ -4,7 +4,14 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { layersSource } from './core/layers.js';
-import { chooseMapLayers, isVectorLayer, mapLayerLegendEntries, vectorStyleOf } from './core/maplayers.js';
+import {
+  chooseMapLayers,
+  isVectorLayer,
+  isWmsLayer,
+  mapLayerLegendEntries,
+  vectorStyleOf,
+} from './core/maplayers.js';
+import { wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { withUpdateDates } from './core/metadata.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
@@ -19,6 +26,7 @@ import {
   drawLegend,
   drawPaths,
   drawTile,
+  drawWmsBlock,
 } from './render.js';
 
 // Sizes in pixels of the two views, chosen to stay readable on a page without downloading many tiles.
@@ -104,7 +112,7 @@ async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, bound
   }
 
   // The basemap first, then the image layers laid over it, in the order of the catalog.
-  for (const source of [basemap, ...mapLayers.filter((layer) => !isVectorLayer(layer))]) {
+  for (const source of [basemap, ...mapLayers.filter((layer) => !isVectorLayer(layer) && !isWmsLayer(layer))]) {
     await downloadTiles(source, area.zoom, tiles, {
       loadTile: async (url, tile) => {
         // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
@@ -120,6 +128,15 @@ async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, bound
       },
       concurrency: CONCURRENCY,
     });
+  }
+
+  // A WMS draws the area asked for: the preview asks only for what it shows.
+  for (const layer of mapLayers.filter(isWmsLayer)) {
+    for (const block of wmsRequests(layer, area)) {
+      const load = engine.loadTile ?? ((url) => fetchTile(url));
+      const content = await load(block.url, { basemapId: layer.id, zoom: area.zoom, x: block.x, y: block.y });
+      if (content) await drawWmsBlock(context, block, content, { opacity: layer.opacity });
+    }
   }
 
   context.save();
