@@ -25,6 +25,12 @@ Une commune a souvent besoin d'une carte de son territoire :
 
 Le projet est né de ce besoin à Colombiers, dans la Vienne. L'idée : partir du contour officiel de la commune, récupérer les tuiles de fonds de carte ouverts au niveau de détail le plus fin, puis les recoller en une seule image.
 
+## Co-construit avec Claude
+
+Avoir une idée est une chose, la réaliser en est une autre. Ce projet a été écrit en binôme avec [Claude Code](https://claude.com/claude-code) : le besoin, les arbitrages et les choix de conception viennent de son auteur, élu d'une commune de 1 400 habitants ; l'assistant écrit le code, mesure, teste et documente.
+
+Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient sur des mesures reproductibles plutôt que sur des intuitions, le comportement est couvert par des tests lancés à chaque modification, et les conditions d'utilisation des données affichées ont été vérifiées une à une ([Données utilisées et licences](docs/donnees-et-licences.md)). Les consignes données à l'assistant sont publiques, dans [CLAUDE.md](CLAUDE.md).
+
 ## Feuille de route
 
 1. **Fait** : un outil en ligne de commande qui valide le recollage de tuiles sur l'emprise d'une commune.

@@ -59,6 +59,7 @@ node src/cli.js --aide
 - **Cœur partagé** : `src/core/` ne doit importer ni module `node:`, ni sharp. Ce code sert aussi à la page web et à l'application Electron ; un test le vérifie.
 - **Dépendances** : le moins possible. Discutez-en dans une issue avant d'en ajouter une.
 - **Données** : avant d'ajouter une source de données, vérifiez que sa licence et ses conditions d'utilisation le permettent, puis complétez [Données utilisées et licences](docs/donnees-et-licences.md).
+- **Assistants de code** : si vous travaillez avec un assistant, [CLAUDE.md](CLAUDE.md) rassemble les consignes du projet et les pièges déjà rencontrés.
 
 ## Tests
 
