@@ -39,7 +39,8 @@ node src/cli.js --aide
 | `src/node/command-line.js` | analyse des commandes et des options (noms français, alias anglais) |
 | `src/node/cache.js` | cache des tuiles sur disque |
 | `src/node/render.js` | rendu avec sharp : décodage des tuiles, surcouches et écriture du fichier |
-| `web/` | page web : interface, moteur de rendu sur canvas et worker |
+| `web/` | page web : interface, moteur de rendu sur canvas, aperçu et worker |
+| `web/preview.js` | aperçu avant génération : miniature de la commune et extrait à l'échelle réelle |
 | `electron/` | application de bureau : processus principal, pont vers l'interface et moteur de rendu |
 | `scripts/build-web.js` | construit la page dans `dist/` (avec `--serve`, la sert en local) |
 | `scripts/build-electron.js` | construit l'interface de l'application dans `dist-electron/` |

@@ -30,7 +30,8 @@ Le projet est né de ce besoin à Colombiers, dans la Vienne. L'idée : partir d
 1. **Fait** : un outil en ligne de commande qui valide le recollage de tuiles sur l'emprise d'une commune.
 2. **Fait** : une page web pour générer une carte sans rien installer.
 3. **Fait** : une application de bureau, pour les cartes que le navigateur ne sait pas produire, avec ses installeurs pour macOS, Windows et Linux.
-4. **Prochaine étape** : ajouter des données géographiques complémentaires, comme les points de collecte des déchets ou les zones de risques.
+4. **Fait** : ajouter les données de la commune sur les cartes (points, zones, tracés), avec leurs catégories, leur légende et un aperçu avant génération.
+5. **Prochaine étape** : proposer un catalogue de couches ouvertes à superposer, comme le cadastre, les zones inondables ou l'aléa retrait-gonflement des argiles.
 
 ## Page web
 

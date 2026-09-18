@@ -75,7 +75,15 @@ L'IGN ne garantit ni l'absence d'erreurs dans les données, ni leur mise à disp
 - **Mention toujours présente.** Aucune option ne permet de la retirer. Sa taille est proportionnelle à l'image, pour rester lisible une fois la carte imprimée.
 - **Pas de caution de l'IGN.** La mention indique seulement les sources, sans logo ni formulation qui laisserait penser que la carte est un produit de l'IGN.
 
+- **Données ajoutées.** Les fichiers ajoutés à une carte (`--donnees`, glisser-déposer) sont cités eux aussi, sous leur nom : « Données ajoutées : Points d'apport volontaire ». Ils ne sont donc pas confondus avec les données de l'IGN.
+
 Si vous recadrez ou retouchez une carte générée, conservez la mention des sources.
+
+## Les données que vous ajoutez
+
+L'outil affiche les fichiers que vous lui donnez sans rien vérifier de leurs droits : c'est à vous de vous assurer que vous pouvez les diffuser, et d'adapter le nom du jeu de données qui apparaît dans la mention des sources. Les données produites par la commune elle-même ne posent en général pas de difficulté ; celles récupérées ailleurs (intercommunalité, département, opérateur) sont à vérifier auprès de leur producteur.
+
+Le dossier [`exemples/`](../exemples/) contient les points d'apport volontaire de Colombiers, relevés le 18 septembre 2026 sur le service cartographique de [Grand Châtellerault](https://www.grand-chatellerault.fr/connaitre/points-d-apport-volontaire). Aucune mention de licence n'accompagne ce service : ces treize points, factuels et publics, servent uniquement d'exemple, et seront retirés du dépôt à la demande de Grand Châtellerault.
 
 ## Conditions d'accès aux services de la Géoplateforme
 
