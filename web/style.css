@@ -135,10 +135,42 @@ button:disabled {
 }
 
 #layers li {
+  padding: 0.35rem 0;
+}
+
+#layers .layer-header {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  padding: 0.35rem 0;
+  margin: 0;
+}
+
+#layers .layer-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.35rem 0 0 1.35rem;
+  color: var(--grey);
+  font-size: 0.85rem;
+}
+
+#layers .layer-choices select {
+  padding: 0.1rem 0.25rem;
+  font-size: 0.85rem;
+}
+
+#layers .layer-categories {
+  margin: 0.35rem 0 0 1.35rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+#layers .layer-categories li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.1rem 0;
 }
 
 #layers .symbol {

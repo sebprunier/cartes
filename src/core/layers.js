@@ -6,23 +6,82 @@ import { lonLatToPixel } from './tiles.js';
 // Colors given to the layers that do not carry their own, distinguishable once printed in grayscale.
 const PALETTE = ['#0e4777', '#15814f', '#b3261e', '#7b3fb8', '#c2620a'];
 const DEFAULT_FILL_OPACITY = 0.35;
-// Properties holding the label of a feature, and the coordinates of a CSV row.
+// Properties holding the label of a feature, its category, its color, and the coordinates of a CSV row.
 const LABEL_KEYS = ['nom', 'name', 'libelle', 'libellé', 'title', 'titre', 'label'];
+const CATEGORY_KEYS = ['categorie', 'catégorie', 'category', 'type', 'groupe', 'group'];
+const COLOR_KEYS = ['couleur', 'color'];
 const LATITUDE_KEYS = ['latitude', 'lat', 'y'];
 const LONGITUDE_KEYS = ['longitude', 'lon', 'lng', 'long', 'x'];
 
 export class LayerError extends Error {}
 
 /**
- * Reads a layer from the content of a file. The format comes from the file name (.geojson, .json, .csv),
- * and the color is the one given, else the next one of the palette.
+ * Reads a layer from the content of a file. The format comes from the file name (.geojson, .json, .csv).
+ * Features are grouped by their category property, which gives one legend entry and one color per category;
+ * `categoryProperty` and `colorProperty` choose these properties, otherwise the usual names are looked up.
  */
-export function readLayer(text, { fileName, color, index = 0 }) {
-  const name = layerName(fileName);
-  const layerColor = color ?? PALETTE[index % PALETTE.length];
+export function readLayer(text, { fileName, color, index = 0, categoryProperty, colorProperty } = {}) {
   const features = /\.csv$/i.test(fileName) ? readCsv(text) : readGeoJson(text);
   if (features.length === 0) throw new LayerError(`Aucune donnée trouvée dans ${fileName}.`);
-  return { name, color: layerColor, features };
+
+  const properties = [...new Set(features.flatMap((feature) => Object.keys(feature.properties)))];
+  const layer = {
+    name: layerName(fileName),
+    color: color ?? PALETTE[index % PALETTE.length],
+    features,
+    properties,
+    categoryProperty: choose(categoryProperty, properties, CATEGORY_KEYS, 'de catégorie'),
+    colorProperty: choose(colorProperty, properties, COLOR_KEYS, 'de couleur'),
+  };
+  return applyProperties(layer, index);
+}
+
+/** The property asked for, if the file has it, else the first usual name found among the properties. */
+function choose(asked, properties, usualNames, what) {
+  if (!asked) return properties.find((property) => usualNames.includes(property.toLowerCase()));
+  const found = properties.find((property) => property.toLowerCase() === asked.toLowerCase());
+  if (!found) {
+    throw new LayerError(
+      `Propriété ${what} introuvable : ${asked}. ` +
+        `Propriétés disponibles : ${properties.length === 0 ? 'aucune' : properties.join(', ')}.`,
+    );
+  }
+  return found;
+}
+
+/**
+ * Gives each feature its category and its color: the one written in the file when there is one, otherwise a
+ * color of the palette per category, so that a legend entry and its features always match.
+ */
+export function applyProperties(layer, index = 0) {
+  const categories = [];
+  for (const feature of layer.features) {
+    const category = layer.categoryProperty ? text(feature.properties[layer.categoryProperty]) : undefined;
+    feature.category = category;
+    if (category && !categories.includes(category)) categories.push(category);
+  }
+
+  const offset = index % PALETTE.length;
+  const colors = new Map(
+    categories.map((category, position) => [category, PALETTE[(offset + position) % PALETTE.length]]),
+  );
+  for (const feature of layer.features) {
+    // A color written in the file, whatever the convention, is kept: the palette only fills the gaps.
+    const written = layer.colorProperty ? text(feature.properties[layer.colorProperty]) : undefined;
+    feature.color = written ?? feature.style.color ?? feature.style.fill ?? colors.get(feature.category) ?? layer.color;
+  }
+  // The legend shows, for each category, the color of its features, whether it is written or taken from the palette.
+  return {
+    ...layer,
+    categories: categories.map((category) => ({
+      name: category,
+      color: layer.features.find((feature) => feature.category === category).color,
+    })),
+  };
+}
+
+function text(value) {
+  return value === undefined || value === null || value === '' ? undefined : String(value).trim() || undefined;
 }
 
 /** Readable name of a layer, from its file name: « points-de-collecte.geojson » becomes « Points de collecte ». */
@@ -49,6 +108,7 @@ function readGeoJson(text) {
     const properties = feature?.properties ?? {};
     return geometries(feature?.geometry).map((geometry) => ({
       ...geometry,
+      properties,
       label: label(properties),
       style: style(properties),
     }));
@@ -118,6 +178,7 @@ function readCsv(text) {
       {
         shape: 'point',
         position: position([lon, lat]),
+        properties,
         label: labelColumn === -1 ? undefined : row[labelColumn]?.trim() || undefined,
         style: style(properties),
       },
@@ -186,21 +247,27 @@ export function layersSource(layers) {
 }
 
 /**
- * Legend entries of the layers: their name, their color and the shape that represents them best.
- * Layers whose features are all outside the extent are left out, as nothing is drawn for them.
+ * Legend entries of the layers: one per category when the features carry one, otherwise one per layer, with
+ * the color drawn for it and the shape that represents it best. What is outside the extent is left out, as
+ * nothing is drawn for it.
  */
 export function legendEntries(layers, extent) {
-  return layers
-    .filter((layer) => {
-      const { points, paths } = layerShapes(layer, extent);
-      return points.length > 0 || paths.length > 0;
-    })
-    .map((layer) => ({ label: layer.name, color: layer.color, shape: dominantShape(layer) }));
+  return layers.flatMap((layer) => {
+    const drawn = layerShapes(layer, extent).features;
+    if (drawn.length === 0) return [];
+    if ((layer.categories ?? []).length === 0) {
+      return [{ label: layer.name, color: layer.color, shape: dominantShape(drawn) }];
+    }
+    return layer.categories.flatMap(({ name, color }) => {
+      const features = drawn.filter((feature) => feature.category === name);
+      return features.length === 0 ? [] : [{ label: name, color, shape: dominantShape(features) }];
+    });
+  });
 }
 
-function dominantShape(layer) {
+function dominantShape(features) {
   const counts = { point: 0, line: 0, polygon: 0 };
-  for (const feature of layer.features) counts[feature.shape]++;
+  for (const feature of features) counts[feature.shape]++;
   return Object.entries(counts).sort(([, a], [, b]) => b - a)[0][0];
 }
 
@@ -214,13 +281,15 @@ export function layerShapes(layer, extent) {
   const radius = Math.max(4, Math.round(scale / 400));
   const points = [];
   const paths = [];
+  const drawn = [];
 
   for (const feature of layer.features) {
-    const color = feature.style.color ?? layer.color;
+    const color = feature.color ?? layer.color;
     if (feature.shape === 'point') {
       const [x, y] = pixel(feature.position, extent);
       if (!inside(x, y, extent, radius)) continue;
       points.push({ x, y, radius: radius * sizeFactor(feature.style.size), color, label: feature.label });
+      drawn.push(feature);
       continue;
     }
     const rings = feature.rings.map((ring) => ring.map((lonLat) => pixel(lonLat, extent)));
@@ -232,8 +301,9 @@ export function layerShapes(layer, extent) {
       fill: feature.shape === 'polygon' ? (feature.style.fill ?? color) : undefined,
       fillOpacity: feature.style.fillOpacity ?? DEFAULT_FILL_OPACITY,
     });
+    drawn.push(feature);
   }
-  return { points, paths, radius, strokeWidth };
+  return { points, paths, features: drawn, radius, strokeWidth };
 }
 
 function pixel([lon, lat], extent) {

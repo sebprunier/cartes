@@ -89,7 +89,12 @@ async function generate(input, options) {
 
   const layers = options.data.map((file, index) => {
     try {
-      return readLayer(readFileSync(file, 'utf8'), { fileName: basename(file), index });
+      return readLayer(readFileSync(file, 'utf8'), {
+        fileName: basename(file),
+        index,
+        categoryProperty: options.category,
+        colorProperty: options.color,
+      });
     } catch (error) {
       if (error instanceof LayerError) throw new UsageError(`${file} : ${error.message}`);
       if (error.code === 'ENOENT') throw new UsageError(`Fichier de données introuvable : ${file}`);

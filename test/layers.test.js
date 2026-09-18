@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { LayerError, layerShapes, legendEntries, readLayer } from '../src/core/layers.js';
+import { LayerError, applyProperties, layerShapes, legendEntries, readLayer } from '../src/core/layers.js';
 import { extentFromBbox } from '../src/core/tiles.js';
 
 const COLOMBIERS_BBOX = [0.38344088, 46.75332418, 0.48673916, 46.80743244];
@@ -112,6 +112,67 @@ describe('readLayer, CSV', () => {
   });
 });
 
+describe('catégories et couleurs', () => {
+  const points = (categories, key = 'categorie') =>
+    geoJson(
+      categories.map((category, index) =>
+        feature({ type: 'Point', coordinates: [0.43 + index / 1000, 46.78] }, { [key]: category }),
+      ),
+    );
+
+  it('groups the features by the usual category property, with one color per category', () => {
+    const layer = read(points(['Verre', 'Textile', 'Verre']));
+    assert.equal(layer.categoryProperty, 'categorie');
+    assert.deepEqual(
+      layer.categories.map(({ name }) => name),
+      ['Verre', 'Textile'],
+    );
+    const [verre, textile] = layer.categories;
+    assert.notEqual(verre.color, textile.color);
+    assert.deepEqual(
+      layer.features.map((f) => f.color),
+      [verre.color, textile.color, verre.color],
+    );
+  });
+
+  it('uses the property asked for, and says when the file does not have it', () => {
+    const layer = readLayer(points(['Verre', 'Textile'], 'dechets'), {
+      fileName: 'points.geojson',
+      categoryProperty: 'dechets',
+    });
+    assert.equal(layer.categories.length, 2);
+    assert.throws(
+      () => readLayer(points(['Verre']), { fileName: 'points.geojson', categoryProperty: 'absente' }),
+      /Propriété de catégorie introuvable : absente\. Propriétés disponibles : categorie\./,
+    );
+  });
+
+  it('takes the color from a property, and keeps the styles written in the file', () => {
+    const layer = readLayer(
+      geoJson([
+        feature({ type: 'Point', coordinates: [0.43, 46.78] }, { categorie: 'Verre', couleur: '#123456' }),
+        feature({ type: 'Point', coordinates: [0.44, 46.78] }, { categorie: 'Textile', 'marker-color': '#abcdef' }),
+      ]),
+      { fileName: 'points.geojson' },
+    );
+    assert.equal(layer.colorProperty, 'couleur');
+    assert.deepEqual(
+      layer.features.map((f) => f.color),
+      ['#123456', '#abcdef'],
+    );
+  });
+
+  it('applies another choice of properties to an already read layer', () => {
+    const layer = read(points(['Verre', 'Textile']));
+    const without = applyProperties({ ...layer, categoryProperty: undefined });
+    assert.deepEqual(without.categories, []);
+    assert.deepEqual(
+      without.features.map((f) => f.color),
+      [layer.color, layer.color],
+    );
+  });
+});
+
 describe('legendEntries', () => {
   const points = geoJson([
     feature({ type: 'Point', coordinates: [0.43, 46.78] }),
@@ -123,6 +184,23 @@ describe('legendEntries', () => {
     const layer = read(points, 'points-de-collecte.geojson');
     assert.deepEqual(legendEntries([layer], extent), [
       { label: 'Points de collecte', color: layer.color, shape: 'point' },
+    ]);
+  });
+
+  it('gives one entry per category visible on the map, with its color and its shape', () => {
+    const layer = read(
+      geoJson([
+        feature({ type: 'Point', coordinates: [0.43, 46.78] }, { categorie: 'Verre' }),
+        feature({ type: 'Point', coordinates: [2.35, 48.85] }, { categorie: 'Ailleurs' }), // Hors de l'emprise.
+        feature(
+          { type: 'Polygon', coordinates: [[[0.4, 46.76], [0.45, 46.76], [0.45, 46.79], [0.4, 46.76]]] },
+          { categorie: 'Zone' },
+        ),
+      ]),
+    );
+    assert.deepEqual(legendEntries([layer], extent), [
+      { label: 'Verre', color: layer.categories[0].color, shape: 'point' },
+      { label: 'Zone', color: layer.categories[2].color, shape: 'polygon' },
     ]);
   });
 

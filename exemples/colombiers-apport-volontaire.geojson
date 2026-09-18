@@ -1,0 +1,226 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Cimetière",
+        "adresse": "6, Route du Vivier. 86490 Colombiers",
+        "categorie": "Verre et papier",
+        "dechets": "papier, verre",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.425784,
+          46.774204
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "CTM Colombiers",
+        "adresse": "6, Route du Vivier. 86490 Colombiers",
+        "categorie": "Emballages, ordures et papier",
+        "dechets": "emballages, ordures ménagères, papier",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.424771,
+          46.774085
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "L'Ane Vert",
+        "adresse": "Route de Marigny. 86490 Colombiers",
+        "categorie": "Verre et papier",
+        "dechets": "papier, verre",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.397117,
+          46.757695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "La Bougrière",
+        "adresse": "8, Route de la Bougrière. 86490 Colombiers",
+        "categorie": "Verre et papier",
+        "dechets": "papier, verre",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.449463,
+          46.794811
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "La Bouillerie",
+        "adresse": "La Guédonnière. 86490 Colombiers",
+        "categorie": "Emballages et ordures ménagères",
+        "dechets": "emballages, ordures ménagères",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.441956,
+          46.775985
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "La Fuie",
+        "adresse": "Rue de la Fuie. 86490 Colombiers",
+        "categorie": "Emballages et ordures ménagères",
+        "dechets": "emballages, ordures ménagères",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.422015,
+          46.769335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Les Vigneaux",
+        "adresse": "45, Lieu-dit la Davaillerie. 86490 Colombiers",
+        "categorie": "Verre et papier",
+        "dechets": "papier, verre",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.450123,
+          46.769777
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Place mairie",
+        "adresse": "Place Manderen. 86490 Colombiers",
+        "categorie": "Textile",
+        "dechets": "textile",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.426713,
+          46.772149
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Route de la Roche",
+        "adresse": "Route de la Roche. 86490 Colombiers",
+        "categorie": "Emballages et ordures ménagères",
+        "dechets": "emballages, ordures ménagères",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.454273,
+          46.769684
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Route des Pallus",
+        "adresse": "Route des Pallus. 86490 Colombiers",
+        "categorie": "Emballages et ordures ménagères",
+        "dechets": "emballages, ordures ménagères",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.468906,
+          46.77438
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Salle des Fêtes",
+        "adresse": "2, Rue de la Perroterie. 86490 Colombiers",
+        "categorie": "Verre",
+        "dechets": "verre",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.425173,
+          46.771825
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Tour Savary Nord",
+        "adresse": "68, Route de Marygny. 86490 Colombiers",
+        "categorie": "Emballages et ordures ménagères",
+        "dechets": "emballages, ordures ménagères",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.406835,
+          46.762111
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Tour Savary Sud",
+        "adresse": "La Tour Savary. 86490 Colombiers",
+        "categorie": "Emballages et ordures ménagères",
+        "dechets": "emballages, ordures ménagères",
+        "source": "Grand Châtellerault"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.403851,
+          46.761044
+        ]
+      }
+    }
+  ]
+}

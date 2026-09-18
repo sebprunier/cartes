@@ -9,6 +9,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 ### Ajouté
 
 - Ajout des données de la commune sur les cartes : fichiers GeoJSON (uMap, QGIS) ou CSV avec des colonnes de latitude et de longitude, avec leurs étiquettes, leurs couleurs et une légende. Disponible dans les trois outils : option `--donnees` en ligne de commande, glisser-déposer sur la page web et dans l'application de bureau.
+- Catégories : les objets d'un même fichier sont regroupés par une propriété (`categorie`, `category`, `type`, `groupe` par défaut), avec une couleur et une ligne de légende par catégorie. Les options `--categorie` et `--couleur` désignent les propriétés à utiliser ; la page web et l'application les proposent dans une liste déroulante.
+- Exemple de données réelles : les points d'apport volontaire de Colombiers, dans [`exemples/`](exemples/).
 
 ## [0.2.0] – 2026-09-17
 

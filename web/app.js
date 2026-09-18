@@ -2,7 +2,7 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
-import { LayerError, readLayer } from './core/layers.js';
+import { LayerError, applyProperties, readLayer } from './core/layers.js';
 import {
   boundaryBbox,
   describeMunicipality,
@@ -150,27 +150,79 @@ async function addFiles(files) {
 }
 
 function showLayers() {
-  layersList.replaceChildren(
-    ...layers.map((layer, index) => {
-      const item = document.createElement('li');
-      const symbol = document.createElement('span');
-      symbol.className = 'symbol';
-      symbol.style.background = layer.color;
-      const name = document.createElement('span');
-      name.textContent = `${layer.name} (${layer.features.length} élément${layer.features.length > 1 ? 's' : ''})`;
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.textContent = 'Retirer';
-      remove.addEventListener('click', () => {
-        layers.splice(index, 1);
-        showLayers();
-      });
-      item.append(symbol, name, remove);
-      return item;
-    }),
-  );
+  layersList.replaceChildren(...layers.map(layerItem));
   legendChoice.hidden = layers.length === 0;
 }
+
+/** One layer of the list: its name, the properties used for the legend and the colors, and its categories. */
+function layerItem(layer, index) {
+  const item = document.createElement('li');
+  const header = document.createElement('p');
+  header.className = 'layer-header';
+  const symbol = document.createElement('span');
+  symbol.className = 'symbol';
+  symbol.style.background = layer.color;
+  const name = document.createElement('span');
+  name.textContent = `${layer.name} (${layer.features.length} élément${layer.features.length > 1 ? 's' : ''})`;
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.textContent = 'Retirer';
+  remove.addEventListener('click', () => {
+    layers.splice(index, 1);
+    showLayers();
+  });
+  header.append(symbol, name, remove);
+  item.append(header);
+
+  if (layer.properties.length > 0) {
+    const choices = document.createElement('p');
+    choices.className = 'layer-choices';
+    choices.append(
+      propertyChoice('Légende', layer.categoryProperty, '— le fichier —', layer.properties, (property) =>
+        update(index, { categoryProperty: property }),
+      ),
+      propertyChoice('Couleurs', layer.colorProperty, '— automatiques —', layer.properties, (property) =>
+        update(index, { colorProperty: property }),
+      ),
+    );
+    item.append(choices);
+  }
+
+  if (layer.categories.length > 0) {
+    const categories = document.createElement('ul');
+    categories.className = 'layer-categories';
+    categories.append(
+      ...layer.categories.map(({ name: category, color }) => {
+        const line = document.createElement('li');
+        const dot = document.createElement('span');
+        dot.className = 'symbol';
+        dot.style.background = color;
+        line.append(dot, document.createTextNode(category));
+        return line;
+      }),
+    );
+    item.append(categories);
+  }
+  return item;
+}
+
+/** A drop-down choosing the property that carries the categories or the colors of a layer. */
+function propertyChoice(label, selected, noneLabel, properties, onChange) {
+  const wrapper = document.createElement('label');
+  const select = document.createElement('select');
+  select.append(new Option(noneLabel, ''), ...properties.map((property) => new Option(property, property)));
+  select.value = selected ?? '';
+  select.addEventListener('change', () => onChange(select.value || undefined));
+  wrapper.append(`${label} : `, select);
+  return wrapper;
+}
+
+/** Applies a new choice of properties to a layer, which gives its features their category and their color again. */
+function update(index, change) {
+  layers[index] = applyProperties({ ...layers[index], ...change }, index);
+  showLayers();
+}
+
 
 function zoomLevels() {
   const { maxZoom } = BASEMAPS[basemapChoice.value];

@@ -42,8 +42,8 @@ describe('parseCommandLine', () => {
   });
 
   it('rejects unknown options with a message in French', () => {
-    assert.throws(() => parseCommandLine(['generer', '86081', '--couleur']), {
-      message: 'Option inconnue : --couleur. La liste des options est disponible avec cartes --aide.',
+    assert.throws(() => parseCommandLine(['generer', '86081', '--teinte']), {
+      message: 'Option inconnue : --teinte. La liste des options est disponible avec cartes --aide.',
     });
     assert.throws(() => parseCommandLine(['generer', '86081', '-x']), /Option inconnue : -x\./);
   });
