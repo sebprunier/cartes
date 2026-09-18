@@ -8,6 +8,11 @@ Ouvrez une [issue](https://github.com/sebprunier/cartes/issues). Pour un bug, pr
 
 Pour une faille de sécurité, n'ouvrez pas d'issue publique : suivez la [politique de sécurité](SECURITY.md).
 
+Les issues portent deux sortes de labels, que vous n'avez pas à choisir vous-même :
+
+- **la partie du projet concernée**, en français : `ligne de commande`, `page web`, `application`, `données`. Une issue peut en porter plusieurs, ou aucune quand elle concerne le projet entier ;
+- **la nature du travail**, avec les labels de GitHub : `bug`, `enhancement`, `documentation`, `question` pour une décision à prendre, `accessibility`.
+
 ## Préparer son environnement
 
 Il faut Node.js 22 ou plus récent, et git.
