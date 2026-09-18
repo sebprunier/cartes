@@ -150,7 +150,9 @@ async function generate(input, options) {
     const warning = layerWarning(layer);
     if (warning) console.log(`Attention : ${layer.name} — ${warning}\n`);
   }
-  const fileSizeOptions = options.estimate ? { format, grayscale, cacheDir: options.cache, concurrency } : undefined;
+  const fileSizeOptions = options.estimate
+    ? { format, grayscale, cacheDir: options.cache, concurrency, mapLayers }
+    : undefined;
   await printEstimates({ bbox, margin, basemap, selectedZoom: zoom, dpi, fileSizeOptions });
   console.log();
   if (options.estimate) return;
@@ -247,20 +249,28 @@ async function printEstimates({ bbox, margin, basemap, selectedZoom, dpi, fileSi
   }
 }
 
-async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir, concurrency }) {
+async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir, concurrency, mapLayers = [] }) {
   try {
-    const sampledTiles = await downloadTiles(basemap, extent.zoom, sampleTiles(extent, SAMPLE_GRID_SIZE), {
-      loadTile: cachedTileLoader({ cacheDir, basemapId: basemap.id, zoom: extent.zoom }),
-      concurrency,
-    });
-    const sampleSizes = await tileSizes(sampledTiles);
+    const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
+    const sizesOf = async (source) => {
+      const sampled = await downloadTiles(source, extent.zoom, sample, {
+        loadTile: cachedTileLoader({ cacheDir, basemapId: source.id, zoom: extent.zoom }),
+        concurrency,
+      });
+      return tileSizes(sampled);
+    };
+    const sampleSizes = await sizesOf(basemap);
+    const layers = [];
+    for (const layer of mapLayers) layers.push({ layer, sampleSizes: await sizesOf(layer) });
     const size = estimateFileSize({
       basemap,
       format,
       grayscale,
       palette: canUsePalette(basemap, format),
+      zoom: extent.zoom,
       tileCount: extent.tileCount,
       sampleSizes,
+      layers,
     });
     return size === undefined ? '?' : `≈ ${formatBytes(size)}`;
   } catch {

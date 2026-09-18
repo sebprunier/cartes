@@ -67,19 +67,30 @@ ipcMain.handle('tile', async (event, url, { basemapId, zoom, x, y }) => {
 
 ipcMain.handle('estimate', async (event, request) => {
   const { basemap, extent } = plan(request);
-  const tiles = await downloadTiles(basemap, extent.zoom, sampleTiles(extent, SAMPLE_GRID_SIZE), {
-    loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: basemap.id, zoom: extent.zoom }),
-    concurrency: CONCURRENCY,
-  });
-  const sampleSizes = await tileSizes(tiles);
+  const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
+  const sizesOf = async (source) => {
+    const tiles = await downloadTiles(source, extent.zoom, sample, {
+      loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: source.id, zoom: extent.zoom }),
+      concurrency: CONCURRENCY,
+    });
+    return tileSizes(tiles);
+  };
+
+  const sampleSizes = await sizesOf(basemap);
+  const layers = [];
+  for (const layer of chooseMapLayers(request.mapLayers ?? [])) {
+    layers.push({ layer, sampleSizes: await sizesOf(layer) });
+  }
   return {
     size: estimateFileSize({
       basemap,
       format: request.format,
       grayscale: request.grayscale,
       palette: canUsePalette(basemap, request.format),
+      zoom: extent.zoom,
       tileCount: extent.tileCount,
       sampleSizes,
+      layers,
     }),
   };
 });

@@ -20,6 +20,12 @@ const MAP_LAYER_LIST = [
     opacity: 0.6,
     attribution: '© IGN – Parcellaire Express (PCI)',
     metadataId: 'IGNF_PARCELLAIRE-EXPRESS-PCI',
+    // What the layer adds to the file, divided by the size of its tiles. Measured on Colombiers at zoom 16,
+    // where a layer weighs the most; at lower zoom levels it draws less, and the estimate errs on the high side.
+    fileSizeRatios: {
+      color: { png: 0.75, pngPalette: 0.3, jpg: 0.3, tif: 1.1 },
+      grayscale: { png: 0.8, pngPalette: 0.3, jpg: 0.35, tif: 1.35 },
+    },
   },
 ];
 

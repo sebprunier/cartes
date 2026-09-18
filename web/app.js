@@ -99,6 +99,8 @@ function showMapLayers() {
       box.addEventListener('change', () => {
         opacity.hidden = !box.checked;
         showMapLayerWarnings();
+        // A layer weighs as much as the basemap: the sizes already shown no longer hold.
+        clearFileSizes();
         agePreview();
       });
 
@@ -515,6 +517,7 @@ async function estimateFileSizes() {
         margin: MARGIN,
         format: formatChoice.value,
         grayscale: grayscaleBox.checked,
+        mapLayers: chosenMapLayers(),
       });
       if (cell) cell.textContent = size === undefined ? '?' : `≈ ${formatBytes(size)}`;
     }

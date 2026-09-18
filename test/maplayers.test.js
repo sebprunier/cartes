@@ -12,6 +12,12 @@ describe('MAP_LAYERS', () => {
         assert.ok(layer[field], `${id} ${field}`);
       }
       assert.ok(layer.minZoom <= layer.maxZoom, id);
+      // The weight a layer adds to the file is measured, as for the basemaps.
+      for (const mode of ['color', 'grayscale']) {
+        for (const format of ['png', 'jpg', 'tif']) {
+          assert.ok(layer.fileSizeRatios[mode][format] > 0, `${id} ${mode} ${format}`);
+        }
+      }
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);
       // A layer that shows less below its minimum zoom says what is missing.
       assert.ok(layer.zoomNote, id);

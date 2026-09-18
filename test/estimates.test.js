@@ -23,6 +23,39 @@ describe('estimateFileSize', () => {
     assert.equal(estimateFileSize({ basemap, format: 'tif', grayscale: true, tileCount: 100, sampleSizes }), 200_000);
   });
 
+  it('adds the weight of the layers laid over the basemap', () => {
+    const layer = {
+      minZoom: 16,
+      fileSizeRatios: { color: { png: 0.5, jpg: 0.3, tif: 1 }, grayscale: { png: 0.5, jpg: 0.3, tif: 1 } },
+    };
+    const withoutLayer = estimateFileSize({ basemap, format: 'png', tileCount: 100, sampleSizes });
+    const withLayer = estimateFileSize({
+      basemap,
+      format: 'png',
+      zoom: 16,
+      tileCount: 100,
+      sampleSizes,
+      layers: [{ layer, sampleSizes: [2000] }],
+    });
+    assert.equal(withLayer - withoutLayer, 100 * 2000 * 0.5);
+  });
+
+  it('counts a layer for less below the zoom where it shows everything', () => {
+    const layer = { minZoom: 16, fileSizeRatios: { color: { png: 0.5 }, grayscale: { png: 0.5 } } };
+    const request = { basemap, format: 'png', tileCount: 100, sampleSizes, layers: [{ layer, sampleSizes: [2000] }] };
+    const below = estimateFileSize({ ...request, zoom: 15 });
+    const above = estimateFileSize({ ...request, zoom: 16 });
+    assert.ok(below < above, `${below} < ${above}`);
+  });
+
+  it('ignores a layer whose sample could not be downloaded', () => {
+    const layer = { fileSizeRatios: { color: { png: 0.5 }, grayscale: { png: 0.5 } } };
+    assert.equal(
+      estimateFileSize({ basemap, format: 'png', tileCount: 100, sampleSizes, layers: [{ layer, sampleSizes: [] }] }),
+      estimateFileSize({ basemap, format: 'png', tileCount: 100, sampleSizes }),
+    );
+  });
+
   it('uses the palette ratio when the PNG is written with a color palette', () => {
     assert.equal(estimateFileSize({ basemap, format: 'png', tileCount: 100, sampleSizes }), 200_000);
     assert.equal(estimateFileSize({ basemap, format: 'png', palette: true, tileCount: 100, sampleSizes }), 90_000);

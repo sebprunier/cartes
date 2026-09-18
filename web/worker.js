@@ -36,15 +36,22 @@ onmessage = async ({ data: message }) => {
 };
 
 /** Estimated file size for one zoom level, from a sample of tiles. */
-async function estimate({ basemapId, bbox, zoom, margin, format, grayscale }) {
+async function estimate({ basemapId, bbox, zoom, margin, format, grayscale, mapLayers = [] }) {
   const basemap = BASEMAPS[basemapId];
   const extent = extentFromBbox(bbox, zoom, margin);
-  const tiles = await downloadTiles(basemap, zoom, sampleTiles(extent, SAMPLE_GRID_SIZE), {
-    loadTile,
-    concurrency: CONCURRENCY,
-  });
-  const sampleSizes = tiles.filter((tile) => tile.content).map((tile) => tile.content.byteLength);
-  return { zoom, size: estimateFileSize({ basemap, format, grayscale, tileCount: extent.tileCount, sampleSizes }) };
+  const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
+  const sizesOf = async (source) => {
+    const tiles = await downloadTiles(source, zoom, sample, { loadTile, concurrency: CONCURRENCY });
+    return tiles.filter((tile) => tile.content).map((tile) => tile.content.byteLength);
+  };
+
+  const sampleSizes = await sizesOf(basemap);
+  const layers = [];
+  for (const layer of chooseMapLayers(mapLayers)) layers.push({ layer, sampleSizes: await sizesOf(layer) });
+  return {
+    zoom,
+    size: estimateFileSize({ basemap, format, grayscale, zoom, tileCount: extent.tileCount, sampleSizes, layers }),
+  };
 }
 
 /** Downloads the tiles, draws the map and returns the image as a blob. */
