@@ -35,7 +35,6 @@ const legendBox = element('legend');
 const previewSection = element('preview');
 const previewButton = element('preview-button');
 const previewProgress = element('preview-progress');
-const previewStatus = element('preview-status');
 const previewViews = element('preview-views');
 const previewOverview = element('preview-overview');
 const previewOverviewCaption = element('preview-overview-caption');
@@ -99,7 +98,7 @@ function showMapLayers() {
         showMapLayerWarnings();
         // A layer weighs as much as the basemap: the weight already shown no longer holds.
         clearWeight();
-        agePreview();
+        clearPreview();
       });
 
       const warning = document.createElement('p');
@@ -130,7 +129,7 @@ function opacityChoice(layer) {
   const showShare = () => (share.textContent = `${Math.round(Number(slider.value) * 100)} %`);
   showShare();
   slider.addEventListener('input', showShare);
-  slider.addEventListener('change', agePreview);
+  slider.addEventListener('change', clearPreview);
   label.append('Opacité ', slider, ' ', share);
   line.append(label);
   return line;
@@ -160,22 +159,22 @@ basemapChoice.addEventListener('change', () => {
   fillZooms();
   showEstimates();
   clearWeight();
-  agePreview();
+  clearPreview();
 });
 zoomChoice.addEventListener('change', () => {
   showEstimates();
   showMapLayerWarnings();
   clearWeight();
-  agePreview();
+  clearPreview();
 });
 dpiField.addEventListener('change', showEstimates);
 formatChoice.addEventListener('change', clearWeight);
 grayscaleBox.addEventListener('change', () => {
   clearWeight();
-  agePreview();
+  clearPreview();
 });
-outlineBox.addEventListener('change', agePreview);
-legendBox.addEventListener('change', agePreview);
+outlineBox.addEventListener('change', clearPreview);
+legendBox.addEventListener('change', clearPreview);
 fileInput.addEventListener('change', () => addFiles(fileInput.files));
 dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
@@ -232,7 +231,7 @@ async function select(found) {
   previewSection.hidden = false;
   generationSection.hidden = false;
   previewViews.hidden = true;
-  agePreview();
+  clearPreview();
   result.hidden = true;
   errorLine.hidden = true;
   fillZooms();
@@ -252,13 +251,20 @@ async function addFiles(files) {
   }
   fileInput.value = '';
   showLayers();
-  agePreview();
+  clearPreview();
 }
 
-/** Says that the settings changed since the preview was drawn, so that it is not taken for the current map. */
-function agePreview() {
-  previewButton.textContent = previewViews.hidden ? "Afficher l'aperçu" : "Actualiser l'aperçu";
-  previewStatus.textContent = previewViews.hidden ? '' : 'Réglages modifiés depuis cet aperçu.';
+/**
+ * Forgets the preview: the settings have changed, and an image that no longer matches them is worse than no
+ * image at all. The weight shown is forgotten the same way, for the same reason.
+ */
+function clearPreview() {
+  previewViews.hidden = true;
+  previewOverview.replaceChildren();
+  previewOverviewCaption.textContent = '';
+  previewDetail.replaceChildren();
+  previewDetailCaption.textContent = '';
+  previewButton.textContent = "Afficher l'aperçu";
 }
 
 /** The map request behind the preview shown, to redraw its detail elsewhere without asking everything again. */
@@ -300,7 +306,6 @@ async function drawPreview(draw) {
   const request = previewRequest();
   previewButton.disabled = true;
   previewProgress.hidden = false;
-  previewStatus.textContent = '';
   try {
     const { detail, wholeMap } = await draw(request);
     previewDetail.replaceChildren(displayable(detail));
@@ -309,7 +314,6 @@ async function drawPreview(draw) {
       : `Extrait au zoom ${request.zoom}, à l'échelle réelle : un pixel de l'aperçu est un pixel de la carte. ` +
         'Cliquez sur la miniature pour le déplacer.';
     previewViews.hidden = false;
-    previewButton.textContent = "Actualiser l'aperçu";
   } catch (error) {
     showError(`Aperçu impossible : ${error.message}`);
   } finally {
@@ -359,7 +363,7 @@ function layerItem(layer, index) {
   name.setAttribute('aria-label', 'Nom du jeu de données');
   name.addEventListener('input', () => {
     layer.name = name.value;
-    agePreview();
+    clearPreview();
   });
   name.addEventListener('blur', () => {
     if (name.value.trim()) return;
@@ -374,7 +378,7 @@ function layerItem(layer, index) {
   remove.addEventListener('click', () => {
     layers.splice(index, 1);
     showLayers();
-    agePreview();
+    clearPreview();
   });
   header.append(symbol, name, count, remove);
   item.append(header);
@@ -434,7 +438,7 @@ function propertyChoice(label, selected, noneLabel, properties, onChange) {
 function update(index, change) {
   layers[index] = applyProperties({ ...layers[index], ...change }, index);
   showLayers();
-  agePreview();
+  clearPreview();
 }
 
 
@@ -479,7 +483,7 @@ function showEstimates() {
         showEstimates();
         showMapLayerWarnings();
         clearWeight();
-        agePreview();
+        clearPreview();
       });
       return row;
     }),
