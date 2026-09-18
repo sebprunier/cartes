@@ -6,41 +6,43 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [0.3.0] – 2026-09-19
+
+Les cartes portent enfin des données : celles que la commune fournit elle-même, et six couches de services publics à superposer au fond de carte. Un aperçu montre le résultat avant de lancer la génération, et une documentation en ligne accompagne les trois outils.
+
+### Ajouté
+
+- Ajout des données de la commune sur les cartes : fichiers GeoJSON (uMap, QGIS) ou CSV avec des colonnes de latitude et de longitude, avec leurs étiquettes, leurs couleurs et une légende. Disponible dans les trois outils : option `--donnees` en ligne de commande, glisser-déposer sur la page web et dans l'application de bureau.
+- Catégories : les objets d'un même fichier sont regroupés par une propriété (`categorie`, `category`, `type`, `groupe` par défaut), avec une couleur et une ligne de légende par catégorie. Les options `--donnees-categorie` et `--donnees-couleur` désignent les propriétés à utiliser ; la page web et l'application les proposent dans une liste déroulante.
+- Titre de la légende : le nom du jeu de données quand un seul fichier est ajouté, « Légende » sinon. Ce nom, repris dans la mention des sources, se choisit avec `--donnees-titre` ou dans le champ prévu sur la page web et dans l'application.
+- Placement des étiquettes : une étiquette qui en recouvrirait une autre, ou un autre point, est déplacée autour de son point, et abandonnée s'il n'y a pas la place. Les étiquettes de tous les fichiers ajoutés sont placées en une seule passe, dans l'ordre des fichiers, pour que deux fichiers ne se recouvrent pas.
+- Avertissement sur les fichiers de données volumineux : au-delà de 5 000 objets, la ligne de commande et l'interface préviennent que le dessin demandera quelques secondes de plus, et que beaucoup d'étiquettes ne seront pas écrites faute de place.
+- Exemple de données réelles : les points d'apport volontaire de Colombiers, dans [`exemples/`](exemples/), en GeoJSON et en CSV.
+- Couches superposables au fond de carte, choisies dans un catalogue : la première est le cadastre (Parcellaire Express de l'IGN), en semi-transparence et citée dans la mention des sources. Option `--couches` et commande `cartes couches` en ligne de commande, cases à cocher sur la page web et dans l'application. L'opacité, 0,6 par défaut, se règle avec `--couches-opacite` ou avec un curseur dans l'interface.
+- Couche de l'aléa retrait-gonflement des argiles (millésime 2026, BRGM via la DINUM), dessinée par l'outil à partir de tuiles vectorielles : les zones restent nettes à l'impression et leurs niveaux figurent dans la légende. L'archive n'est lue que par morceaux, quelques kilooctets suffisant pour une commune.
+- Couche du zonage réglementaire des PPR inondation (Géorisques), servie par un WMS : l'outil lui demande deux ou trois grandes images plutôt que des centaines de tuiles. Sous l'échelle où le service accepte de dessiner, l'image est demandée plus grande puis réduite, pour que l'aperçu la montre quand même.
+- Trois couches de plus, servies par Géorisques comme les PPR inondation : zonage des PPR mouvements de terrain, cavités souterraines abandonnées, et canalisations de matières dangereuses.
+- La légende d'une couche servie par un WMS est celle que le service publie : elle est ajoutée telle quelle à la légende de la carte, à la taille du texte qui l'entoure.
+- Aperçu avant génération, sur la page web et dans l'application : la commune entière réduite (contour, données, légende et mention des sources comprises) et un extrait à l'échelle réelle, pour juger de la lisibilité des étiquettes à l'impression. Un clic sur la miniature déplace l'extrait. L'aperçu emprunte le code de rendu de la carte finale et ne télécharge qu'une vingtaine de tuiles.
+- Avancement du téléchargement détaillé par source : une ligne par fond de carte et par couche, avec son propre décompte, au lieu d'un total unique qui ne disait pas ce qui était en cours.
+- Documentation utilisateur en ligne, sur <https://sebprunier.github.io/cartes/documentation/> : prise en main, choix du zoom et du format papier, ajout de données, application de bureau, ligne de commande, sources et licences, problèmes courants. Les pages sont écrites en Markdown dans `docs/` et restent lisibles telles quelles sur GitHub.
+- Chaque réglage de l'interface peut s'expliquer : un « ? » à côté du libellé ouvre une phrase qui dit ce que le champ change sur la carte imprimée, et renvoie à la documentation quand il y a plus à dire.
+- L'aide de la ligne de commande se termine par des exemples, et un test vérifie qu'aucune option n'y manque.
+
+### Modifié
+
+- La page web propose tous les niveaux de zoom, et non plus jusqu'au 17 : une petite commune tient dans un navigateur au zoom 18 ou 19. Quand l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger la moindre tuile et renvoie vers la ligne de commande ou l'application de bureau.
+- Le PNG d'un plan est écrit avec une palette de 256 couleurs en ligne de commande et dans l'application : le fichier pèse environ moitié moins (2,7 Mo au lieu de 5,9 pour Colombiers au zoom 16), sans perte visible sur les étiquettes. L'estimation de poids en tient compte.
+- L'estimation du poids rejoint l'aperçu dans une étape « Vérifier avant de générer », après le choix des données : elle en dépend désormais. Un seul bouton donne les deux, l'estimation portant sur le seul niveau de zoom choisi, et le tableau des réglages ne montre plus que les dimensions.
+- Le poids estimé tient compte des couches superposées, qui pèsent autant que le fond de carte : il annonçait 2,9 Mo pour un fichier de 5,3 Mo dès que le cadastre était coché.
+- Le choix des couches ne liste plus tout le catalogue : l'étape n'affiche que les couches choisies, avec leur opacité et de quoi les retirer, et un bouton « Ajouter une couche » ouvre le catalogue avec une recherche. Les deux moitiés de l'étape se ressemblent enfin : ajouter une couche ou déposer un fichier se lisent de la même façon.
+- L'aperçu s'efface quand un réglage change, comme le poids estimé : une image qui ne correspond plus aux réglages induit en erreur, même accompagnée d'un avertissement.
+- Les surcouches ne sont plus dessinées entièrement dans chaque bloc de l'image, mais seulement dans ceux où elles tombent. Une carte au zoom 17 portant 5 000 objets ajoutés passe de 8,9 à 2,5 secondes de tracé, et une carte sans données ajoutées y gagne aussi : la légende et la mention des sources n'étaient analysées que pour être ignorées dans la plupart des blocs.
+
 ### Corrigé
 
 - L'estimation du poids échouait dès qu'une couche dessinée par l'outil, comme l'aléa argiles, était cochée : elle cherchait à en télécharger les tuiles, qui n'existent pas. Une telle couche n'entre plus dans le calcul, la mesure montrant qu'elle allège même légèrement le fichier.
 - Les messages d'erreur s'affichent à l'endroit de l'action qui les provoque, et non plus tous au bas de la page.
-
-### Modifié
-
-- Le choix des couches ne liste plus tout le catalogue : l'étape n'affiche que les couches choisies, avec leur opacité et de quoi les retirer, et un bouton « Ajouter une couche » ouvre le catalogue avec une recherche. Les deux moitiés de l'étape se ressemblent enfin : ajouter une couche ou déposer un fichier se lisent de la même façon.
-
-- Les surcouches ne sont plus dessinées entièrement dans chaque bloc de l'image, mais seulement dans ceux où elles tombent. Une carte au zoom 17 portant 5 000 objets ajoutés passe de 8,9 à 2,5 secondes de tracé, et une carte sans données ajoutées y gagne aussi : la légende et la mention des sources n'étaient analysées que pour être ignorées dans la plupart des blocs.
-- Le PNG d'un plan est écrit avec une palette de 256 couleurs en ligne de commande et dans l'application : le fichier pèse environ moitié moins (2,7 Mo au lieu de 5,9 pour Colombiers au zoom 16), sans perte visible sur les étiquettes. L'estimation de poids en tient compte.
-- La page web propose tous les niveaux de zoom, et non plus jusqu'au 17 : une petite commune tient dans un navigateur au zoom 18 ou 19. Quand l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger la moindre tuile et renvoie vers la ligne de commande ou l'application de bureau.
-
-### Ajouté
-
-- Chaque réglage de l'interface peut s'expliquer : un « ? » à côté du libellé ouvre une phrase qui dit ce que le champ change sur la carte imprimée, et renvoie à la documentation quand il y a plus à dire.
-- L'aide de la ligne de commande se termine par des exemples, et un test vérifie qu'aucune option n'y manque.
-- Documentation utilisateur en ligne, sur <https://sebprunier.github.io/cartes/documentation/> : prise en main, choix du zoom et du format papier, ajout de données, application de bureau, ligne de commande, sources et licences, problèmes courants. Les pages sont écrites en Markdown dans `docs/` et restent lisibles telles quelles sur GitHub.
-
-- La légende d'une couche servie par un WMS est celle que le service publie : elle est ajoutée telle quelle à la légende de la carte, à la taille du texte qui l'entoure.
-- Trois couches de plus, servies par Géorisques comme les PPR inondation : zonage des PPR mouvements de terrain, cavités souterraines abandonnées, et canalisations de matières dangereuses.
-- Couche du zonage réglementaire des PPR inondation (Géorisques), servie par un WMS : l'outil lui demande deux ou trois grandes images plutôt que des centaines de tuiles. Sous l'échelle où le service accepte de dessiner, l'image est demandée plus grande puis réduite, pour que l'aperçu la montre quand même.
-- Couche de l'aléa retrait-gonflement des argiles (millésime 2026, BRGM via la DINUM), dessinée par l'outil à partir de tuiles vectorielles : les zones restent nettes à l'impression et leurs niveaux figurent dans la légende. L'archive n'est lue que par morceaux, quelques kilooctets suffisant pour une commune.
-- Couches superposables au fond de carte, choisies dans un catalogue : la première est le cadastre (Parcellaire Express de l'IGN), en semi-transparence et citée dans la mention des sources. Option `--couches` et commande `cartes couches` en ligne de commande, cases à cocher sur la page web et dans l'application. L'opacité, 0,6 par défaut, se règle avec `--couches-opacite` ou avec un curseur dans l'interface.
-- L'aperçu s'efface quand un réglage change, comme le poids estimé : une image qui ne correspond plus aux réglages induit en erreur, même accompagnée d'un avertissement.
-- L'estimation du poids rejoint l'aperçu dans une étape « Vérifier avant de générer », après le choix des données : elle en dépend désormais. Un seul bouton donne les deux, l'estimation portant sur le seul niveau de zoom choisi, et le tableau des réglages ne montre plus que les dimensions.
-- Le poids estimé tient compte des couches superposées, qui pèsent autant que le fond de carte : il annonçait 2,9 Mo pour un fichier de 5,3 Mo dès que le cadastre était coché.
-- Avancement du téléchargement détaillé par source : une ligne par fond de carte et par couche, avec son propre décompte, au lieu d'un total unique qui ne disait pas ce qui était en cours.
-- Aperçu avant génération, sur la page web et dans l'application : la commune entière réduite (contour, données, légende et mention des sources comprises) et un extrait à l'échelle réelle, pour juger de la lisibilité des étiquettes à l'impression. Un clic sur la miniature déplace l'extrait. L'aperçu emprunte le code de rendu de la carte finale et ne télécharge qu'une vingtaine de tuiles.
-- Ajout des données de la commune sur les cartes : fichiers GeoJSON (uMap, QGIS) ou CSV avec des colonnes de latitude et de longitude, avec leurs étiquettes, leurs couleurs et une légende. Disponible dans les trois outils : option `--donnees` en ligne de commande, glisser-déposer sur la page web et dans l'application de bureau.
-- Catégories : les objets d'un même fichier sont regroupés par une propriété (`categorie`, `category`, `type`, `groupe` par défaut), avec une couleur et une ligne de légende par catégorie. Les options `--donnees-categorie` et `--donnees-couleur` désignent les propriétés à utiliser ; la page web et l'application les proposent dans une liste déroulante.
-- Placement des étiquettes : une étiquette qui en recouvrirait une autre, ou un autre point, est déplacée autour de son point, et abandonnée s'il n'y a pas la place. Les étiquettes de tous les fichiers ajoutés sont placées en une seule passe, dans l'ordre des fichiers, pour que deux fichiers ne se recouvrent pas.
-- Avertissement sur les fichiers de données volumineux : au-delà de 5 000 objets, la ligne de commande et l'interface préviennent que le dessin demandera quelques secondes de plus, et que beaucoup d'étiquettes ne seront pas écrites faute de place.
-- Titre de la légende : le nom du jeu de données quand un seul fichier est ajouté, « Légende » sinon. Ce nom, repris dans la mention des sources, se choisit avec `--donnees-titre` ou dans le champ prévu sur la page web et dans l'application.
-- Exemple de données réelles : les points d'apport volontaire de Colombiers, dans [`exemples/`](exemples/), en GeoJSON et en CSV.
 
 ## [0.2.0] – 2026-09-17
 
@@ -72,6 +74,7 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v0.2.0...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/sebprunier/cartes/releases/tag/v0.3.0
 [0.2.0]: https://github.com/sebprunier/cartes/releases/tag/v0.2.0
 [0.1.0]: https://github.com/sebprunier/cartes/releases/tag/v0.1.0
