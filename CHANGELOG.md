@@ -13,6 +13,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Modifié
 
+- Le choix des couches ne liste plus tout le catalogue : l'étape n'affiche que les couches choisies, avec leur opacité et de quoi les retirer, et un bouton « Ajouter une couche » ouvre le catalogue avec une recherche. Les deux moitiés de l'étape se ressemblent enfin : ajouter une couche ou déposer un fichier se lisent de la même façon.
+
 - Les surcouches ne sont plus dessinées entièrement dans chaque bloc de l'image, mais seulement dans ceux où elles tombent. Une carte au zoom 17 portant 5 000 objets ajoutés passe de 8,9 à 2,5 secondes de tracé, et une carte sans données ajoutées y gagne aussi : la légende et la mention des sources n'étaient analysées que pour être ignorées dans la plupart des blocs.
 - Le PNG d'un plan est écrit avec une palette de 256 couleurs en ligne de commande et dans l'application : le fichier pèse environ moitié moins (2,7 Mo au lieu de 5,9 pour Colombiers au zoom 16), sans perte visible sur les étiquettes. L'estimation de poids en tient compte.
 - La page web propose tous les niveaux de zoom, et non plus jusqu'au 17 : une petite commune tient dans un navigateur au zoom 18 ou 19. Quand l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger la moindre tuile et renvoie vers la ligne de commande ou l'application de bureau.

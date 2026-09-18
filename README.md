@@ -119,7 +119,7 @@ Deux façons d'ajouter des informations sur une carte, qui se combinent : cocher
 
 ### Données publiques
 
-Des données ouvertes, téléchargées au moment de la génération, sans fichier à fournir. La liste s'obtient avec `cartes couches` ; dans l'interface, ce sont des cases à cocher.
+Des données ouvertes, téléchargées au moment de la génération, sans fichier à fournir. La liste s'obtient avec `cartes couches` ; dans l'interface, un bouton « Ajouter une couche » ouvre le catalogue, et les couches choisies apparaissent avec leur opacité et de quoi les retirer.
 
 | Couche | Contenu | Source |
 | --- | --- | --- |

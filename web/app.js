@@ -48,6 +48,12 @@ const dpiField = element('dpi');
 const grayscaleBox = element('grayscale');
 const outlineBox = element('outline');
 const mapLayerList = element('map-layers');
+const mapLayersEmpty = element('map-layers-empty');
+const addMapLayerButton = element('add-map-layer');
+const layerChooser = element('layer-chooser');
+const layerChoices = element('layer-choices');
+const layerSearch = element('layer-search');
+const closeLayerChooser = element('close-layer-chooser');
 const estimatesTable = element('estimates');
 const estimateResult = element('estimate-result');
 const generateButton = element('generate');
@@ -75,83 +81,124 @@ const layers = [];
 for (const basemap of Object.values(BASEMAPS)) {
   basemapChoice.append(new Option(basemap.name, basemap.id));
 }
+// The layers laid over the basemap, in the order of the catalog, with the opacity chosen for each.
+const mapLayers = [];
 showMapLayers();
 
-/** The catalog of layers that can be laid over the basemap, as checkboxes. */
+/** The layers chosen, and what to do with each: change its opacity, or take it off the map. */
 function showMapLayers() {
-  mapLayerList.replaceChildren(
-    ...Object.values(MAP_LAYERS).map((layer) => {
-      const item = document.createElement('li');
-      const choice = document.createElement('label');
-      const box = document.createElement('input');
-      box.type = 'checkbox';
-      box.value = layer.id;
-      box.className = 'map-layer';
-      choice.append(box, ` ${layer.name}`);
+  mapLayerList.replaceChildren(...mapLayers.map(mapLayerItem));
+  mapLayersEmpty.hidden = mapLayers.length > 0;
+  addMapLayerButton.disabled = mapLayers.length === Object.keys(MAP_LAYERS).length;
+  addMapLayerButton.textContent = addMapLayerButton.disabled ? 'Toutes les couches sont ajoutées' : 'Ajouter une couche';
+}
 
-      const description = document.createElement('p');
-      description.className = 'map-layer-description';
-      description.textContent = `${layer.description} ${layer.attribution}`;
+function mapLayerItem(chosen) {
+  const layer = MAP_LAYERS[chosen.id];
+  const item = document.createElement('li');
 
-      const opacity = opacityChoice(layer);
-      box.addEventListener('change', () => {
-        opacity.hidden = !box.checked;
-        showMapLayerWarnings();
-        clearPreview();
-      });
+  const header = document.createElement('p');
+  header.className = 'map-layer-header';
+  const name = document.createElement('span');
+  name.textContent = layer.name;
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.textContent = 'Retirer';
+  remove.addEventListener('click', () => {
+    mapLayers.splice(mapLayers.indexOf(chosen), 1);
+    showMapLayers();
+    clearPreview();
+  });
+  header.append(name, remove);
 
-      const warning = document.createElement('p');
-      warning.className = 'map-layer-warning';
-      warning.dataset.layer = layer.id;
-      warning.hidden = true;
-      item.append(choice, description, opacity, warning);
-      return item;
-    }),
-  );
+  const description = document.createElement('p');
+  description.className = 'map-layer-description';
+  description.textContent = `${layer.description} ${layer.attribution}`;
+
+  item.append(header, description, opacityChoice(chosen, layer));
+
+  const message = mapLayerZoomWarning(layer, Number(zoomChoice.value));
+  if (message) {
+    const warning = document.createElement('p');
+    warning.className = 'map-layer-warning';
+    warning.textContent = message;
+    item.append(warning);
+  }
+  return item;
 }
 
 /** The opacity of a layer over the basemap: at 1 it hides what is under it, at 0.2 it is barely visible. */
-function opacityChoice(layer) {
+function opacityChoice(chosen, layer) {
   const line = document.createElement('p');
   line.className = 'map-layer-opacity';
-  line.hidden = true;
   const label = document.createElement('label');
   const slider = document.createElement('input');
   slider.type = 'range';
   slider.min = '0.1';
   slider.max = '1';
   slider.step = '0.05';
-  slider.value = String(layer.opacity);
-  slider.className = 'map-layer-opacity-value';
-  slider.dataset.layer = layer.id;
+  slider.value = String(chosen.opacity);
+  slider.setAttribute('aria-label', `Opacité de ${layer.name}`);
   const share = document.createElement('span');
   const showShare = () => (share.textContent = `${Math.round(Number(slider.value) * 100)} %`);
   showShare();
-  slider.addEventListener('input', showShare);
+  slider.addEventListener('input', () => {
+    chosen.opacity = Number(slider.value);
+    showShare();
+  });
   slider.addEventListener('change', clearPreview);
   label.append('Opacité ', slider, ' ', share);
   line.append(label);
   return line;
 }
 
-/** Says which chosen layers have nothing to show at the chosen zoom level. */
-function showMapLayerWarnings() {
-  for (const warning of mapLayerList.querySelectorAll('.map-layer-warning')) {
-    const layer = MAP_LAYERS[warning.dataset.layer];
-    const chosen = mapLayerList.querySelector(`.map-layer[value="${layer.id}"]`).checked;
-    const message = chosen ? mapLayerZoomWarning(layer, Number(zoomChoice.value)) : undefined;
-    warning.textContent = message ?? '';
-    warning.hidden = !message;
+/** The catalog, limited to what is not already on the map, and to what the search matches. */
+function showLayerChoices() {
+  const wanted = layerSearch.value.trim().toLowerCase();
+  const available = Object.values(MAP_LAYERS)
+    .filter((layer) => !mapLayers.some(({ id }) => id === layer.id))
+    .filter((layer) => `${layer.name} ${layer.description} ${layer.attribution}`.toLowerCase().includes(wanted));
+
+  layerChoices.replaceChildren(
+    ...available.map((layer) => {
+      const item = document.createElement('li');
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.textContent = layer.name;
+      add.addEventListener('click', () => {
+        mapLayers.push({ id: layer.id, opacity: layer.opacity });
+        mapLayers.sort((one, other) => Object.keys(MAP_LAYERS).indexOf(one.id) - Object.keys(MAP_LAYERS).indexOf(other.id));
+        layerChooser.close();
+        showMapLayers();
+        clearPreview();
+      });
+      const description = document.createElement('p');
+      description.className = 'map-layer-description';
+      description.textContent = `${layer.description} ${layer.attribution}`;
+      item.append(add, description);
+      return item;
+    }),
+  );
+  if (available.length === 0) {
+    const empty = document.createElement('li');
+    empty.className = 'note';
+    empty.textContent = 'Aucune couche ne correspond.';
+    layerChoices.append(empty);
   }
 }
 
 /** The layers to lay over the basemap, with the opacity chosen for each. */
 function chosenMapLayers() {
-  return [...mapLayerList.querySelectorAll('.map-layer:checked')].map(({ value }) => ({
-    id: value,
-    opacity: Number(mapLayerList.querySelector(`.map-layer-opacity-value[data-layer="${value}"]`).value),
-  }));
+  return mapLayers.map(({ id, opacity }) => ({ id, opacity }));
 }
+
+addMapLayerButton.addEventListener('click', () => {
+  layerSearch.value = '';
+  showLayerChoices();
+  layerChooser.showModal();
+});
+closeLayerChooser.addEventListener('click', () => layerChooser.close());
+layerSearch.addEventListener('input', showLayerChoices);
 
 searchField.addEventListener('input', debounce(search, 300));
 basemapChoice.addEventListener('change', () => {
@@ -161,7 +208,7 @@ basemapChoice.addEventListener('change', () => {
 });
 zoomChoice.addEventListener('change', () => {
   showEstimates();
-  showMapLayerWarnings();
+  showMapLayers();
   clearPreview();
 });
 dpiField.addEventListener('change', showEstimates);
@@ -482,7 +529,7 @@ function showEstimates() {
       row.addEventListener('click', () => {
         zoomChoice.value = String(zoom);
         showEstimates();
-        showMapLayerWarnings();
+        showMapLayers();
         clearPreview();
       });
       return row;

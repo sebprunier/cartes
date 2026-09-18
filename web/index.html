@@ -78,7 +78,7 @@
       <section id="data" hidden>
         <h2>3. Ajouter des données <span class="note">(facultatif)</span></h2>
         <p class="note">
-          Deux façons d'ajouter des informations sur la carte : cocher des données publiques déjà en ligne, ou
+          Deux façons d'ajouter des informations sur la carte : choisir des données publiques déjà en ligne, ou
           déposer vos propres fichiers. Les deux se combinent.
         </p>
 
@@ -87,6 +87,20 @@
           Des données ouvertes, téléchargées au moment de la génération et citées dans la mention des sources.
         </p>
         <ul id="map-layers"></ul>
+        <p>
+          <button id="add-map-layer" type="button">Ajouter une couche</button>
+          <span id="map-layers-empty" class="note">Aucune couche pour l'instant.</span>
+        </p>
+
+        <dialog id="layer-chooser">
+          <h3>Couches disponibles</h3>
+          <p>
+            <label for="layer-search" class="visually-hidden">Rechercher une couche</label>
+            <input id="layer-search" type="search" placeholder="Rechercher une couche…" />
+          </p>
+          <ul id="layer-choices"></ul>
+          <p><button id="close-layer-chooser" type="button">Fermer</button></p>
+        </dialog>
 
         <h3>Vos fichiers</h3>
         <p class="note">

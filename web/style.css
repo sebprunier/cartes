@@ -241,11 +241,91 @@ button:disabled {
 }
 
 #map-layers li {
-  padding: 0.25rem 0;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+#map-layers li:first-child {
+  border-top: none;
+}
+
+#map-layers .map-layer-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+
+#map-layers .map-layer-header button {
+  padding: 0.15rem 0.5rem;
+  border-color: var(--border);
+  background: #fff;
+  color: var(--grey);
+  font-size: 0.85rem;
+}
+
+#layer-chooser {
+  width: min(32rem, 90vw);
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+#layer-chooser::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+#layer-chooser h3 {
+  margin-top: 0;
+}
+
+#layer-chooser input[type='search'] {
+  width: 100%;
+}
+
+#layer-choices {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+#layer-choices li {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+#layer-choices li:first-child {
+  border-top: none;
+}
+
+#layer-choices button {
+  width: 100%;
+  text-align: left;
+  border-color: var(--border);
+  background: #fff;
+  color: var(--text);
+  font-weight: 600;
+}
+
+#layer-choices button:hover {
+  border-color: var(--blue);
+  background: #f2f6fb;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 #map-layers .map-layer-opacity {
-  margin: 0.25rem 0 0 1.6rem;
+  margin: 0.25rem 0 0;
   color: var(--grey);
   font-size: 0.85rem;
 }
@@ -257,7 +337,7 @@ button:disabled {
 
 #map-layers .map-layer-description,
 #map-layers .map-layer-warning {
-  margin: 0.1rem 0 0 1.6rem;
+  margin: 0.15rem 0 0;
   font-size: 0.85rem;
 }
 
