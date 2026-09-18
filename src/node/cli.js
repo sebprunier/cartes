@@ -17,7 +17,7 @@ import {
   resolveMunicipality,
   searchMunicipalities,
 } from '../core/municipalities.js';
-import { LayerError, layersSource, readLayer } from '../core/layers.js';
+import { LayerError, layerWarning, layersSource, readLayer } from '../core/layers.js';
 import { attributionText } from '../core/overlays.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from '../core/tiles.js';
@@ -28,7 +28,7 @@ import {
   attributionLabel,
   boundaryOutline,
   drawOverlays,
-  layerOverlay,
+  layerOverlays,
   legendOverlay,
   saveImage,
 } from './render.js';
@@ -117,6 +117,10 @@ async function generate(input, options) {
 
   console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
   console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}\n`);
+  for (const layer of layers) {
+    const warning = layerWarning(layer);
+    if (warning) console.log(`Attention : ${layer.name} — ${warning}\n`);
+  }
   const fileSizeOptions = options.estimate ? { format, grayscale, cacheDir: options.cache, concurrency } : undefined;
   await printEstimates({ bbox, margin, basemap, selectedZoom: zoom, dpi, fileSizeOptions });
   console.log();
@@ -154,7 +158,7 @@ async function generate(input, options) {
 
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
-  for (const layer of layers) overlays.push(layerOverlay(layer, extent));
+  overlays.push(...layerOverlays(layers, extent));
   if (!options['no-legend']) overlays.push(await legendOverlay(layers, extent));
   const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
   const added = layersSource(layers);

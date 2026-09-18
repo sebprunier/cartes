@@ -1,6 +1,6 @@
 // Rendering of the map on a canvas, in the browser: tiles, outline and attribution.
 
-import { layerShapes, legendEntries, legendTitle } from './core/layers.js';
+import { layersShapes, legendEntries, legendTitle } from './core/layers.js';
 import {
   ATTRIBUTION_BACKGROUND,
   ATTRIBUTION_COLOR,
@@ -59,9 +59,15 @@ export function drawBoundary(context, boundary, extent) {
   context.restore();
 }
 
-/** Draws a data layer: zones and lines, then points and their labels. */
-export function drawLayer(context, layer, extent) {
-  const { points, paths, fontSize } = layerShapes(layer, extent);
+/**
+ * Draws the data layers: zones and lines, then points and their labels. They are shaped together, so that the
+ * labels of two layers do not write over each other.
+ */
+export function drawLayers(context, layers, extent) {
+  for (const shapes of layersShapes(layers, extent)) drawShapes(context, shapes);
+}
+
+function drawShapes(context, { points, paths, fontSize }) {
   context.save();
   context.lineJoin = 'round';
   context.lineCap = 'round';

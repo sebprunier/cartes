@@ -172,6 +172,12 @@ button:disabled {
   font-size: 0.85rem;
 }
 
+#layers .layer-warning {
+  margin: 0.35rem 0 0 1.35rem;
+  color: #8a4b00;
+  font-size: 0.85rem;
+}
+
 #layers .layer-categories {
   margin: 0.35rem 0 0 1.35rem;
   padding: 0;

@@ -4,7 +4,10 @@ import { describe, it } from 'node:test';
 import {
   LayerError,
   applyProperties,
+  LARGE_LAYER_FEATURES,
   layerShapes,
+  layerWarning,
+  layersShapes,
   legendEntries,
   legendTitle,
   readLayer,
@@ -224,6 +227,28 @@ describe('legendEntries', () => {
   });
 });
 
+describe('layerWarning', () => {
+  const layerOf = (count) =>
+    read(
+      geoJson(
+        Array.from({ length: count }, (_, index) =>
+          feature({ type: 'Point', coordinates: [0.43 + index / 100000, 46.78] }),
+        ),
+      ),
+      'parcelles.geojson',
+    );
+
+  it('stays quiet for a file of ordinary size', () => {
+    assert.equal(layerWarning(layerOf(LARGE_LAYER_FEATURES - 1)), undefined);
+  });
+
+  it('warns about a heavy file, with its number of features', () => {
+    const warning = layerWarning(layerOf(LARGE_LAYER_FEATURES));
+    assert.match(warning, /objets/);
+    assert.match(warning, /zoom/);
+  });
+});
+
 describe('legendTitle', () => {
   const withCategories = geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] }, { categorie: 'Verre' })]);
 
@@ -250,9 +275,20 @@ describe('label placement', () => {
     );
 
   it('moves a label to the other side rather than writing it over its neighbour', () => {
-    const { points } = layerShapes(at([[0.43, 46.78], [0.4302, 46.78]]), extent);
+    const [{ points }] = layersShapes([at([[0.43, 46.78], [0.4302, 46.78]])], extent);
     assert.equal(points.filter(({ label }) => label).length, 2);
     assert.notEqual(points[0].labelAlign, points[1].labelAlign);
+  });
+
+  it('places the labels of every layer in a single pass, in the order of the files', () => {
+    const first = at([[0.43, 46.78]]);
+    const second = at([[0.4302, 46.78]]);
+    const [one, other] = layersShapes([first, second], extent);
+    assert.ok(one.points[0].label && other.points[0].label);
+    assert.notEqual(one.points[0].labelAlign, other.points[0].labelAlign);
+    // Drawn on its own, the first layer keeps the most readable position, to the right of its point.
+    const [alone] = layersShapes([first], extent);
+    assert.equal(alone.points[0].labelAlign, 'start');
   });
 
   it('drops the labels that find no free place, and keeps their points', () => {
@@ -263,7 +299,7 @@ describe('label placement', () => {
       [0.43001, 46.78002],
       [0.43, 46.78002],
     ]);
-    const { points } = layerShapes(crowded, extent);
+    const [{ points }] = layersShapes([crowded], extent);
     assert.equal(points.length, 5);
     const written = points.filter(({ label }) => label);
     assert.ok(written.length > 0 && written.length < 5);

@@ -241,6 +241,21 @@ function style(properties) {
   };
 }
 
+// Above this number of features, drawing slows down noticeably: the overlay of a layer is drawn again for
+// each 4096 px block of the image, and a map at zoom 19 has dozens of blocks. Measured on a layer of points:
+// at zoom 17, 5 000 features take about 9 seconds to draw, against 1 second for 200.
+export const LARGE_LAYER_FEATURES = 2000;
+
+/** Warning about a layer heavy enough to slow the drawing down, or undefined when it is small enough. */
+export function layerWarning(layer) {
+  const count = layer.features.length;
+  if (count < LARGE_LAYER_FEATURES) return undefined;
+  return (
+    `${count.toLocaleString('fr-FR')} objets : le dessin de la carte peut prendre plusieurs dizaines de ` +
+    'secondes aux niveaux de zoom les plus élevés, et beaucoup d’étiquettes ne trouveront pas de place.'
+  );
+}
+
 /** Data source describing the layers added by the user, for the attribution of the map. */
 export function layersSource(layers) {
   if (layers.length === 0) return undefined;
@@ -282,14 +297,29 @@ function dominantShape(features) {
 }
 
 /**
+ * Shapes of several layers, with the labels of all of them placed in a single pass: two files drawn on the
+ * same map must not write over each other. The order of the layers gives the priority.
+ */
+export function layersShapes(layers, extent) {
+  const shapes = layers.map((layer) => layerShapes(layer, extent));
+  placeLabels(
+    shapes.flatMap(({ points }) => points),
+    extent,
+    labelFontSize(extent),
+  );
+  return shapes;
+}
+
+/**
  * Shapes of a layer in image pixels: points with their label, and paths as SVG path data, usable by an SVG
- * overlay as well as by a canvas (Path2D). Features outside the extent are left out.
+ * overlay as well as by a canvas (Path2D). Features outside the extent are left out. The labels are placed by
+ * `layersShapes`, which sees every layer at once.
  */
 export function layerShapes(layer, extent) {
   const scale = Math.max(extent.width, extent.height);
   const strokeWidth = Math.max(2, Math.round(scale / 1200));
   const radius = Math.max(4, Math.round(scale / 400));
-  const fontSize = Math.max(11, Math.round(radius * 1.6));
+  const fontSize = labelFontSize(extent);
   const points = [];
   const paths = [];
   const drawn = [];
@@ -314,8 +344,12 @@ export function layerShapes(layer, extent) {
     });
     drawn.push(feature);
   }
-  placeLabels(points, extent, fontSize);
   return { points, paths, features: drawn, radius, strokeWidth, fontSize };
+}
+
+/** Size of the labels, which follows the size of the image, as the symbols and the attribution do. */
+function labelFontSize(extent) {
+  return Math.max(11, Math.round(Math.max(4, Math.round(Math.max(extent.width, extent.height) / 400)) * 1.6));
 }
 
 /**

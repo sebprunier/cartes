@@ -18,7 +18,7 @@ import {
   attributionLabel,
   boundaryOutline,
   drawOverlays,
-  layerOverlay,
+  layerOverlays,
   legendOverlay,
   saveImage,
 } from '../src/node/render.js';
@@ -108,7 +108,7 @@ ipcMain.handle('generate', async (event, request) => {
     if (added) sources.push(added);
 
     const overlays = request.outline ? [boundaryOutline(request.boundary, extent)] : [];
-    for (const layer of layers) overlays.push(layerOverlay(layer, extent));
+    overlays.push(...layerOverlays(layers, extent));
     if (request.legend !== false) overlays.push(await legendOverlay(layers, extent));
     overlays.push(await attributionLabel(attributionText({ sources }), extent));
     await drawOverlays(pixels, extent, overlays);

@@ -15,7 +15,7 @@ import {
   attributionLabel,
   boundaryOutline,
   drawOverlays,
-  layerOverlay,
+  layerOverlays,
   legendOverlay,
   saveImage,
 } from '../src/node/render.js';
@@ -133,7 +133,7 @@ describe('boundaryOutline', () => {
   });
 });
 
-describe('layerOverlay', () => {
+describe('layerOverlays', () => {
   const extent = extentFromBbox([0.42, 46.77, 0.445, 46.79], 16, 0);
   const layer = readLayer(
     JSON.stringify({
@@ -151,7 +151,7 @@ describe('layerOverlay', () => {
   );
 
   it('draws the shapes, the labels, and escapes the text', () => {
-    const svg = layerOverlay(layer, extent);
+    const [svg] = layerOverlays([layer], extent);
     assert.match(svg, /<path d="M[\d.,]+L/);
     assert.match(svg, /<circle /);
     assert.match(svg, /Déchèterie &amp; cie/);
@@ -160,7 +160,7 @@ describe('layerOverlay', () => {
 
   it('really draws on the image, through the rendering engine', async () => {
     const pixels = Buffer.alloc(extent.width * extent.height * 3, 255);
-    await drawOverlays(pixels, extent, [layerOverlay(layer, extent)]);
+    await drawOverlays(pixels, extent, layerOverlays([layer], extent));
     let colored = 0;
     for (let index = 0; index < pixels.length; index += 3) {
       if (pixels[index] > 100 && pixels[index + 1] < 100 && pixels[index + 2] < 100) colored++;

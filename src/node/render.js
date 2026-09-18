@@ -6,7 +6,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 
 import { CHANNELS, assemblePixels, copyPixels } from '../core/image.js';
-import { layerShapes } from '../core/layers.js';
+import { layersShapes } from '../core/layers.js';
 import { legendEntries, legendTitle } from '../core/layers.js';
 import {
   ATTRIBUTION_COLOR,
@@ -51,9 +51,15 @@ export function boundaryOutline(boundary, extent) {
   );
 }
 
-/** SVG elements drawing a data layer: polygons and lines, then points and their labels. */
-export function layerOverlay(layer, extent) {
-  const { points, paths, fontSize } = layerShapes(layer, extent);
+/**
+ * SVG elements drawing the data layers, one string per layer: polygons and lines, then points and their
+ * labels. The layers are shaped together, so that their labels do not write over each other.
+ */
+export function layerOverlays(layers, extent) {
+  return layersShapes(layers, extent).map(layerElements);
+}
+
+function layerElements({ points, paths, fontSize }) {
   const elements = paths.map(
     ({ path, color, strokeWidth, fill, fillOpacity }) =>
       `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" stroke="${color}" ` +

@@ -9,7 +9,7 @@ import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
 import { downloadTiles, extentFromBbox, extentWindow, fetchTile, tilesInExtent } from './core/tiles.js';
 import { engine } from './engine.js';
-import { createCanvas, drawAttribution, drawBoundary, drawLayer, drawLegend, drawTile } from './render.js';
+import { createCanvas, drawAttribution, drawBoundary, drawLayers, drawLegend, drawTile } from './render.js';
 
 // Sizes in pixels of the two views, chosen to stay readable on a page without downloading many tiles.
 const OVERVIEW_SIDE = 700;
@@ -94,7 +94,7 @@ async function paint({ basemap, area, sizedFor, grayscale, boundary, layers, leg
   context.save();
   context.translate(sizedFor.xMin - area.xMin, sizedFor.yMin - area.yMin);
   if (boundary) drawBoundary(context, boundary, sizedFor);
-  for (const layer of layers) drawLayer(context, layer, sizedFor);
+  drawLayers(context, layers, sizedFor);
   if (legend) drawLegend(context, layers, sizedFor);
   if (attribution) drawAttribution(context, attribution, sizedFor);
   context.restore();

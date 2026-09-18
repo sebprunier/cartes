@@ -2,7 +2,7 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
-import { LayerError, applyProperties, readLayer } from './core/layers.js';
+import { LayerError, applyProperties, layerWarning, readLayer } from './core/layers.js';
 import {
   boundaryBbox,
   describeMunicipality,
@@ -286,7 +286,7 @@ function layerItem(layer, index) {
   });
   const count = document.createElement('span');
   count.className = 'layer-count';
-  count.textContent = `${layer.features.length} élément${layer.features.length > 1 ? 's' : ''}`;
+  count.textContent = `${layer.features.length.toLocaleString('fr-FR')} élément${layer.features.length > 1 ? 's' : ''}`;
   const remove = document.createElement('button');
   remove.type = 'button';
   remove.textContent = 'Retirer';
@@ -310,6 +310,14 @@ function layerItem(layer, index) {
       ),
     );
     item.append(choices);
+  }
+
+  const warning = layerWarning(layer);
+  if (warning) {
+    const line = document.createElement('p');
+    line.className = 'layer-warning';
+    line.textContent = warning;
+    item.append(line);
   }
 
   if (layer.categories.length > 0) {

@@ -12,7 +12,7 @@ import {
   createCanvas,
   drawAttribution,
   drawBoundary,
-  drawLayer,
+  drawLayers,
   drawLegend,
   drawTile,
   toBlob,
@@ -79,7 +79,7 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
   });
 
   if (outline) drawBoundary(context, boundary, extent);
-  for (const layer of layers) drawLayer(context, layer, extent);
+  drawLayers(context, layers, extent);
   if (legend) drawLegend(context, layers, extent);
   drawAttribution(context, attributionText({ sources }), extent);
 
