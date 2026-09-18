@@ -4,6 +4,7 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { layersSource } from './core/layers.js';
+import { chooseMapLayers } from './core/maplayers.js';
 import { withUpdateDates } from './core/metadata.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
@@ -22,9 +23,10 @@ const CONCURRENCY = 6;
  * given as a fraction of the map, its center by default.
  */
 export async function renderPreview(request, center) {
-  const { basemapId, boundary, bbox, margin, grayscale, outline, layers, legend } = request;
+  const { basemapId, boundary, bbox, margin, grayscale, outline, mapLayers = [], layers, legend } = request;
   const basemap = BASEMAPS[basemapId];
-  const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+  const chosen = chooseMapLayers(mapLayers);
+  const sources = await withUpdateDates([basemap, ...chosen, ...(outline ? [BOUNDARY_SOURCE] : [])]);
   const added = layersSource(layers);
   if (added) sources.push(added);
   const extent = extentFromBbox(bbox, overviewZoom(bbox, margin), margin);
@@ -32,6 +34,7 @@ export async function renderPreview(request, center) {
   const [overview, detail] = await Promise.all([
     paint({
       basemap,
+      mapLayers: chosen,
       area: extent,
       sizedFor: extent,
       grayscale,
@@ -49,12 +52,14 @@ export async function renderPreview(request, center) {
  * Draws the detail alone, at the real size of the map. Returns its canvas, and whether it already shows the
  * whole map, in which case there is nothing else to look at.
  */
-export async function renderDetail({ basemapId, boundary, bbox, zoom, margin, grayscale, outline, layers }, center) {
+export async function renderDetail(request, center) {
+  const { basemapId, boundary, bbox, zoom, margin, grayscale, outline, mapLayers = [], layers } = request;
   const basemap = BASEMAPS[basemapId];
   const mapExtent = extentFromBbox(bbox, zoom, margin);
   const area = extentWindow(mapExtent, DETAIL_WIDTH, DETAIL_HEIGHT, center);
   const detail = await paint({
     basemap,
+    mapLayers: chooseMapLayers(mapLayers),
     area,
     sizedFor: mapExtent,
     grayscale,
@@ -77,19 +82,27 @@ function overviewZoom(bbox, margin) {
  * Draws the tiles of `area`, then the overlays as they would be drawn on the whole map of `sizedFor`, shifted
  * so that the window falls in the canvas: symbols and labels then keep the size they will have on the map.
  */
-async function paint({ basemap, area, sizedFor, grayscale, boundary, layers, legend, attribution }) {
+async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, boundary, layers, legend, attribution }) {
   const { canvas, context } = createCanvas(area.width, area.height);
-  await downloadTiles(basemap, area.zoom, [...tilesInExtent(area)], {
-    loadTile: async (url, tile) => {
-      // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
-      // the page downloads it itself.
-      const load = engine.loadTile ?? ((tileUrl) => fetchTile(tileUrl));
-      const content = await load(url, { basemapId: basemap.id, zoom: area.zoom, x: tile.x, y: tile.y });
-      if (content) await drawTile(context, area, { ...tile, content }, { grayscale });
-      return content ? true : null;
-    },
-    concurrency: CONCURRENCY,
-  });
+  const tiles = [...tilesInExtent(area)];
+  // The basemap first, then the layers laid over it, in the order of the catalog.
+  for (const source of [basemap, ...mapLayers]) {
+    await downloadTiles(source, area.zoom, tiles, {
+      loadTile: async (url, tile) => {
+        // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
+        // the page downloads it itself.
+        const load = engine.loadTile ?? ((tileUrl) => fetchTile(tileUrl));
+        const content = await load(url, { basemapId: source.id, zoom: area.zoom, x: tile.x, y: tile.y });
+        // Only the basemap goes gray: a layer laid over it keeps its colors, as the boundary does.
+        const isBasemap = source === basemap;
+        if (content) {
+          await drawTile(context, area, { ...tile, content }, { grayscale: grayscale && isBasemap, opacity: source.opacity });
+        }
+        return content ? true : null;
+      },
+      concurrency: CONCURRENCY,
+    });
+  }
 
   context.save();
   context.translate(sizedFor.xMin - area.xMin, sizedFor.yMin - area.yMin);

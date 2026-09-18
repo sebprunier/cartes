@@ -8,12 +8,14 @@ export const HELP = `Génère une carte détaillée d'une commune en recollant d
 Usage :
   cartes chercher <nom> [-d <département>]   rechercher une commune par son nom
   cartes fonds                               lister les fonds de carte disponibles
+  cartes couches                             lister les couches superposables
   cartes generer <commune> [options]         générer la carte d'une commune, par nom ou code INSEE
 
 Options de « generer » :
   -d, --departement <code>  département, pour lever une homonymie, ex. 86
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
+      --couches <id>        couches à superposer au fond de carte, répétable ; liste : cartes couches
       --donnees <fichier>   données à ajouter sur la carte (.geojson ou .csv), répétable
       --donnees-titre <titre>   nom du jeu de données, pour la légende et la mention des sources ; par défaut,
                             le nom du fichier ; répétable, dans l'ordre des fichiers
@@ -38,18 +40,25 @@ Options de « generer » :
   -h, --aide                afficher cette aide
   -v, --version             afficher la version de cartes
 
-Les commandes et options existent aussi en anglais : search, basemaps, generate, --department, --basemap,
---data, --data-title, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
+Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, --department,
+--basemap, --maplayers, --data, --data-title, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
 --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
-export const FRENCH_COMMANDS = { chercher: 'search', fonds: 'basemaps', generer: 'generate', générer: 'generate' };
+export const FRENCH_COMMANDS = {
+  chercher: 'search',
+  fonds: 'basemaps',
+  couches: 'maplayers',
+  generer: 'generate',
+  générer: 'generate',
+};
 
 // Options are keyed by their English name (used in code), with their French name shown to users.
 export const OPTIONS = {
   department: { type: 'string', short: 'd', french: 'departement' },
   basemap: { type: 'string', short: 'f', french: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
+  maplayers: { type: 'string', french: 'couches', multiple: true, default: [] },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
   'data-title': { type: 'string', french: 'donnees-titre', multiple: true, default: [] },
   'data-category': { type: 'string', french: 'donnees-categorie' },

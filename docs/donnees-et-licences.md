@@ -18,12 +18,15 @@ Ce document explique d'où viennent les données utilisées par `cartes`, sous q
 | --- | --- | --- | --- | --- |
 | Plan IGN | fond de carte `plan-ign` | WMTS, couche `GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2` | [IGNF_PLAN-IGN](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PLAN-IGN) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0) |
 | BD ORTHO (photographies aériennes) | fond de carte `ortho-ign` | WMTS, couche `ORTHOIMAGERY.ORTHOPHOTOS` | [IGNF_BD-ORTHO](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_BD-ORTHO) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0) |
+| Parcellaire Express (PCI) | couche `cadastre`, superposée au fond de carte | WMTS, couche `CADASTRALPARCELS.PARCELLAIRE_EXPRESS` | [IGNF_PARCELLAIRE-EXPRESS-PCI](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PARCELLAIRE-EXPRESS-PCI) | Aucune contrainte d'utilisation, avec un lien vers la licence ouverte 2.0 d'Etalab |
 | ADMIN EXPRESS | contour de la commune | WFS, couche `ADMINEXPRESS-COG.LATEST:commune` | [IGNF_ADMIN-EXPRESS](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_ADMIN-EXPRESS) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0), avec un lien vers la licence ouverte 2.0 d'Etalab |
 | Géocodage | recherche d'une commune par son nom | API de géocodage | – | non analysée |
 
 Le géocodage sert uniquement à retrouver le code INSEE d'une commune : ses résultats n'apparaissent pas sur les cartes. Sa licence n'a donc pas été analysée.
 
-Les fiches du Plan IGN et de la BD ORTHO nomment la licence sans préciser sa version. Celle d'ADMIN EXPRESS renvoie vers le [texte de la licence ouverte 2.0](https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf), analysé ci-dessous.
+Les fiches du Plan IGN et de la BD ORTHO nomment la licence sans préciser sa version. Celles d'ADMIN EXPRESS et du Parcellaire Express renvoient vers le [texte de la licence ouverte 2.0](https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf), analysé ci-dessous.
+
+Le Parcellaire Express est produit par l'IGN à partir du plan cadastral informatisé de la DGFiP. Sa fiche déclare « Aucune contrainte » d'utilisation et ne signale aucune limitation d'accès public. Attention à ce que dit la donnée elle-même : le Parcellaire Express **ne se substitue pas au plan cadastral** et n'a pas de valeur juridique pour délimiter une propriété. Une carte qui l'affiche sert à se repérer, pas à trancher une limite de parcelle.
 
 ## Ce que permet la licence ouverte 2.0
 

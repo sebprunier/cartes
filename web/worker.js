@@ -4,6 +4,7 @@ import { BASEMAPS } from './core/basemaps.js';
 import { estimateFileSize } from './core/estimates.js';
 import { withUpdateDates } from './core/metadata.js';
 import { layersSource } from './core/layers.js';
+import { chooseMapLayers } from './core/maplayers.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
 import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from './core/tiles.js';
@@ -47,7 +48,19 @@ async function estimate({ basemapId, bbox, zoom, margin, format, grayscale }) {
 }
 
 /** Downloads the tiles, draws the map and returns the image as a blob. */
-async function generate({ basemapId, boundary, bbox, zoom, margin, format, grayscale, outline, layers = [], legend = true }) {
+async function generate({
+  basemapId,
+  boundary,
+  bbox,
+  zoom,
+  margin,
+  format,
+  grayscale,
+  outline,
+  mapLayers = [],
+  layers = [],
+  legend = true,
+}) {
   const basemap = BASEMAPS[basemapId];
   const extent = extentFromBbox(bbox, zoom, margin);
   if (!canRender(extent.width, extent.height)) {
@@ -58,7 +71,8 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
     );
   }
 
-  const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+  const chosen = chooseMapLayers(mapLayers);
+  const sources = await withUpdateDates([basemap, ...chosen, ...(outline ? [BOUNDARY_SOURCE] : [])]);
   const added = layersSource(layers);
   if (added) sources.push(added);
   const { canvas, context } = createCanvas(extent.width, extent.height);
@@ -77,6 +91,18 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
     concurrency: CONCURRENCY,
     onProgress: (done, total) => postMessage({ progress: { done: (drawn = done), total } }),
   });
+
+  for (const layer of chosen) {
+    await downloadTiles(layer, zoom, tiles, {
+      loadTile: async (url, tile) => {
+        const content = await fetchTile(url);
+        if (content) await drawTile(context, extent, { ...tile, content }, { opacity: layer.opacity });
+        return content ? true : null;
+      },
+      concurrency: CONCURRENCY,
+      onProgress: (done, total) => postMessage({ progress: { done: drawn + done, total: total * (1 + chosen.length) } }),
+    });
+  }
 
   if (outline) drawBoundary(context, boundary, extent);
   drawLayers(context, layers, extent);

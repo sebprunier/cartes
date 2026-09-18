@@ -25,6 +25,30 @@ export async function assemblePixels(extent, tiles, decodeTile) {
   return { pixels, missing };
 }
 
+/**
+ * Draws raw RGBA pixels over the image at position (dx, dy), cropping whatever overflows: a layer laid over a
+ * basemap keeps what shows through its transparent parts. `opacity` fades the whole layer.
+ */
+export function blendPixels(source, pixels, dx, dy, width, height, opacity = 1) {
+  const { data, width: sourceWidth, height: sourceHeight } = source;
+  if (data.length !== sourceWidth * sourceHeight * 4) {
+    throw new Error(`Pixels de ${data.length} octets, ${sourceWidth * sourceHeight * 4} attendus (RGBA).`);
+  }
+  for (let row = Math.max(0, -dy); row < sourceHeight && dy + row < height; row++) {
+    for (let column = Math.max(0, -dx); column < sourceWidth && dx + column < width; column++) {
+      const alpha = (data[(row * sourceWidth + column) * 4 + 3] / 255) * opacity;
+      if (alpha === 0) continue;
+      const source0 = (row * sourceWidth + column) * 4;
+      const target0 = ((dy + row) * width + dx + column) * CHANNELS;
+      for (let channel = 0; channel < CHANNELS; channel++) {
+        pixels[target0 + channel] = Math.round(
+          data[source0 + channel] * alpha + pixels[target0 + channel] * (1 - alpha),
+        );
+      }
+    }
+  }
+}
+
 /** Copies raw RGB pixels at position (dx, dy) of the image, cropping whatever overflows. */
 export function copyPixels(source, pixels, dx, dy, width, height) {
   const { data, width: sourceWidth, height: sourceHeight } = source;

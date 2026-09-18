@@ -6,6 +6,7 @@ import path from 'node:path';
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
+import { chooseMapLayers } from '../src/core/maplayers.js';
 import { estimateFileSize } from '../src/core/estimates.js';
 import { withUpdateDates } from '../src/core/metadata.js';
 import { layersSource } from '../src/core/layers.js';
@@ -17,6 +18,7 @@ import {
   assembleTiles,
   attributionLabel,
   boundaryOutline,
+  drawMapLayer,
   drawOverlays,
   layerOverlays,
   legendOverlay,
@@ -102,8 +104,24 @@ ipcMain.handle('generate', async (event, request) => {
     });
 
     const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale: request.grayscale });
+
+    const mapLayers = chooseMapLayers(request.mapLayers ?? []);
+    for (const layer of mapLayers) {
+      const layerTiles = await downloadTiles(layer, extent.zoom, [...tilesInExtent(extent)], {
+        loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: layer.id, zoom: extent.zoom }),
+        concurrency: CONCURRENCY,
+        signal: generation.signal,
+        onProgress: (done, total) => event.sender.send('progress', { done, total }),
+      });
+      await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
+    }
+
     const layers = request.layers ?? [];
-    const sources = await withUpdateDates(request.outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+    const sources = await withUpdateDates([
+      basemap,
+      ...mapLayers,
+      ...(request.outline ? [BOUNDARY_SOURCE] : []),
+    ]);
     const added = layersSource(layers);
     if (added) sources.push(added);
 

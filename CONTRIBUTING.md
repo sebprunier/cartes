@@ -31,6 +31,7 @@ node src/cli.js --aide
 | --- | --- |
 | `src/core/` | cœur partagé, sans dépendance à Node ni à sharp : il doit pouvoir tourner dans un navigateur |
 | `src/core/basemaps.js` | catalogue des fonds de carte |
+| `src/core/maplayers.js` | catalogue des couches superposables (cadastre…) |
 | `src/core/municipalities.js` | recherche des communes et récupération de leur contour |
 | `src/core/metadata.js` | dates de mise à jour des données, lues dans le catalogue de la Géoplateforme |
 | `src/core/tiles.js` | calcul des tuiles, échantillonnage et téléchargement |

@@ -113,6 +113,22 @@ Le PNG d'un plan est écrit avec une palette de 256 couleurs, invisible à l'œi
 
 Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom, qui restent ensuite en cache. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 
+## Superposer des couches
+
+Des couches d'information peuvent être ajoutées par-dessus le fond de carte, sans fournir de fichier. La liste s'obtient avec `cartes couches` ; sur la page web et dans l'application, ce sont des cases à cocher.
+
+| Couche | Contenu | Source |
+| --- | --- | --- |
+| `cadastre` | limites et numéros des parcelles, à partir du zoom 16 | IGN – Parcellaire Express (PCI) |
+
+```sh
+cartes generer 86081 -z 16 --couches cadastre
+```
+
+Une couche est dessinée en semi-transparence pour laisser lire le fond de carte, et sa source est citée dans la mention des sources avec sa date de mise à jour. Comme le contour de la commune et les données ajoutées, une couche garde ses couleurs quand le fond passe en niveaux de gris : `--gris` sert justement à faire ressortir ce qui est posé dessus. Une couche qui montre moins de choses au niveau de zoom demandé le signale avant de télécharger quoi que ce soit.
+
+Le poids annoncé par `--estimer` ne tient pas compte des couches superposées : une carte avec le cadastre pèse sensiblement plus lourd.
+
 ## Ajouter ses propres données
 
 Un fichier de la commune peut être superposé à la carte : points de collecte, défibrillateurs, zones de travaux, circuits de randonnée. En ligne de commande, l'option `--donnees` est répétable pour superposer plusieurs fichiers ; sur la page web et dans l'application, les fichiers se glissent dans la zone prévue.

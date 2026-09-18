@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import sharp from 'sharp';
 
-import { CHANNELS, assemblePixels, copyPixels } from '../core/image.js';
+import { CHANNELS, assemblePixels, blendPixels, copyPixels } from '../core/image.js';
 import { layersShapes } from '../core/layers.js';
 import { legendEntries, legendTitle } from '../core/layers.js';
 import {
@@ -19,6 +19,7 @@ import {
   mergeBoxes,
   outlineStrokeWidth,
 } from '../core/overlays.js';
+import { TILE_SIZE } from '../core/tiles.js';
 import { removeTile } from './cache.js';
 
 // Luminance coefficients (Rec. 601): grayscale stays on 3 channels so overlays keep their colors.
@@ -44,6 +45,39 @@ export function assembleTiles(extent, tiles, { grayscale = false } = {}) {
       return null;
     }
   });
+}
+
+/**
+ * Draws the tiles of a layer over the assembled image, keeping what shows through their transparent parts.
+ * A layer keeps its colors over a grayscale basemap, as the boundary and the added data do: `--gris` turns
+ * the basemap gray so that what is laid over it stands out. Returns the number of tiles that could not be
+ * drawn, which leave the basemap visible.
+ */
+export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) {
+  let missing = 0;
+  for (const tile of tiles) {
+    if (!tile.content) {
+      missing++;
+      continue;
+    }
+    try {
+      const { data, info } = await sharp(tile.content).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      blendPixels(
+        { data, width: info.width, height: info.height },
+        pixels,
+        tile.x * TILE_SIZE - extent.xMin,
+        tile.y * TILE_SIZE - extent.yMin,
+        extent.width,
+        extent.height,
+        opacity,
+      );
+    } catch {
+      // Corrupted cache file: delete it so that it gets downloaded again.
+      await removeTile(tile.content);
+      missing++;
+    }
+  }
+  return missing;
 }
 
 /**

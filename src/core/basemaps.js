@@ -1,6 +1,6 @@
 // Catalog of tiled basemaps (Web Mercator projection, 256 px tiles).
 
-function geoplateformeWmts(layer, imageFormat) {
+export function geoplateformeWmts(layer, imageFormat) {
   return (
     'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0' +
     `&LAYER=${layer}&STYLE=normal&TILEMATRIXSET=PM&FORMAT=${imageFormat}` +

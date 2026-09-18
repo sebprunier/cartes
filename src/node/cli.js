@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 
 import { BASEMAPS, canUsePalette } from '../core/basemaps.js';
+import { MAP_LAYERS, MapLayerError, chooseMapLayers, mapLayerZoomWarning } from '../core/maplayers.js';
 import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
 import { withUpdateDates } from '../core/metadata.js';
 import {
@@ -27,6 +28,7 @@ import {
   assembleTiles,
   attributionLabel,
   boundaryOutline,
+  drawMapLayer,
   drawOverlays,
   layerOverlays,
   legendOverlay,
@@ -53,6 +55,8 @@ async function main() {
     await search(argument, options);
   } else if (command === 'basemaps') {
     listBasemaps();
+  } else if (command === 'maplayers') {
+    listMapLayers();
   } else if (command === 'generate' && argument) {
     await generate(argument, options);
   } else {
@@ -71,6 +75,14 @@ function listBasemaps() {
     console.log(
       `${basemap.id.padEnd(16)} ${basemap.name} (zoom max ${basemap.maxZoom}, format ${basemap.outputFormat})` +
         ` — ${basemap.attribution}`,
+    );
+  }
+}
+
+function listMapLayers() {
+  for (const layer of Object.values(MAP_LAYERS)) {
+    console.log(
+      `${layer.id.padEnd(16)} ${layer.name} — ${layer.attribution}\n${' '.repeat(16)} ${layer.description}`,
     );
   }
 }
@@ -103,6 +115,13 @@ async function generate(input, options) {
     }
   });
 
+  let mapLayers;
+  try {
+    mapLayers = chooseMapLayers(options.maplayers);
+  } catch (error) {
+    throw error instanceof MapLayerError ? new UsageError(error.message) : error;
+  }
+
   const inseeCode = await resolveMunicipality(input, options.department);
   const boundary = await fetchBoundary(inseeCode);
   const bbox = boundaryBbox(boundary);
@@ -111,12 +130,18 @@ async function generate(input, options) {
   const { path: outputPath, format } = resolveOutputPath(
     options,
     basemap.outputFormat,
-    `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}-z${zoom}` +
-      `${grayscale ? '-gris' : ''}`,
+    `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}` +
+      `${mapLayers.map((layer) => `-${layer.id}`).join('')}-z${zoom}${grayscale ? '-gris' : ''}`,
   );
 
   console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
-  console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}\n`);
+  console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}`);
+  for (const layer of mapLayers) console.log(`Couche        : ${layer.name} — ${layer.attribution}`);
+  console.log();
+  for (const layer of mapLayers) {
+    const warning = mapLayerZoomWarning(layer, zoom);
+    if (warning) console.log(`Attention : ${warning}\n`);
+  }
   for (const layer of layers) {
     const warning = layerWarning(layer);
     if (warning) console.log(`Attention : ${layer.name} — ${warning}\n`);
@@ -156,12 +181,25 @@ async function generate(input, options) {
     );
   }
 
+  for (const layer of mapLayers) {
+    console.log(`Téléchargement de la couche « ${layer.name} »…`);
+    const layerTiles = await downloadTiles(layer, zoom, [...tilesInExtent(extent)], {
+      loadTile: cachedTileLoader({ cacheDir: options.cache, basemapId: layer.id, zoom }),
+      concurrency,
+      onProgress: printProgress,
+    });
+    const missingLayerTiles = await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
+    if (missingLayerTiles > 0) {
+      console.log(`  ${missingLayerTiles} tuile(s) de la couche indisponible(s) : le fond reste visible.`);
+    }
+  }
+
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
   overlays.push(...layerOverlays(layers, extent));
   if (!options['no-legend']) overlays.push(await legendOverlay(layers, extent));
 
-  const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+  const sources = await withUpdateDates([basemap, ...mapLayers, ...(outline ? [BOUNDARY_SOURCE] : [])]);
   const added = layersSource(layers);
   if (added) sources.push(added);
   if (sources.some((source) => source.metadataId && !source.updateDate)) {

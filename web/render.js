@@ -39,11 +39,12 @@ export function canRender(width, height) {
   }
 }
 
-/** Draws a downloaded tile at its place in the image. */
-export async function drawTile(context, extent, tile, { grayscale = false } = {}) {
+/** Draws a downloaded tile at its place in the image, with the opacity of its layer. */
+export async function drawTile(context, extent, tile, { grayscale = false, opacity = 1 } = {}) {
   const bitmap = await createImageBitmap(new Blob([tile.content]));
   context.save();
   if (grayscale) context.filter = 'grayscale(1)';
+  context.globalAlpha = opacity;
   context.drawImage(bitmap, tile.x * TILE_SIZE - extent.xMin, tile.y * TILE_SIZE - extent.yMin);
   context.restore();
   bitmap.close();

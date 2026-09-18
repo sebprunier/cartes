@@ -206,6 +206,30 @@ button:disabled {
   font-size: 0.85rem;
 }
 
+#map-layers {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+#map-layers li {
+  padding: 0.25rem 0;
+}
+
+#map-layers .map-layer-description,
+#map-layers .map-layer-warning {
+  margin: 0.1rem 0 0 1.6rem;
+  font-size: 0.85rem;
+}
+
+#map-layers .map-layer-description {
+  color: var(--grey);
+}
+
+#map-layers .map-layer-warning {
+  color: #8a4b00;
+}
+
 #preview-views {
   display: flex;
   flex-wrap: wrap;

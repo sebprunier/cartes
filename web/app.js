@@ -1,6 +1,7 @@
 // Interface of the web page: choice of the municipality, settings, estimates and generation.
 
 import { BASEMAPS } from './core/basemaps.js';
+import { MAP_LAYERS, mapLayerZoomWarning } from './core/maplayers.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
 import { LayerError, applyProperties, layerWarning, readLayer } from './core/layers.js';
 import {
@@ -48,6 +49,7 @@ const formatChoice = element('format');
 const dpiField = element('dpi');
 const grayscaleBox = element('grayscale');
 const outlineBox = element('outline');
+const mapLayerList = element('map-layers');
 const estimatesTable = element('estimates');
 const estimateButton = element('estimate');
 const estimateSpinner = element('estimate-spinner');
@@ -77,6 +79,51 @@ const layers = [];
 for (const basemap of Object.values(BASEMAPS)) {
   basemapChoice.append(new Option(basemap.name, basemap.id));
 }
+showMapLayers();
+
+/** The catalog of layers that can be laid over the basemap, as checkboxes. */
+function showMapLayers() {
+  mapLayerList.replaceChildren(
+    ...Object.values(MAP_LAYERS).map((layer) => {
+      const item = document.createElement('li');
+      const choice = document.createElement('label');
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.value = layer.id;
+      box.className = 'map-layer';
+      box.addEventListener('change', () => {
+        showMapLayerWarnings();
+        agePreview();
+      });
+      choice.append(box, ` ${layer.name}`);
+      const description = document.createElement('p');
+      description.className = 'map-layer-description';
+      description.textContent = `${layer.description} ${layer.attribution}`;
+      const warning = document.createElement('p');
+      warning.className = 'map-layer-warning';
+      warning.dataset.layer = layer.id;
+      warning.hidden = true;
+      item.append(choice, description, warning);
+      return item;
+    }),
+  );
+}
+
+/** Says which chosen layers have nothing to show at the chosen zoom level. */
+function showMapLayerWarnings() {
+  for (const warning of mapLayerList.querySelectorAll('.map-layer-warning')) {
+    const layer = MAP_LAYERS[warning.dataset.layer];
+    const chosen = mapLayerList.querySelector(`.map-layer[value="${layer.id}"]`).checked;
+    const message = chosen ? mapLayerZoomWarning(layer, Number(zoomChoice.value)) : undefined;
+    warning.textContent = message ?? '';
+    warning.hidden = !message;
+  }
+}
+
+/** Identifiers of the layers to lay over the basemap. */
+function chosenMapLayers() {
+  return [...mapLayerList.querySelectorAll('.map-layer:checked')].map(({ value }) => value);
+}
 
 searchField.addEventListener('input', debounce(search, 300));
 basemapChoice.addEventListener('change', () => {
@@ -86,6 +133,7 @@ basemapChoice.addEventListener('change', () => {
 });
 zoomChoice.addEventListener('change', () => {
   showEstimates();
+  showMapLayerWarnings();
   agePreview();
 });
 dpiField.addEventListener('change', showEstimates);
@@ -191,6 +239,7 @@ function previewRequest() {
     margin: MARGIN,
     grayscale: grayscaleBox.checked,
     outline: outlineBox.checked,
+    mapLayers: chosenMapLayers(),
     layers,
     legend: legendBox.checked,
   };
@@ -472,6 +521,7 @@ async function generate() {
         format: formatChoice.value,
         grayscale: grayscaleBox.checked,
         outline: outlineBox.checked,
+        mapLayers: chosenMapLayers(),
         layers,
         legend: legendBox.checked,
         fileName: defaultFileName(),
@@ -495,7 +545,8 @@ async function generate() {
 function defaultFileName() {
   return (
     `${municipality.boundary.inseeCode}-${normalizeName(municipality.boundary.name).replaceAll(' ', '-')}` +
-    `-${basemapChoice.value}-z${zoomChoice.value}${grayscaleBox.checked ? '-gris' : ''}.${formatChoice.value}`
+    `-${basemapChoice.value}${chosenMapLayers().map((id) => `-${id}`).join('')}-z${zoomChoice.value}` +
+    `${grayscaleBox.checked ? '-gris' : ''}.${formatChoice.value}`
   );
 }
 
