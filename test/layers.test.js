@@ -245,7 +245,7 @@ describe('layerWarning', () => {
   it('warns about a heavy file, with its number of features', () => {
     const warning = layerWarning(layerOf(LARGE_LAYER_FEATURES));
     assert.match(warning, /objets/);
-    assert.match(warning, /zoom/);
+    assert.match(warning, /étiquettes/);
   });
 });
 

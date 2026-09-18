@@ -95,10 +95,35 @@ describe('drawOverlays', () => {
     // Wider than the 4096 px drawing blocks, so the line crosses a block boundary.
     const extent = { width: 4200, height: 4 };
     const pixels = Buffer.alloc(extent.width * extent.height * 3, 255);
-    await drawOverlays(pixels, extent, ['<path d="M0,2L4200,2" stroke="rgb(0,0,255)" stroke-width="4"/>']);
+    const line = {
+      svg: '<path d="M0,2L4200,2" stroke="rgb(0,0,255)" stroke-width="4"/>',
+      box: { x: 0, y: 0, width: 4200, height: 4 },
+    };
+    await drawOverlays(pixels, extent, [line]);
     for (const x of [0, 4095, 4096, 4199]) {
       assert.deepEqual(pixelAt(pixels, extent.width, x, 1), [0, 0, 255], `pixel (${x}, 1)`);
     }
+  });
+
+  it('gives a block only the overlays that fall in it', async () => {
+    const extent = { width: 4200, height: 8 };
+    const pixels = Buffer.alloc(extent.width * extent.height * 3, 255);
+    // Each square is entirely inside one block: neither must be drawn in the other block.
+    const square = (x, color) => ({
+      svg: `<rect x="${x}" y="2" width="4" height="4" fill="${color}"/>`,
+      box: { x, y: 2, width: 4, height: 4 },
+    });
+    await drawOverlays(pixels, extent, [square(10, 'rgb(255,0,0)'), square(4150, 'rgb(0,0,255)')]);
+    assert.deepEqual(pixelAt(pixels, extent.width, 11, 3), [255, 0, 0], 'premier bloc');
+    assert.deepEqual(pixelAt(pixels, extent.width, 4151, 3), [0, 0, 255], 'second bloc');
+  });
+
+  it('leaves a block untouched when nothing falls in it', async () => {
+    const extent = { width: 4200, height: 8 };
+    const pixels = Buffer.alloc(extent.width * extent.height * 3, 255);
+    const mark = { svg: '<rect x="10" y="2" width="4" height="4" fill="rgb(255,0,0)"/>', box: { x: 10, y: 2, width: 4, height: 4 } };
+    await drawOverlays(pixels, extent, [mark]);
+    assert.deepEqual(pixelAt(pixels, extent.width, 4151, 3), [255, 255, 255]);
   });
 });
 
@@ -126,10 +151,13 @@ describe('boundaryOutline', () => {
     };
     const [x, y] = lonLatToPixel(0.4, 46.8, 12);
     const extent = { zoom: 12, xMin: Math.floor(x) - 10, yMin: Math.floor(y) - 20, width: 1000, height: 1000 };
-    const outline = boundaryOutline(boundary, extent);
+    const { svg: outline, box } = boundaryOutline(boundary, extent);
     assert.match(outline, /^<path d="M/);
     assert.equal(outline.match(/M/g).length, 2);
     assert.ok(outline.includes(`M${(x - extent.xMin).toFixed(1)},${(y - extent.yMin).toFixed(1)}L`));
+    // The box holds the drawn rings, widened by the stroke.
+    assert.ok(box.x <= x - extent.xMin && box.x + box.width >= x - extent.xMin);
+    assert.ok(box.y <= y - extent.yMin && box.y + box.height >= y - extent.yMin);
   });
 });
 
@@ -151,11 +179,23 @@ describe('layerOverlays', () => {
   );
 
   it('draws the shapes, the labels, and escapes the text', () => {
-    const [svg] = layerOverlays([layer], extent);
+    const overlays = layerOverlays([layer], extent);
+    const svg = overlays.map(({ svg: element }) => element).join('');
     assert.match(svg, /<path d="M[\d.,]+L/);
     assert.match(svg, /<circle /);
     assert.match(svg, /Déchèterie &amp; cie/);
     assert.ok(svg.includes('#b3261e'));
+  });
+
+  it('gives each shape the area it covers, and the label its own', () => {
+    const overlays = layerOverlays([layer], extent);
+    assert.equal(overlays.length, 2); // Un polygone et un point.
+    for (const { box } of overlays) {
+      assert.ok(box.width > 0 && box.height > 0);
+    }
+    const point = overlays.find(({ svg }) => svg.includes('<circle'));
+    // The box of the point holds its label, which is written beside it.
+    assert.ok(point.box.width > 40, `largeur ${point.box.width}`);
   });
 
   it('really draws on the image, through the rendering engine', async () => {
@@ -180,14 +220,17 @@ describe('legendOverlay', () => {
   );
 
   it('draws a box with one line per layer', async () => {
-    const svg = await legendOverlay([layer], extent);
+    const { svg, box } = await legendOverlay([layer], extent);
     assert.match(svg, /^<rect /);
     assert.match(svg, /<circle [^>]*fill="#b3261e"/);
     assert.match(svg, /<image [^>]*href="data:image\/png;base64,/);
+    // The legend sits in the bottom left corner, and its box says so.
+    assert.ok(box.x < extent.width / 2);
+    assert.ok(box.y + box.height <= extent.height);
   });
 
   it('draws nothing when no layer shows on the map', async () => {
-    assert.equal(await legendOverlay([], extent), '');
+    assert.equal(await legendOverlay([], extent), undefined);
   });
 });
 
@@ -218,8 +261,8 @@ describe('attributionLabel', () => {
   const extent = { width: 3000, height: 1500 };
   const text = 'Sources : © IGN – Plan IGN & <données>';
 
-  function labelBox(label) {
-    const [, x, y, width, height] = label.match(/<rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"/).map(Number);
+  function labelBox({ svg }) {
+    const [, x, y, width, height] = svg.match(/<rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"/).map(Number);
     return { x, y, width, height };
   }
 
@@ -230,7 +273,8 @@ describe('attributionLabel', () => {
     assert.equal(box.x + box.width + padding, extent.width);
     assert.equal(box.y + box.height + padding, extent.height);
     assert.ok(box.width > 2 * padding && box.height > 2 * padding);
-    assert.match(label, /<image [^>]*href="data:image\/png;base64,/);
+    assert.match(label.svg, /<image [^>]*href="data:image\/png;base64,/);
+    assert.deepEqual(label.box, box);
   });
 
   it('wraps long texts at 60 % of the image width', async () => {

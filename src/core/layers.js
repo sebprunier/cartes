@@ -1,6 +1,7 @@
 // Data layers added to a map: reading the files provided by the municipality (GeoJSON, CSV), and conversion
 // of their features into shapes in image pixels, ready to be drawn by the platform.
 
+import { box, boxesOverlap, expandBox, mergeBoxes } from './overlays.js';
 import { lonLatToPixel } from './tiles.js';
 
 // Colors given to the layers that do not carry their own, distinguishable once printed in grayscale.
@@ -241,18 +242,18 @@ function style(properties) {
   };
 }
 
-// Above this number of features, drawing slows down noticeably: the overlay of a layer is drawn again for
-// each 4096 px block of the image, and a map at zoom 19 has dozens of blocks. Measured on a layer of points:
-// at zoom 17, 5 000 features take about 9 seconds to draw, against 1 second for 200.
-export const LARGE_LAYER_FEATURES = 2000;
+// Above this number of features, a layer is worth a warning. Measured on a layer of points, at zoom 17: the
+// drawing itself stays around three seconds whatever the count, each shape being drawn only in the block of
+// the image where it falls, but the labels are another matter — of 10 000 points, barely fifty keep theirs.
+export const LARGE_LAYER_FEATURES = 5000;
 
-/** Warning about a layer heavy enough to slow the drawing down, or undefined when it is small enough. */
+/** Warning about a layer heavy enough to be worth a word, or undefined when it is small enough. */
 export function layerWarning(layer) {
   const count = layer.features.length;
   if (count < LARGE_LAYER_FEATURES) return undefined;
   return (
-    `${count.toLocaleString('fr-FR')} objets : le dessin de la carte peut prendre plusieurs dizaines de ` +
-    'secondes aux niveaux de zoom les plus élevés, et beaucoup d’étiquettes ne trouveront pas de place.'
+    `${count.toLocaleString('fr-FR')} objets : le dessin demandera quelques secondes de plus, et beaucoup ` +
+    'd’étiquettes ne seront pas écrites, faute de place autour de leur point.'
   );
 }
 
@@ -323,13 +324,27 @@ export function layerShapes(layer, extent) {
   const points = [];
   const paths = [];
   const drawn = [];
+  // Each shape carries the area it covers, so that the platform can draw it only where it falls.
+  const boxOf = (rings, width) =>
+    expandBox(
+      rings.flat().reduce((current, [x, y]) => mergeBoxes(current, box(x, y, 0, 0)), undefined),
+      width / 2 + 1,
+    );
 
   for (const feature of layer.features) {
     const color = feature.color ?? layer.color;
     if (feature.shape === 'point') {
       const [x, y] = pixel(feature.position, extent);
       if (!inside(x, y, extent, radius)) continue;
-      points.push({ x, y, radius: radius * sizeFactor(feature.style.size), color, label: feature.label });
+      const pointRadius = radius * sizeFactor(feature.style.size);
+      points.push({
+        x,
+        y,
+        radius: pointRadius,
+        color,
+        label: feature.label,
+        box: box(x - pointRadius, y - pointRadius, 2 * pointRadius, 2 * pointRadius),
+      });
       drawn.push(feature);
       continue;
     }
@@ -337,6 +352,7 @@ export function layerShapes(layer, extent) {
     if (!rings.some((ring) => ring.some(([x, y]) => inside(x, y, extent, scale / 10)))) continue;
     paths.push({
       path: pathData(rings, feature.shape === 'polygon'),
+      box: boxOf(rings, feature.style.strokeWidth ?? strokeWidth),
       color,
       strokeWidth: feature.style.strokeWidth ?? strokeWidth,
       fill: feature.shape === 'polygon' ? (feature.style.fill ?? color) : undefined,
@@ -366,7 +382,7 @@ function placeLabels(points, extent, fontSize) {
     if (!point.label) continue;
     const width = textWidth(point.label, fontSize);
     const placement = placements(point, width, fontSize, gap).find(
-      (candidate) => within(candidate.box, extent) && !taken.some((other) => overlap(candidate.box, other)),
+      (candidate) => within(candidate.box, extent) && !taken.some((other) => boxesOverlap(candidate.box, other)),
     );
     if (!placement) {
       point.label = undefined;
@@ -375,6 +391,7 @@ function placeLabels(points, extent, fontSize) {
     point.labelX = placement.x;
     point.labelY = placement.y;
     point.labelAlign = placement.align;
+    point.labelBox = placement.box;
     taken.push(placement.box);
   }
 }
@@ -397,19 +414,6 @@ function placements({ x, y, radius }, width, fontSize, gap) {
 function labelBox({ x, y, align }, width, fontSize, gap) {
   const left = align === 'start' ? x : align === 'end' ? x - width : x - width / 2;
   return box(left - gap, y - fontSize * 0.8 - gap / 2, width + 2 * gap, fontSize * 1.05 + gap);
-}
-
-function box(x, y, width, height) {
-  return { x, y, width, height };
-}
-
-function overlap(one, other) {
-  return (
-    one.x < other.x + other.width &&
-    other.x < one.x + one.width &&
-    one.y < other.y + other.height &&
-    other.y < one.y + one.height
-  );
 }
 
 function within({ x, y, width, height }, extent) {

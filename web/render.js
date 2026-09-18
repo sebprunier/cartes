@@ -55,7 +55,7 @@ export function drawBoundary(context, boundary, extent) {
   context.strokeStyle = OUTLINE_COLOR;
   context.lineWidth = outlineStrokeWidth(extent);
   context.lineJoin = 'round';
-  context.stroke(new Path2D(boundaryPath(boundary, extent)));
+  context.stroke(new Path2D(boundaryPath(boundary, extent).path));
   context.restore();
 }
 

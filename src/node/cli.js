@@ -160,6 +160,7 @@ async function generate(input, options) {
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
   overlays.push(...layerOverlays(layers, extent));
   if (!options['no-legend']) overlays.push(await legendOverlay(layers, extent));
+
   const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
   const added = layersSource(layers);
   if (added) sources.push(added);

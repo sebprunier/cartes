@@ -29,16 +29,54 @@ function frenchDate(isoDate) {
  * path, or to build a Path2D on a canvas.
  */
 export function boundaryPath(boundary, extent) {
-  return boundary.polygons
+  let box;
+  const path = boundary.polygons
     .flat()
     .map((ring) => {
       const points = ring.map(([lon, lat]) => {
         const [px, py] = lonLatToPixel(lon, lat, extent.zoom);
-        return `${(px - extent.xMin).toFixed(1)},${(py - extent.yMin).toFixed(1)}`;
+        const [x, y] = [px - extent.xMin, py - extent.yMin];
+        box = growBox(box, x, y);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
       });
       return `M${points.join('L')}Z`;
     })
     .join('');
+  return { path, box: expandBox(box ?? box0(), outlineStrokeWidth(extent)) };
+}
+
+/** Rectangle in image pixels, used to place labels and to know which block of the image an overlay falls in. */
+export function box(x, y, width, height) {
+  return { x, y, width, height };
+}
+
+const box0 = () => box(0, 0, 0, 0);
+
+export function boxesOverlap(one, other) {
+  return (
+    one.x < other.x + other.width &&
+    other.x < one.x + one.width &&
+    one.y < other.y + other.height &&
+    other.y < one.y + one.height
+  );
+}
+
+/** The box enlarged in every direction, to account for the width of a stroke or for a gap between labels. */
+export function expandBox({ x, y, width, height }, margin) {
+  return box(x - margin, y - margin, width + 2 * margin, height + 2 * margin);
+}
+
+export function mergeBoxes(one, other) {
+  if (!one) return other;
+  if (!other) return one;
+  const x = Math.min(one.x, other.x);
+  const y = Math.min(one.y, other.y);
+  return box(x, y, Math.max(one.x + one.width, other.x + other.width) - x, Math.max(one.y + one.height, other.y + other.height) - y);
+}
+
+/** The box extended to hold one more point. */
+function growBox(current, x, y) {
+  return mergeBoxes(current, box(x, y, 0, 0));
 }
 
 /** Stroke width of the outline, proportional to the image size so that it prints the same at any zoom level. */

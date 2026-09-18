@@ -8,6 +8,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Modifié
 
+- Les surcouches ne sont plus dessinées entièrement dans chaque bloc de l'image, mais seulement dans ceux où elles tombent. Une carte au zoom 17 portant 5 000 objets ajoutés passe de 8,9 à 2,5 secondes de tracé, et une carte sans données ajoutées y gagne aussi : la légende et la mention des sources n'étaient analysées que pour être ignorées dans la plupart des blocs.
 - Le PNG d'un plan est écrit avec une palette de 256 couleurs en ligne de commande et dans l'application : le fichier pèse environ moitié moins (2,7 Mo au lieu de 5,9 pour Colombiers au zoom 16), sans perte visible sur les étiquettes. L'estimation de poids en tient compte.
 - La page web propose tous les niveaux de zoom, et non plus jusqu'au 17 : une petite commune tient dans un navigateur au zoom 18 ou 19. Quand l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger la moindre tuile et renvoie vers la ligne de commande ou l'application de bureau.
 
@@ -17,7 +18,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 - Ajout des données de la commune sur les cartes : fichiers GeoJSON (uMap, QGIS) ou CSV avec des colonnes de latitude et de longitude, avec leurs étiquettes, leurs couleurs et une légende. Disponible dans les trois outils : option `--donnees` en ligne de commande, glisser-déposer sur la page web et dans l'application de bureau.
 - Catégories : les objets d'un même fichier sont regroupés par une propriété (`categorie`, `category`, `type`, `groupe` par défaut), avec une couleur et une ligne de légende par catégorie. Les options `--donnees-categorie` et `--donnees-couleur` désignent les propriétés à utiliser ; la page web et l'application les proposent dans une liste déroulante.
 - Placement des étiquettes : une étiquette qui en recouvrirait une autre, ou un autre point, est déplacée autour de son point, et abandonnée s'il n'y a pas la place. Les étiquettes de tous les fichiers ajoutés sont placées en une seule passe, dans l'ordre des fichiers, pour que deux fichiers ne se recouvrent pas.
-- Avertissement sur les fichiers de données volumineux : au-delà de 2 000 objets, la ligne de commande et l'interface préviennent que le dessin peut prendre plusieurs dizaines de secondes aux niveaux de zoom élevés.
+- Avertissement sur les fichiers de données volumineux : au-delà de 5 000 objets, la ligne de commande et l'interface préviennent que le dessin demandera quelques secondes de plus, et que beaucoup d'étiquettes ne seront pas écrites faute de place.
 - Titre de la légende : le nom du jeu de données quand un seul fichier est ajouté, « Légende » sinon. Ce nom, repris dans la mention des sources, se choisit avec `--donnees-titre` ou dans le champ prévu sur la page web et dans l'application.
 - Exemple de données réelles : les points d'apport volontaire de Colombiers, dans [`exemples/`](exemples/), en GeoJSON et en CSV.
 

@@ -13,7 +13,10 @@ import {
   OUTLINE_COLOR,
   attributionLayout,
   boundaryPath,
+  box,
+  boxesOverlap,
   legendLayout,
+  mergeBoxes,
   outlineStrokeWidth,
 } from '../core/overlays.js';
 import { removeTile } from './cache.js';
@@ -43,46 +46,56 @@ export function assembleTiles(extent, tiles, { grayscale = false } = {}) {
   });
 }
 
-/** SVG element drawing the municipality boundary. */
+/**
+ * Overlay drawing the municipality boundary. Like every overlay, it carries the area it covers, so that
+ * `drawOverlays` gives it only to the blocks of the image where it falls.
+ */
 export function boundaryOutline(boundary, extent) {
-  return (
-    `<path d="${boundaryPath(boundary, extent)}" fill="none" stroke="${OUTLINE_COLOR}" ` +
-    `stroke-width="${outlineStrokeWidth(extent)}" stroke-linejoin="round"/>`
-  );
+  const { path, box: area } = boundaryPath(boundary, extent);
+  return {
+    svg:
+      `<path d="${path}" fill="none" stroke="${OUTLINE_COLOR}" ` +
+      `stroke-width="${outlineStrokeWidth(extent)}" stroke-linejoin="round"/>`,
+    box: area,
+  };
 }
 
 /**
- * SVG elements drawing the data layers, one string per layer: polygons and lines, then points and their
- * labels. The layers are shaped together, so that their labels do not write over each other.
+ * Overlays drawing the data layers: polygons and lines, then points and their labels. One overlay per shape,
+ * each with the area it covers: a file of thousands of objects is then drawn block by block, and not entirely
+ * for every block of the image. The layers are shaped together, so that their labels do not write over
+ * each other.
  */
 export function layerOverlays(layers, extent) {
-  return layersShapes(layers, extent).map(layerElements);
+  return layersShapes(layers, extent).flatMap(layerElements);
 }
 
 function layerElements({ points, paths, fontSize }) {
-  const elements = paths.map(
-    ({ path, color, strokeWidth, fill, fillOpacity }) =>
+  const overlays = paths.map(({ path, box: area, color, strokeWidth, fill, fillOpacity }) => ({
+    svg:
       `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" stroke="${color}" ` +
       `stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>`,
-  );
+    box: area,
+  }));
 
-  for (const { x, y, radius: pointRadius, color, label, labelX, labelY, labelAlign } of points) {
-    elements.push(
+  for (const { x, y, radius: pointRadius, color, label, labelX, labelY, labelAlign, box: area, labelBox } of points) {
+    const elements = [
       `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pointRadius}" fill="${color}" ` +
         `stroke="#ffffff" stroke-width="${Math.max(1, Math.round(pointRadius / 3))}"/>`,
-    );
-    if (!label) continue;
-    // The white outline keeps the label readable over a busy map.
-    const position =
-      `x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="${labelAlign}"`;
-    const font = `font-family="sans-serif" font-size="${fontSize}"`;
-    elements.push(
-      `<text ${position} ${font} stroke="#ffffff" stroke-width="${Math.max(2, Math.round(fontSize / 4))}" ` +
-        `stroke-linejoin="round" fill="none">${escapeXml(label)}</text>`,
-      `<text ${position} ${font} fill="${color}">${escapeXml(label)}</text>`,
-    );
+    ];
+    if (label) {
+      // The white outline keeps the label readable over a busy map.
+      const position = `x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="${labelAlign}"`;
+      const font = `font-family="sans-serif" font-size="${fontSize}"`;
+      elements.push(
+        `<text ${position} ${font} stroke="#ffffff" stroke-width="${Math.max(2, Math.round(fontSize / 4))}" ` +
+          `stroke-linejoin="round" fill="none">${escapeXml(label)}</text>`,
+        `<text ${position} ${font} fill="${color}">${escapeXml(label)}</text>`,
+      );
+    }
+    overlays.push({ svg: elements.join(''), box: label ? mergeBoxes(area, labelBox) : area });
   }
-  return elements.join('');
+  return overlays;
 }
 
 function escapeXml(text) {
@@ -101,11 +114,13 @@ export async function attributionLabel(text, extent) {
   const boxHeight = info.height + 2 * padding;
   const x = extent.width - boxWidth - padding;
   const y = extent.height - boxHeight - padding;
-  return (
-    `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>` +
-    `<image x="${x + padding}" y="${y + padding}" width="${info.width}" height="${info.height}" ` +
-    `href="data:image/png;base64,${data.toString('base64')}"/>`
-  );
+  return {
+    svg:
+      `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>` +
+      `<image x="${x + padding}" y="${y + padding}" width="${info.width}" height="${info.height}" ` +
+      `href="data:image/png;base64,${data.toString('base64')}"/>`,
+    box: box(x, y, boxWidth, boxHeight),
+  };
 }
 
 /** Text rendered by sharp into an image, which also gives its exact size. */
@@ -127,7 +142,7 @@ function textImage(text, fontSize, maxWidth, { bold = false } = {}) {
 /** SVG elements showing the legend of the data layers, in the bottom left corner of the image. */
 export async function legendOverlay(layers, extent) {
   const entries = legendEntries(layers, extent);
-  if (entries.length === 0) return '';
+  if (entries.length === 0) return undefined;
 
   const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
   const title = await textImage(legendTitle(layers), fontSize, undefined, { bold: true });
@@ -147,7 +162,7 @@ export async function legendOverlay(layers, extent) {
     elements.push(legendSymbol(entry, x + padding, middle, symbolSize));
     elements.push(image(labels[index], x + 2 * padding + symbolSize, middle));
   });
-  return elements.join('');
+  return { svg: elements.join(''), box: box(x, y, boxWidth, boxHeight) };
 }
 
 /** A text rendered by sharp, placed with its middle on the given line. */
@@ -177,16 +192,21 @@ function escapeMarkup(text) {
 }
 
 /** Draws SVG elements (in image pixels) directly into the pixels, block by block. */
-export async function drawOverlays(pixels, extent, svgElements) {
+export async function drawOverlays(pixels, extent, overlays) {
   const { width, height } = extent;
   const source = { raw: { width, height, channels: CHANNELS }, limitInputPixels: false };
+  const drawn = overlays.filter(Boolean);
   for (let top = 0; top < height; top += BLOCK_SIZE) {
     for (let left = 0; left < width; left += BLOCK_SIZE) {
       const blockWidth = Math.min(BLOCK_SIZE, width - left);
       const blockHeight = Math.min(BLOCK_SIZE, height - top);
+      // Only what falls in this block is handed to the renderer, which parses everything it is given.
+      const block = box(left, top, blockWidth, blockHeight);
+      const elements = drawn.filter((overlay) => boxesOverlap(overlay.box, block)).map(({ svg }) => svg);
+      if (elements.length === 0) continue;
       const svg =
         `<svg xmlns="http://www.w3.org/2000/svg" width="${blockWidth}" height="${blockHeight}" ` +
-        `viewBox="${left} ${top} ${blockWidth} ${blockHeight}">${svgElements.join('')}</svg>`;
+        `viewBox="${left} ${top} ${blockWidth} ${blockHeight}">${elements.join('')}</svg>`;
       const { data, info } = await sharp(pixels, source)
         .extract({ left, top, width: blockWidth, height: blockHeight })
         .composite([{ input: Buffer.from(svg) }])
