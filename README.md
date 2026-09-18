@@ -107,11 +107,11 @@ Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécess
 Un fichier de la commune peut être superposé à la carte : points de collecte, défibrillateurs, zones de travaux, circuits de randonnée. En ligne de commande, l'option `--donnees` est répétable pour superposer plusieurs fichiers ; sur la page web et dans l'application, les fichiers se glissent dans la zone prévue.
 
 - **Formats** : GeoJSON, tel qu'exporté par uMap, QGIS ou geojson.io, et CSV avec des colonnes de latitude et de longitude (les noms usuels sont reconnus, le point-virgule et la virgule décimale aussi).
-- **Étiquettes** : le contenu d'une colonne ou d'une propriété `nom`, `name`, `libelle` ou `title`, écrit à côté du point avec un contour blanc pour rester lisible.
+- **Étiquettes** : le contenu d'une colonne ou d'une propriété `nom`, `name`, `libelle` ou `title`, écrit à côté du point avec un contour blanc pour rester lisible. Une étiquette qui recouvrirait une autre étiquette ou un autre point est déplacée autour de son point, et abandonnée s'il n'y a vraiment pas la place : son point reste dessiné.
 - **Catégories** : une propriété `categorie`, `category`, `type` ou `groupe` regroupe les objets. Chaque catégorie reçoit sa couleur et sa ligne dans la légende, ce qui permet de tout garder dans un seul fichier. `--donnees-categorie <propriété>` désigne une autre propriété, par exemple `--donnees-categorie dechets`.
 - **Couleurs** : celles du fichier quand elles y sont (`marker-color`, `fill`, `stroke-width`… comme dans uMap, ou une propriété `couleur`), sinon une couleur par catégorie, et à défaut une par fichier. `--donnees-couleur <propriété>` désigne la propriété qui porte la couleur.
 - **Coordonnées** : en longitude/latitude (WGS 84). Un fichier projeté, par exemple en Lambert 93, est refusé avec un message qui l'explique.
-- **Légende** : ajoutée en bas à gauche, avec une ligne par catégorie, ou une ligne par fichier en l'absence de catégorie. `--sans-legende` la retire.
+- **Légende** : ajoutée en bas à gauche, titrée du nom du fichier quand un seul est ajouté, avec une ligne par catégorie, ou une ligne par fichier en l'absence de catégorie. `--sans-legende` la retire.
 - **Mention des sources** : les fichiers ajoutés y sont cités, pour ne pas laisser croire qu'ils viennent de l'IGN.
 
 Sur la page web et dans l'application, les propriétés utilisées pour la légende et pour les couleurs se choisissent dans une liste déroulante, sous chaque fichier ajouté.

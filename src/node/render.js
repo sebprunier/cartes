@@ -7,7 +7,7 @@ import sharp from 'sharp';
 
 import { CHANNELS, assemblePixels, copyPixels } from '../core/image.js';
 import { layerShapes } from '../core/layers.js';
-import { legendEntries } from '../core/layers.js';
+import { legendEntries, legendTitle } from '../core/layers.js';
 import {
   ATTRIBUTION_COLOR,
   OUTLINE_COLOR,
@@ -53,22 +53,22 @@ export function boundaryOutline(boundary, extent) {
 
 /** SVG elements drawing a data layer: polygons and lines, then points and their labels. */
 export function layerOverlay(layer, extent) {
-  const { points, paths, radius } = layerShapes(layer, extent);
-  const fontSize = Math.max(11, Math.round(radius * 1.6));
+  const { points, paths, fontSize } = layerShapes(layer, extent);
   const elements = paths.map(
     ({ path, color, strokeWidth, fill, fillOpacity }) =>
       `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" stroke="${color}" ` +
       `stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>`,
   );
 
-  for (const { x, y, radius: pointRadius, color, label } of points) {
+  for (const { x, y, radius: pointRadius, color, label, labelX, labelY, labelAlign } of points) {
     elements.push(
       `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pointRadius}" fill="${color}" ` +
         `stroke="#ffffff" stroke-width="${Math.max(1, Math.round(pointRadius / 3))}"/>`,
     );
     if (!label) continue;
     // The white outline keeps the label readable over a busy map.
-    const position = `x="${(x + pointRadius * 1.5).toFixed(1)}" y="${(y + fontSize / 3).toFixed(1)}"`;
+    const position =
+      `x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="${labelAlign}"`;
     const font = `font-family="sans-serif" font-size="${fontSize}"`;
     elements.push(
       `<text ${position} ${font} stroke="#ffffff" stroke-width="${Math.max(2, Math.round(fontSize / 4))}" ` +
@@ -103,10 +103,11 @@ export async function attributionLabel(text, extent) {
 }
 
 /** Text rendered by sharp into an image, which also gives its exact size. */
-function textImage(text, fontSize, maxWidth) {
+function textImage(text, fontSize, maxWidth, { bold = false } = {}) {
+  const markup = bold ? `<b>${escapeMarkup(text)}</b>` : escapeMarkup(text);
   return sharp({
     text: {
-      text: `<span foreground="${ATTRIBUTION_COLOR}">${escapeMarkup(text)}</span>`,
+      text: `<span foreground="${ATTRIBUTION_COLOR}">${markup}</span>`,
       font: `sans ${fontSize}`,
       ...(maxWidth && { width: maxWidth, wrap: 'word' }),
       dpi: 72,
@@ -123,25 +124,32 @@ export async function legendOverlay(layers, extent) {
   if (entries.length === 0) return '';
 
   const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
+  const title = await textImage(legendTitle(layers), fontSize, undefined, { bold: true });
   const labels = await Promise.all(entries.map(({ label }) => textImage(label, fontSize)));
-  const boxWidth = 3 * padding + symbolSize + Math.max(...labels.map(({ info }) => info.width));
-  const boxHeight = 2 * padding + entries.length * lineHeight;
+  const labelsWidth = 2 * padding + symbolSize + Math.max(...labels.map(({ info }) => info.width));
+  const boxWidth = padding + Math.max(labelsWidth, title.info.width + padding);
+  const boxHeight = 2 * padding + (entries.length + 1) * lineHeight;
   const x = padding;
   const y = extent.height - boxHeight - padding;
 
   const elements = [
     `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>`,
+    image(title, x + padding, y + padding + lineHeight / 2),
   ];
   entries.forEach((entry, index) => {
-    const middle = y + padding + index * lineHeight + lineHeight / 2;
+    const middle = y + padding + (index + 1) * lineHeight + lineHeight / 2;
     elements.push(legendSymbol(entry, x + padding, middle, symbolSize));
-    const { data, info } = labels[index];
-    elements.push(
-      `<image x="${x + 2 * padding + symbolSize}" y="${(middle - info.height / 2).toFixed(1)}" ` +
-        `width="${info.width}" height="${info.height}" href="data:image/png;base64,${data.toString('base64')}"/>`,
-    );
+    elements.push(image(labels[index], x + 2 * padding + symbolSize, middle));
   });
   return elements.join('');
+}
+
+/** A text rendered by sharp, placed with its middle on the given line. */
+function image({ data, info }, x, middle) {
+  return (
+    `<image x="${x}" y="${(middle - info.height / 2).toFixed(1)}" width="${info.width}" ` +
+    `height="${info.height}" href="data:image/png;base64,${data.toString('base64')}"/>`
+  );
 }
 
 function legendSymbol({ shape, color }, x, middle, size) {

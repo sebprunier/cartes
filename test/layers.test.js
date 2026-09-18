@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { LayerError, applyProperties, layerShapes, legendEntries, readLayer } from '../src/core/layers.js';
+import {
+  LayerError,
+  applyProperties,
+  layerShapes,
+  legendEntries,
+  legendTitle,
+  readLayer,
+} from '../src/core/layers.js';
 import { extentFromBbox } from '../src/core/tiles.js';
 
 const COLOMBIERS_BBOX = [0.38344088, 46.75332418, 0.48673916, 46.80743244];
@@ -112,7 +119,7 @@ describe('readLayer, CSV', () => {
   });
 });
 
-describe('catégories et couleurs', () => {
+describe('categories and colors', () => {
   const points = (categories, key = 'categorie') =>
     geoJson(
       categories.map((category, index) =>
@@ -207,6 +214,53 @@ describe('legendEntries', () => {
   it('leaves out the layers with nothing to show on the map', () => {
     const elsewhere = read(geoJson([feature({ type: 'Point', coordinates: [2.35, 48.85] })]), 'paris.geojson');
     assert.deepEqual(legendEntries([elsewhere], extent), []);
+  });
+});
+
+describe('legendTitle', () => {
+  const withCategories = geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] }, { categorie: 'Verre' })]);
+
+  it('titles the legend with the file name when a single file carries categories', () => {
+    assert.equal(legendTitle([read(withCategories, 'points-de-collecte.geojson')]), 'Points de collecte');
+  });
+
+  it('falls back to a plain title without categories, or with several files', () => {
+    const plain = read(geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] })]), 'collecte.geojson');
+    assert.equal(legendTitle([plain]), 'Légende');
+    assert.equal(legendTitle([read(withCategories, 'a.geojson'), plain]), 'Légende');
+    assert.equal(legendTitle([]), 'Légende');
+  });
+});
+
+describe('label placement', () => {
+  const at = (positions) =>
+    read(
+      geoJson(
+        positions.map(([lon, lat], index) =>
+          feature({ type: 'Point', coordinates: [lon, lat] }, { nom: `Point de collecte ${index + 1}` }),
+        ),
+      ),
+    );
+
+  it('moves a label to the other side rather than writing it over its neighbour', () => {
+    const { points } = layerShapes(at([[0.43, 46.78], [0.4302, 46.78]]), extent);
+    assert.equal(points.filter(({ label }) => label).length, 2);
+    assert.notEqual(points[0].labelAlign, points[1].labelAlign);
+  });
+
+  it('drops the labels that find no free place, and keeps their points', () => {
+    const crowded = at([
+      [0.43, 46.78],
+      [0.43001, 46.78],
+      [0.43002, 46.78001],
+      [0.43001, 46.78002],
+      [0.43, 46.78002],
+    ]);
+    const { points } = layerShapes(crowded, extent);
+    assert.equal(points.length, 5);
+    const written = points.filter(({ label }) => label);
+    assert.ok(written.length > 0 && written.length < 5);
+    assert.ok(written.every(({ labelX, labelY }) => Number.isFinite(labelX) && Number.isFinite(labelY)));
   });
 });
 

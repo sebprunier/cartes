@@ -1,6 +1,6 @@
 // Rendering of the map on a canvas, in the browser: tiles, outline and attribution.
 
-import { layerShapes, legendEntries } from './core/layers.js';
+import { layerShapes, legendEntries, legendTitle } from './core/layers.js';
 import {
   ATTRIBUTION_BACKGROUND,
   ATTRIBUTION_COLOR,
@@ -61,7 +61,7 @@ export function drawBoundary(context, boundary, extent) {
 
 /** Draws a data layer: zones and lines, then points and their labels. */
 export function drawLayer(context, layer, extent) {
-  const { points, paths, radius } = layerShapes(layer, extent);
+  const { points, paths, fontSize } = layerShapes(layer, extent);
   context.save();
   context.lineJoin = 'round';
   context.lineCap = 'round';
@@ -79,9 +79,8 @@ export function drawLayer(context, layer, extent) {
     context.stroke(shape);
   }
 
-  const fontSize = Math.max(11, Math.round(radius * 1.6));
   context.font = `${fontSize}px sans-serif`;
-  context.textBaseline = 'middle';
+  context.textBaseline = 'alphabetic';
   for (const point of points) {
     context.beginPath();
     context.arc(point.x, point.y, point.radius, 0, 2 * Math.PI);
@@ -92,11 +91,12 @@ export function drawLayer(context, layer, extent) {
     context.stroke();
     if (!point.label) continue;
     // The white outline keeps the label readable over a busy map.
+    context.textAlign = { start: 'left', end: 'right', middle: 'center' }[point.labelAlign];
     context.strokeStyle = '#ffffff';
     context.lineWidth = Math.max(2, Math.round(fontSize / 4));
-    context.strokeText(point.label, point.x + point.radius * 1.5, point.y);
+    context.strokeText(point.label, point.labelX, point.labelY);
     context.fillStyle = point.color;
-    context.fillText(point.label, point.x + point.radius * 1.5, point.y);
+    context.fillText(point.label, point.labelX, point.labelY);
   }
   context.restore();
 }
@@ -107,20 +107,29 @@ export function drawLegend(context, layers, extent) {
   if (entries.length === 0) return;
 
   const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
+  const title = legendTitle(layers);
   context.save();
-  context.font = `${fontSize}px sans-serif`;
   context.textBaseline = 'middle';
+  context.textAlign = 'left';
 
+  context.font = `bold ${fontSize}px sans-serif`;
+  const titleWidth = context.measureText(title).width;
+  context.font = `${fontSize}px sans-serif`;
   const labelWidth = Math.max(...entries.map(({ label }) => context.measureText(label).width));
-  const boxWidth = 3 * padding + symbolSize + labelWidth;
-  const boxHeight = 2 * padding + entries.length * lineHeight;
+  const boxWidth = padding + Math.max(2 * padding + symbolSize + labelWidth, titleWidth + padding);
+  const boxHeight = 2 * padding + (entries.length + 1) * lineHeight;
   const x = padding;
   const y = extent.height - boxHeight - padding;
   context.fillStyle = ATTRIBUTION_BACKGROUND;
   context.fillRect(x, y, boxWidth, boxHeight);
 
+  context.font = `bold ${fontSize}px sans-serif`;
+  context.fillStyle = ATTRIBUTION_COLOR;
+  context.fillText(title, x + padding, y + padding + lineHeight / 2);
+
+  context.font = `${fontSize}px sans-serif`;
   entries.forEach((entry, index) => {
-    const middle = y + padding + index * lineHeight + lineHeight / 2;
+    const middle = y + padding + (index + 1) * lineHeight + lineHeight / 2;
     drawLegendSymbol(context, entry, x + padding, middle, symbolSize);
     context.fillStyle = ATTRIBUTION_COLOR;
     context.fillText(entry.label, x + 2 * padding + symbolSize, middle);

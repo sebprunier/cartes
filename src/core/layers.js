@@ -265,6 +265,15 @@ export function legendEntries(layers, extent) {
   });
 }
 
+/**
+ * Title of the legend: the name of the layer when a single file is added and its entries are its categories,
+ * otherwise a plain word, as the entries then come from several files.
+ */
+export function legendTitle(layers) {
+  const [layer, ...others] = layers;
+  return others.length === 0 && (layer?.categories ?? []).length > 0 ? layer.name : 'Légende';
+}
+
 function dominantShape(features) {
   const counts = { point: 0, line: 0, polygon: 0 };
   for (const feature of features) counts[feature.shape]++;
@@ -279,6 +288,7 @@ export function layerShapes(layer, extent) {
   const scale = Math.max(extent.width, extent.height);
   const strokeWidth = Math.max(2, Math.round(scale / 1200));
   const radius = Math.max(4, Math.round(scale / 400));
+  const fontSize = Math.max(11, Math.round(radius * 1.6));
   const points = [];
   const paths = [];
   const drawn = [];
@@ -303,7 +313,89 @@ export function layerShapes(layer, extent) {
     });
     drawn.push(feature);
   }
-  return { points, paths, features: drawn, radius, strokeWidth };
+  placeLabels(points, extent, fontSize);
+  return { points, paths, features: drawn, radius, strokeWidth, fontSize };
+}
+
+/**
+ * Places the label of each point beside its symbol, trying a few positions around it, and drops the labels
+ * that would overlap another label or symbol: two labels written on top of each other are unreadable, while
+ * a point without its label stays understandable thanks to the legend.
+ */
+function placeLabels(points, extent, fontSize) {
+  const gap = Math.max(2, Math.round(fontSize / 5));
+  // The symbols are obstacles from the start: a label never covers a point.
+  const taken = points.map(({ x, y, radius }) => box(x - radius, y - radius, 2 * radius, 2 * radius));
+
+  for (const point of points) {
+    if (!point.label) continue;
+    const width = textWidth(point.label, fontSize);
+    const placement = placements(point, width, fontSize, gap).find(
+      (candidate) => within(candidate.box, extent) && !taken.some((other) => overlap(candidate.box, other)),
+    );
+    if (!placement) {
+      point.label = undefined;
+      continue;
+    }
+    point.labelX = placement.x;
+    point.labelY = placement.y;
+    point.labelAlign = placement.align;
+    taken.push(placement.box);
+  }
+}
+
+/** Positions tried for a label, from the most readable to the least: beside the point, then above or below. */
+function placements({ x, y, radius }, width, fontSize, gap) {
+  const beside = radius * 1.5;
+  const baseline = fontSize / 3;
+  return [
+    { x: x + beside, y: y + baseline, align: 'start' },
+    { x: x - beside, y: y + baseline, align: 'end' },
+    { x, y: y - radius - gap, align: 'middle' },
+    { x, y: y + radius + gap + fontSize * 0.8, align: 'middle' },
+    { x: x + beside, y: y - radius - gap, align: 'start' },
+    { x: x - beside, y: y + radius + gap + fontSize * 0.8, align: 'end' },
+  ].map((placement) => ({ ...placement, box: labelBox(placement, width, fontSize, gap) }));
+}
+
+/** Area covered by a label drawn at a baseline, widened by the gap kept between two labels. */
+function labelBox({ x, y, align }, width, fontSize, gap) {
+  const left = align === 'start' ? x : align === 'end' ? x - width : x - width / 2;
+  return box(left - gap, y - fontSize * 0.8 - gap / 2, width + 2 * gap, fontSize * 1.05 + gap);
+}
+
+function box(x, y, width, height) {
+  return { x, y, width, height };
+}
+
+function overlap(one, other) {
+  return (
+    one.x < other.x + other.width &&
+    other.x < one.x + one.width &&
+    one.y < other.y + other.height &&
+    other.y < one.y + one.height
+  );
+}
+
+function within({ x, y, width, height }, extent) {
+  return x >= 0 && y >= 0 && x + width <= extent.width && y + height <= extent.height;
+}
+
+// Width of a character, as a fraction of the font size: enough to keep labels apart, whatever the font used.
+const NARROW_CHARACTERS = 'ijltfI.,:;!|\'’"()[]{}-–';
+const WIDE_CHARACTERS = 'mwMW@%';
+
+/** Estimated width of a text, the platforms measuring it differently once the map is drawn. */
+function textWidth(text, fontSize) {
+  let width = 0;
+  for (const character of text) {
+    if (character === ' ') width += 0.28;
+    else if (NARROW_CHARACTERS.includes(character)) width += 0.34;
+    else if (WIDE_CHARACTERS.includes(character)) width += 0.92;
+    else if (/\p{Lu}/u.test(character)) width += 0.68;
+    else width += 0.55;
+  }
+  return width * fontSize;
 }
 
 function pixel([lon, lat], extent) {
