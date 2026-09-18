@@ -2,6 +2,7 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
+import { LayerError, readLayer } from './core/layers.js';
 import {
   boundaryBbox,
   describeMunicipality,
@@ -24,6 +25,12 @@ const searchField = element('search');
 const searchResults = element('results');
 const selectedMunicipality = element('selected-municipality');
 const settingsSection = element('settings');
+const dataSection = element('data');
+const dropZone = element('drop-zone');
+const fileInput = element('data-files');
+const layersList = element('layers');
+const legendChoice = element('legend-choice');
+const legendBox = element('legend');
 const generationSection = element('generation');
 const basemapChoice = element('basemap');
 const zoomChoice = element('zoom');
@@ -55,6 +62,7 @@ privacyNote.textContent = engine.privacyNote;
 
 let municipality;
 let pendingSearch;
+const layers = [];
 
 for (const basemap of Object.values(BASEMAPS)) {
   basemapChoice.append(new Option(basemap.name, basemap.id));
@@ -69,6 +77,17 @@ zoomChoice.addEventListener('change', showEstimates);
 dpiField.addEventListener('change', showEstimates);
 formatChoice.addEventListener('change', clearFileSizes);
 grayscaleBox.addEventListener('change', clearFileSizes);
+fileInput.addEventListener('change', () => addFiles(fileInput.files));
+dropZone.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  dropZone.classList.add('over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', (event) => {
+  event.preventDefault();
+  dropZone.classList.remove('over');
+  addFiles(event.dataTransfer.files);
+});
 estimateButton.addEventListener('click', estimateFileSizes);
 generateButton.addEventListener('click', generate);
 cancelButton.addEventListener('click', cancel);
@@ -109,11 +128,48 @@ async function select(found) {
   selectedMunicipality.textContent = `${municipality.boundary.name} (${municipality.boundary.inseeCode})`;
   selectedMunicipality.hidden = false;
   settingsSection.hidden = false;
+  dataSection.hidden = false;
   generationSection.hidden = false;
   result.hidden = true;
   errorLine.hidden = true;
   fillZooms();
   showEstimates();
+}
+
+/** Reads the files dropped or chosen, and adds them as layers. */
+async function addFiles(files) {
+  for (const file of files) {
+    try {
+      layers.push(readLayer(await file.text(), { fileName: file.name, index: layers.length }));
+    } catch (error) {
+      showError(error instanceof LayerError ? `${file.name} : ${error.message}` : error.message);
+    }
+  }
+  fileInput.value = '';
+  showLayers();
+}
+
+function showLayers() {
+  layersList.replaceChildren(
+    ...layers.map((layer, index) => {
+      const item = document.createElement('li');
+      const symbol = document.createElement('span');
+      symbol.className = 'symbol';
+      symbol.style.background = layer.color;
+      const name = document.createElement('span');
+      name.textContent = `${layer.name} (${layer.features.length} élément${layer.features.length > 1 ? 's' : ''})`;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = 'Retirer';
+      remove.addEventListener('click', () => {
+        layers.splice(index, 1);
+        showLayers();
+      });
+      item.append(symbol, name, remove);
+      return item;
+    }),
+  );
+  legendChoice.hidden = layers.length === 0;
 }
 
 function zoomLevels() {
@@ -231,6 +287,8 @@ async function generate() {
         format: formatChoice.value,
         grayscale: grayscaleBox.checked,
         outline: outlineBox.checked,
+        layers,
+        legend: legendBox.checked,
         fileName: defaultFileName(),
       },
       ({ done, total }) => {

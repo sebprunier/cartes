@@ -46,6 +46,12 @@ export function outlineStrokeWidth(extent) {
   return Math.max(3, Math.round(Math.max(extent.width, extent.height) / 800));
 }
 
+/** Size of the legend, proportional to the image, like the attribution. */
+export function legendLayout(extent) {
+  const { fontSize, padding } = attributionLayout(extent);
+  return { fontSize, padding, symbolSize: Math.round(fontSize * 1.1), lineHeight: Math.round(fontSize * 1.6) };
+}
+
 /**
  * Size of the attribution label, proportional to the image size so that it stays readable wherever the image
  * is scaled to when printed. Long texts wrap at 60 % of the image width.

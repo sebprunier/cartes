@@ -21,6 +21,7 @@ Options de « generer » :
       --dpi <n>             résolution d'impression visée, défaut : 150
       --gris                fond de carte en niveaux de gris
       --sans-contour        ne pas tracer le contour de la commune
+      --sans-legende        ne pas afficher la légende des données ajoutées
       --estimer             afficher, par niveau de zoom, les dimensions, la mémoire et le poids estimé du fichier,
                             sans générer la carte (un échantillon de tuiles est téléchargé)
       --max-tuiles <n>      garde-fou sur le nombre de tuiles, défaut : 5000
@@ -30,7 +31,8 @@ Options de « generer » :
   -v, --version             afficher la version de cartes
 
 Les commandes et options existent aussi en anglais : search, basemaps, generate, --department, --basemap,
---data, --output, --margin, --grayscale, --no-outline, --estimate, --max-tiles, --concurrency, --help.`;
+--data, --output, --margin, --grayscale, --no-outline, --no-legend, --estimate, --max-tiles, --concurrency,
+--help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = { chercher: 'search', fonds: 'basemaps', generer: 'generate', générer: 'generate' };
@@ -47,6 +49,7 @@ export const OPTIONS = {
   dpi: { type: 'string', default: '150' },
   grayscale: { type: 'boolean', french: 'gris', default: false },
   'no-outline': { type: 'boolean', french: 'sans-contour', default: false },
+  'no-legend': { type: 'boolean', french: 'sans-legende', default: false },
   estimate: { type: 'boolean', french: 'estimer', default: false },
   'max-tiles': { type: 'string', french: 'max-tuiles', default: '5000' },
   concurrency: { type: 'string', french: 'paralleles', default: '6' },

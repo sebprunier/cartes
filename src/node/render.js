@@ -7,11 +7,13 @@ import sharp from 'sharp';
 
 import { CHANNELS, assemblePixels, copyPixels } from '../core/image.js';
 import { layerShapes } from '../core/layers.js';
+import { legendEntries } from '../core/layers.js';
 import {
   ATTRIBUTION_COLOR,
   OUTLINE_COLOR,
   attributionLayout,
   boundaryPath,
+  legendLayout,
   outlineStrokeWidth,
 } from '../core/overlays.js';
 import { removeTile } from './cache.js';
@@ -87,18 +89,7 @@ function escapeXml(text) {
  */
 export async function attributionLabel(text, extent) {
   const { fontSize, padding, maxWidth } = attributionLayout(extent);
-  const { data, info } = await sharp({
-    text: {
-      text: `<span foreground="${ATTRIBUTION_COLOR}">${escapeMarkup(text)}</span>`,
-      font: `sans ${fontSize}`,
-      width: maxWidth,
-      wrap: 'word',
-      dpi: 72,
-      rgba: true,
-    },
-  })
-    .png()
-    .toBuffer({ resolveWithObject: true });
+  const { data, info } = await textImage(text, fontSize, maxWidth);
 
   const boxWidth = info.width + 2 * padding;
   const boxHeight = info.height + 2 * padding;
@@ -108,6 +99,62 @@ export async function attributionLabel(text, extent) {
     `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>` +
     `<image x="${x + padding}" y="${y + padding}" width="${info.width}" height="${info.height}" ` +
     `href="data:image/png;base64,${data.toString('base64')}"/>`
+  );
+}
+
+/** Text rendered by sharp into an image, which also gives its exact size. */
+function textImage(text, fontSize, maxWidth) {
+  return sharp({
+    text: {
+      text: `<span foreground="${ATTRIBUTION_COLOR}">${escapeMarkup(text)}</span>`,
+      font: `sans ${fontSize}`,
+      ...(maxWidth && { width: maxWidth, wrap: 'word' }),
+      dpi: 72,
+      rgba: true,
+    },
+  })
+    .png()
+    .toBuffer({ resolveWithObject: true });
+}
+
+/** SVG elements showing the legend of the data layers, in the bottom left corner of the image. */
+export async function legendOverlay(layers, extent) {
+  const entries = legendEntries(layers, extent);
+  if (entries.length === 0) return '';
+
+  const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
+  const labels = await Promise.all(entries.map(({ label }) => textImage(label, fontSize)));
+  const boxWidth = 3 * padding + symbolSize + Math.max(...labels.map(({ info }) => info.width));
+  const boxHeight = 2 * padding + entries.length * lineHeight;
+  const x = padding;
+  const y = extent.height - boxHeight - padding;
+
+  const elements = [
+    `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>`,
+  ];
+  entries.forEach((entry, index) => {
+    const middle = y + padding + index * lineHeight + lineHeight / 2;
+    elements.push(legendSymbol(entry, x + padding, middle, symbolSize));
+    const { data, info } = labels[index];
+    elements.push(
+      `<image x="${x + 2 * padding + symbolSize}" y="${(middle - info.height / 2).toFixed(1)}" ` +
+        `width="${info.width}" height="${info.height}" href="data:image/png;base64,${data.toString('base64')}"/>`,
+    );
+  });
+  return elements.join('');
+}
+
+function legendSymbol({ shape, color }, x, middle, size) {
+  const stroke = Math.max(2, Math.round(size / 5));
+  if (shape === 'point') {
+    return `<circle cx="${x + size / 2}" cy="${middle}" r="${size / 2.4}" fill="${color}" stroke="#ffffff" stroke-width="${Math.max(1, Math.round(size / 8))}"/>`;
+  }
+  if (shape === 'line') {
+    return `<path d="M${x},${middle}L${x + size},${middle}" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round"/>`;
+  }
+  return (
+    `<rect x="${x}" y="${middle - size / 2}" width="${size}" height="${size}" fill="${color}" fill-opacity="0.35" ` +
+    `stroke="${color}" stroke-width="${Math.max(1, Math.round(size / 8))}"/>`
   );
 }
 

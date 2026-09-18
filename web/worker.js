@@ -3,10 +3,20 @@
 import { BASEMAPS } from './core/basemaps.js';
 import { estimateFileSize } from './core/estimates.js';
 import { withUpdateDates } from './core/metadata.js';
+import { layersSource } from './core/layers.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
 import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from './core/tiles.js';
-import { canRender, createCanvas, drawAttribution, drawBoundary, drawTile, toBlob } from './render.js';
+import {
+  canRender,
+  createCanvas,
+  drawAttribution,
+  drawBoundary,
+  drawLayer,
+  drawLegend,
+  drawTile,
+  toBlob,
+} from './render.js';
 
 // Number of tiles downloaded for each zoom level to estimate the size of the generated file.
 const SAMPLE_GRID_SIZE = 6;
@@ -37,7 +47,7 @@ async function estimate({ basemapId, bbox, zoom, margin, format, grayscale }) {
 }
 
 /** Downloads the tiles, draws the map and returns the image as a blob. */
-async function generate({ basemapId, boundary, bbox, zoom, margin, format, grayscale, outline }) {
+async function generate({ basemapId, boundary, bbox, zoom, margin, format, grayscale, outline, layers = [], legend = true }) {
   const basemap = BASEMAPS[basemapId];
   const extent = extentFromBbox(bbox, zoom, margin);
   if (!canRender(extent.width, extent.height)) {
@@ -48,6 +58,8 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
   }
 
   const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+  const added = layersSource(layers);
+  if (added) sources.push(added);
   const { canvas, context } = createCanvas(extent.width, extent.height);
   let drawn = 0;
   let missing = 0;
@@ -66,6 +78,8 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
   });
 
   if (outline) drawBoundary(context, boundary, extent);
+  for (const layer of layers) drawLayer(context, layer, extent);
+  if (legend) drawLegend(context, layers, extent);
   drawAttribution(context, attributionText({ sources }), extent);
 
   return {
@@ -74,6 +88,6 @@ async function generate({ basemapId, boundary, bbox, zoom, margin, format, grays
     height: extent.height,
     tiles: drawn,
     missing,
-    updateDatesMissing: sources.some((source) => !source.updateDate),
+    updateDatesMissing: sources.some((source) => source.metadataId && !source.updateDate),
   };
 }

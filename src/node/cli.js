@@ -17,13 +17,21 @@ import {
   resolveMunicipality,
   searchMunicipalities,
 } from '../core/municipalities.js';
-import { LayerError, readLayer } from '../core/layers.js';
+import { LayerError, layersSource, readLayer } from '../core/layers.js';
 import { attributionText } from '../core/overlays.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from '../core/tiles.js';
 import { cachedTileLoader, tileSizes } from './cache.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
-import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, layerOverlay, saveImage } from './render.js';
+import {
+  assembleTiles,
+  attributionLabel,
+  boundaryOutline,
+  drawOverlays,
+  layerOverlay,
+  legendOverlay,
+  saveImage,
+} from './render.js';
 
 // Size of the grid of tiles downloaded for each zoom level to estimate the size of the generated file:
 // 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
@@ -141,9 +149,11 @@ async function generate(input, options) {
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
   for (const layer of layers) overlays.push(layerOverlay(layer, extent));
+  if (!options['no-legend']) overlays.push(await legendOverlay(layers, extent));
   const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
-  if (layers.length > 0) sources.push({ attribution: `Données ajoutées : ${layers.map((l) => l.name).join(', ')}` });
-  if (sources.some((source) => !source.updateDate)) {
+  const added = layersSource(layers);
+  if (added) sources.push(added);
+  if (sources.some((source) => source.metadataId && !source.updateDate)) {
     console.log(
       "  Attention : date de mise à jour des données indisponible dans le catalogue de la Géoplateforme. " +
         "La licence des données IGN demande de la mentionner : relancez la commande plus tard.",

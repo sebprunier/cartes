@@ -111,6 +111,50 @@ button:disabled {
   font-size: 1rem;
 }
 
+#drop-zone {
+  display: block;
+  padding: 1.25rem;
+  border: 2px dashed var(--border);
+  border-radius: 0.5rem;
+  color: var(--grey);
+  text-align: center;
+  cursor: pointer;
+}
+
+#drop-zone:hover,
+#drop-zone.over {
+  border-color: var(--green);
+  background: #f2f8f0;
+  color: var(--text);
+}
+
+#layers {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+#layers li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.35rem 0;
+}
+
+#layers .symbol {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+}
+
+#layers button {
+  padding: 0.15rem 0.5rem;
+  border-color: var(--border);
+  background: #fff;
+  color: var(--grey);
+  font-size: 0.85rem;
+}
+
 #results {
   margin: 0.5rem 0 0;
   padding: 0;

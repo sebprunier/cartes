@@ -82,8 +82,22 @@
         <p id="zoom-note" class="note"></p>
       </section>
 
+      <section id="data" hidden>
+        <h2>3. Ajouter vos données <span class="note">(facultatif)</span></h2>
+        <p class="note">
+          Fichiers GeoJSON, tels qu'exportés par uMap ou QGIS, ou CSV avec des colonnes de latitude et de
+          longitude : points de collecte, zones de travaux, circuits…
+        </p>
+        <label id="drop-zone" for="data-files">Glissez vos fichiers ici, ou cliquez pour les choisir</label>
+        <input id="data-files" type="file" accept=".geojson,.json,.csv" multiple hidden />
+        <ul id="layers"></ul>
+        <p class="checkboxes" id="legend-choice" hidden>
+          <label><input id="legend" type="checkbox" checked /> Afficher la légende</label>
+        </p>
+      </section>
+
       <section id="generation" hidden>
-        <h2>3. Générer la carte</h2>
+        <h2>4. Générer la carte</h2>
         <p>
           <button id="generate" type="button">Générer la carte</button>
           <button id="cancel" type="button" hidden>Annuler</button>

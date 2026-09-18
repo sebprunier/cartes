@@ -18,11 +18,17 @@ export class LayerError extends Error {}
  * and the color is the one given, else the next one of the palette.
  */
 export function readLayer(text, { fileName, color, index = 0 }) {
-  const name = fileName.replace(/\.[^.]+$/, '');
+  const name = layerName(fileName);
   const layerColor = color ?? PALETTE[index % PALETTE.length];
   const features = /\.csv$/i.test(fileName) ? readCsv(text) : readGeoJson(text);
   if (features.length === 0) throw new LayerError(`Aucune donnée trouvée dans ${fileName}.`);
   return { name, color: layerColor, features };
+}
+
+/** Readable name of a layer, from its file name: « points-de-collecte.geojson » becomes « Points de collecte ». */
+function layerName(fileName) {
+  const withoutExtension = fileName.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim();
+  return withoutExtension.charAt(0).toUpperCase() + withoutExtension.slice(1);
 }
 
 /** Features of a GeoJSON file: FeatureCollection, Feature, or a bare geometry. */
@@ -171,6 +177,31 @@ function style(properties) {
     strokeWidth: Number.isFinite(Number(properties['stroke-width'])) ? Number(properties['stroke-width']) : undefined,
     size: properties['marker-size'] ?? undefined,
   };
+}
+
+/** Data source describing the layers added by the user, for the attribution of the map. */
+export function layersSource(layers) {
+  if (layers.length === 0) return undefined;
+  return { attribution: `Données ajoutées : ${layers.map((layer) => layer.name).join(', ')}` };
+}
+
+/**
+ * Legend entries of the layers: their name, their color and the shape that represents them best.
+ * Layers whose features are all outside the extent are left out, as nothing is drawn for them.
+ */
+export function legendEntries(layers, extent) {
+  return layers
+    .filter((layer) => {
+      const { points, paths } = layerShapes(layer, extent);
+      return points.length > 0 || paths.length > 0;
+    })
+    .map((layer) => ({ label: layer.name, color: layer.color, shape: dominantShape(layer) }));
+}
+
+function dominantShape(layer) {
+  const counts = { point: 0, line: 0, polygon: 0 };
+  for (const feature of layer.features) counts[feature.shape]++;
+  return Object.entries(counts).sort(([, a], [, b]) => b - a)[0][0];
 }
 
 /**

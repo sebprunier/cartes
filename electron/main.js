@@ -7,11 +7,20 @@ import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 import { BASEMAPS } from '../src/core/basemaps.js';
 import { estimateFileSize } from '../src/core/estimates.js';
 import { withUpdateDates } from '../src/core/metadata.js';
+import { layersSource } from '../src/core/layers.js';
 import { BOUNDARY_SOURCE } from '../src/core/municipalities.js';
 import { attributionText } from '../src/core/overlays.js';
 import { downloadTiles, extentFromBbox, sampleTiles, tilesInExtent } from '../src/core/tiles.js';
 import { cachedTileLoader, tileSizes } from '../src/node/cache.js';
-import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, saveImage } from '../src/node/render.js';
+import {
+  assembleTiles,
+  attributionLabel,
+  boundaryOutline,
+  drawOverlays,
+  layerOverlay,
+  legendOverlay,
+  saveImage,
+} from '../src/node/render.js';
 
 const SAMPLE_GRID_SIZE = 6;
 const CONCURRENCY = 6;
@@ -84,8 +93,14 @@ ipcMain.handle('generate', async (event, request) => {
     });
 
     const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale: request.grayscale });
+    const layers = request.layers ?? [];
     const sources = await withUpdateDates(request.outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+    const added = layersSource(layers);
+    if (added) sources.push(added);
+
     const overlays = request.outline ? [boundaryOutline(request.boundary, extent)] : [];
+    for (const layer of layers) overlays.push(layerOverlay(layer, extent));
+    if (request.legend !== false) overlays.push(await legendOverlay(layers, extent));
     overlays.push(await attributionLabel(attributionText({ sources }), extent));
     await drawOverlays(pixels, extent, overlays);
     await saveImage(pixels, extent, filePath, { dpi: request.dpi ?? 150 });
@@ -95,7 +110,7 @@ ipcMain.handle('generate', async (event, request) => {
       width: extent.width,
       height: extent.height,
       missing,
-      updateDatesMissing: sources.some((source) => !source.updateDate),
+      updateDatesMissing: sources.some((source) => source.metadataId && !source.updateDate),
     };
   } finally {
     generation = undefined;

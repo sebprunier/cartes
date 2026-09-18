@@ -16,6 +16,7 @@ import {
   boundaryOutline,
   drawOverlays,
   layerOverlay,
+  legendOverlay,
   saveImage,
 } from '../src/node/render.js';
 
@@ -165,6 +166,28 @@ describe('layerOverlay', () => {
       if (pixels[index] > 100 && pixels[index + 1] < 100 && pixels[index + 2] < 100) colored++;
     }
     assert.ok(colored > 50, `pixels de la couche : ${colored}`);
+  });
+});
+
+describe('legendOverlay', () => {
+  const extent = extentFromBbox([0.42, 46.77, 0.445, 46.79], 16, 0);
+  const layer = readLayer(
+    JSON.stringify({
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [0.43, 46.78] } }],
+    }),
+    { fileName: 'points-de-collecte.geojson', color: '#b3261e' },
+  );
+
+  it('draws a box with one line per layer', async () => {
+    const svg = await legendOverlay([layer], extent);
+    assert.match(svg, /^<rect /);
+    assert.match(svg, /<circle [^>]*fill="#b3261e"/);
+    assert.match(svg, /<image [^>]*href="data:image\/png;base64,/);
+  });
+
+  it('draws nothing when no layer shows on the map', async () => {
+    assert.equal(await legendOverlay([], extent), '');
   });
 });
 

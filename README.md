@@ -101,12 +101,13 @@ Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécess
 
 ## Ajouter ses propres données
 
-L'option `--donnees` superpose à la carte un fichier de la commune : points de collecte, défibrillateurs, zones de travaux, circuits de randonnée. Elle est répétable, pour superposer plusieurs fichiers.
+Un fichier de la commune peut être superposé à la carte : points de collecte, défibrillateurs, zones de travaux, circuits de randonnée. En ligne de commande, l'option `--donnees` est répétable pour superposer plusieurs fichiers ; sur la page web et dans l'application, les fichiers se glissent dans la zone prévue.
 
 - **Formats** : GeoJSON, tel qu'exporté par uMap, QGIS ou geojson.io, et CSV avec des colonnes de latitude et de longitude (les noms usuels sont reconnus, le point-virgule et la virgule décimale aussi).
 - **Étiquettes** : le contenu d'une colonne ou d'une propriété `nom`, `name`, `libelle` ou `title`, écrit à côté du point avec un contour blanc pour rester lisible.
 - **Couleurs** : celles du fichier quand elles y sont (`marker-color`, `fill`, `stroke-width`… comme dans uMap), sinon une couleur par fichier.
 - **Coordonnées** : en longitude/latitude (WGS 84). Un fichier projeté, par exemple en Lambert 93, est refusé avec un message qui l'explique.
+- **Légende** : ajoutée en bas à gauche, avec une ligne par fichier. `--sans-legende` la retire.
 - **Mention des sources** : les fichiers ajoutés y sont cités, pour ne pas laisser croire qu'ils viennent de l'IGN.
 
 Le dossier [`exemples/`](exemples/) contient un fichier d'essai pour Colombiers.

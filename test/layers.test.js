@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { LayerError, layerShapes, readLayer } from '../src/core/layers.js';
+import { LayerError, layerShapes, legendEntries, readLayer } from '../src/core/layers.js';
 import { extentFromBbox } from '../src/core/tiles.js';
 
 const COLOMBIERS_BBOX = [0.38344088, 46.75332418, 0.48673916, 46.80743244];
@@ -21,7 +21,7 @@ describe('readLayer, GeoJSON', () => {
       ]),
       'points-de-collecte.geojson',
     );
-    assert.equal(layer.name, 'points-de-collecte');
+    assert.equal(layer.name, 'Points de collecte');
     assert.deepEqual(
       layer.features.map((f) => f.shape),
       ['point', 'line', 'polygon'],
@@ -88,7 +88,7 @@ describe('readLayer, GeoJSON', () => {
 describe('readLayer, CSV', () => {
   it('reads the coordinates and the label, whatever the column names', () => {
     const layer = read('nom;latitude;longitude\nMairie;46,78;0,43\nÉcole;46.79;0.44\n', 'collecte.csv');
-    assert.equal(layer.name, 'collecte');
+    assert.equal(layer.name, 'Collecte');
     assert.equal(layer.features.length, 2);
     assert.deepEqual(layer.features[0].position, [0.43, 46.78]);
     assert.deepEqual(
@@ -109,6 +109,26 @@ describe('readLayer, CSV', () => {
 
   it('says which columns are missing', () => {
     assert.throws(() => read('nom;adresse\nMairie;1 rue des Écoles\n', 'points.csv'), /Colonnes de coordonnées/);
+  });
+});
+
+describe('legendEntries', () => {
+  const points = geoJson([
+    feature({ type: 'Point', coordinates: [0.43, 46.78] }),
+    feature({ type: 'Point', coordinates: [0.44, 46.79] }),
+    feature({ type: 'Polygon', coordinates: [[[0.4, 46.76], [0.45, 46.76], [0.45, 46.79], [0.4, 46.76]]] }),
+  ]);
+
+  it('gives one entry per layer, with the shape of most of its features', () => {
+    const layer = read(points, 'points-de-collecte.geojson');
+    assert.deepEqual(legendEntries([layer], extent), [
+      { label: 'Points de collecte', color: layer.color, shape: 'point' },
+    ]);
+  });
+
+  it('leaves out the layers with nothing to show on the map', () => {
+    const elsewhere = read(geoJson([feature({ type: 'Point', coordinates: [2.35, 48.85] })]), 'paris.geojson');
+    assert.deepEqual(legendEntries([elsewhere], extent), []);
   });
 });
 

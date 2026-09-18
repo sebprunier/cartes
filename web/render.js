@@ -1,11 +1,13 @@
 // Rendering of the map on a canvas, in the browser: tiles, outline and attribution.
 
+import { layerShapes, legendEntries } from './core/layers.js';
 import {
   ATTRIBUTION_BACKGROUND,
   ATTRIBUTION_COLOR,
   OUTLINE_COLOR,
   attributionLayout,
   boundaryPath,
+  legendLayout,
   outlineStrokeWidth,
 } from './core/overlays.js';
 import { TILE_SIZE } from './core/tiles.js';
@@ -55,6 +57,102 @@ export function drawBoundary(context, boundary, extent) {
   context.lineJoin = 'round';
   context.stroke(new Path2D(boundaryPath(boundary, extent)));
   context.restore();
+}
+
+/** Draws a data layer: zones and lines, then points and their labels. */
+export function drawLayer(context, layer, extent) {
+  const { points, paths, radius } = layerShapes(layer, extent);
+  context.save();
+  context.lineJoin = 'round';
+  context.lineCap = 'round';
+
+  for (const { path, color, strokeWidth, fill, fillOpacity } of paths) {
+    const shape = new Path2D(path);
+    if (fill) {
+      context.globalAlpha = fillOpacity;
+      context.fillStyle = fill;
+      context.fill(shape);
+      context.globalAlpha = 1;
+    }
+    context.strokeStyle = color;
+    context.lineWidth = strokeWidth;
+    context.stroke(shape);
+  }
+
+  const fontSize = Math.max(11, Math.round(radius * 1.6));
+  context.font = `${fontSize}px sans-serif`;
+  context.textBaseline = 'middle';
+  for (const point of points) {
+    context.beginPath();
+    context.arc(point.x, point.y, point.radius, 0, 2 * Math.PI);
+    context.fillStyle = point.color;
+    context.fill();
+    context.strokeStyle = '#ffffff';
+    context.lineWidth = Math.max(1, Math.round(point.radius / 3));
+    context.stroke();
+    if (!point.label) continue;
+    // The white outline keeps the label readable over a busy map.
+    context.strokeStyle = '#ffffff';
+    context.lineWidth = Math.max(2, Math.round(fontSize / 4));
+    context.strokeText(point.label, point.x + point.radius * 1.5, point.y);
+    context.fillStyle = point.color;
+    context.fillText(point.label, point.x + point.radius * 1.5, point.y);
+  }
+  context.restore();
+}
+
+/** Draws the legend of the data layers in the bottom left corner. */
+export function drawLegend(context, layers, extent) {
+  const entries = legendEntries(layers, extent);
+  if (entries.length === 0) return;
+
+  const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
+  context.save();
+  context.font = `${fontSize}px sans-serif`;
+  context.textBaseline = 'middle';
+
+  const labelWidth = Math.max(...entries.map(({ label }) => context.measureText(label).width));
+  const boxWidth = 3 * padding + symbolSize + labelWidth;
+  const boxHeight = 2 * padding + entries.length * lineHeight;
+  const x = padding;
+  const y = extent.height - boxHeight - padding;
+  context.fillStyle = ATTRIBUTION_BACKGROUND;
+  context.fillRect(x, y, boxWidth, boxHeight);
+
+  entries.forEach((entry, index) => {
+    const middle = y + padding + index * lineHeight + lineHeight / 2;
+    drawLegendSymbol(context, entry, x + padding, middle, symbolSize);
+    context.fillStyle = ATTRIBUTION_COLOR;
+    context.fillText(entry.label, x + 2 * padding + symbolSize, middle);
+  });
+  context.restore();
+}
+
+function drawLegendSymbol(context, { shape, color }, x, middle, size) {
+  context.fillStyle = color;
+  context.strokeStyle = color;
+  context.lineWidth = Math.max(2, Math.round(size / 5));
+  if (shape === 'point') {
+    context.beginPath();
+    context.arc(x + size / 2, middle, size / 2.4, 0, 2 * Math.PI);
+    context.fill();
+    context.strokeStyle = '#ffffff';
+    context.lineWidth = Math.max(1, Math.round(size / 8));
+    context.stroke();
+    return;
+  }
+  if (shape === 'line') {
+    context.beginPath();
+    context.moveTo(x, middle);
+    context.lineTo(x + size, middle);
+    context.stroke();
+    return;
+  }
+  context.globalAlpha = 0.35;
+  context.fillRect(x, middle - size / 2, size, size);
+  context.globalAlpha = 1;
+  context.lineWidth = Math.max(1, Math.round(size / 8));
+  context.strokeRect(x, middle - size / 2, size, size);
 }
 
 /** Draws the attribution of the data sources in the bottom right corner, on a light background. */
