@@ -53,6 +53,7 @@ node src/cli.js --aide
 | `web/preview.js` | aperçu avant génération : miniature de la commune et extrait à l'échelle réelle |
 | `electron/` | application de bureau : processus principal, pont vers l'interface et moteur de rendu |
 | `scripts/build-web.js` | construit la page dans `dist/` (avec `--serve`, la sert en local) |
+| `scripts/build-docs.js` | construit la documentation dans `dist/documentation/`, à partir de `docs/` |
 | `scripts/build-electron.js` | construit l'interface de l'application dans `dist-electron/` |
 | `test/` | tests unitaires (`node:test`) |
 
@@ -63,6 +64,7 @@ node src/cli.js --aide
 - **Style** : modules ES, indentation de 2 espaces, guillemets simples, points-virgules, lignes de 120 caractères au plus. En cas de doute, suivez le style du code existant.
 - **Cœur partagé** : `src/core/` ne doit importer ni module `node:`, ni sharp. Ce code sert aussi à la page web et à l'application Electron ; un test le vérifie.
 - **Dépendances** : le moins possible. Discutez-en dans une issue avant d'en ajouter une.
+- **Documentation** : les pages du site sont écrites en Markdown dans `docs/`, et déclarées dans `scripts/build-docs.js`. Elles doivent rester lisibles telles quelles sur GitHub ; un test vérifie que chaque page est publiée et que ses liens aboutissent.
 - **Données** : avant d'ajouter une source de données, vérifiez que sa licence et ses conditions d'utilisation le permettent, puis complétez [Données utilisées et licences](docs/donnees-et-licences.md).
 - **Assistants de code** : si vous travaillez avec un assistant, [CLAUDE.md](CLAUDE.md) rassemble les consignes du projet et les pièges déjà rencontrés.
 

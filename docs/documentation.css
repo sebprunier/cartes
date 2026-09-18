@@ -1,0 +1,127 @@
+/* Mise en page propre à la documentation : un menu à gauche, le texte à droite. */
+
+header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 0;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+header p {
+  margin: 0.15rem 0 0;
+}
+
+.documentation {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.documentation nav {
+  flex: 0 0 14rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.documentation nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.documentation nav li {
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.documentation nav li:first-child {
+  border-top: none;
+}
+
+.documentation nav [aria-current='page'] {
+  font-weight: 600;
+}
+
+.documentation main {
+  flex: 1;
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.documentation main h2 {
+  margin-top: 0;
+}
+
+.documentation main h3 {
+  margin-top: 1.75rem;
+}
+
+.documentation main table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.documentation main th,
+.documentation main td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.documentation main code {
+  padding: 0.05rem 0.25rem;
+  border-radius: 0.2rem;
+  background: var(--background);
+  font-size: 0.9em;
+}
+
+.documentation main pre {
+  padding: 0.75rem;
+  border-radius: 0.4rem;
+  background: var(--background);
+  overflow-x: auto;
+}
+
+.documentation main pre code {
+  padding: 0;
+  background: none;
+}
+
+.documentation main blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 3px solid var(--green);
+  background: var(--background);
+}
+
+footer {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+@media (max-width: 48rem) {
+  .documentation {
+    display: block;
+  }
+
+  .documentation nav {
+    position: static;
+    margin-bottom: 1rem;
+  }
+}

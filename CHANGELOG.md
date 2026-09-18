@@ -21,6 +21,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- Documentation utilisateur en ligne, sur <https://sebprunier.github.io/cartes/documentation/> : prise en main, choix du zoom et du format papier, ajout de données, application de bureau, ligne de commande, sources et licences, problèmes courants. Les pages sont écrites en Markdown dans `docs/` et restent lisibles telles quelles sur GitHub.
+
 - La légende d'une couche servie par un WMS est celle que le service publie : elle est ajoutée telle quelle à la légende de la carte, à la taille du texte qui l'entoure.
 - Trois couches de plus, servies par Géorisques comme les PPR inondation : zonage des PPR mouvements de terrain, cavités souterraines abandonnées, et canalisations de matières dangereuses.
 - Couche du zonage réglementaire des PPR inondation (Géorisques), servie par un WMS : l'outil lui demande deux ou trois grandes images plutôt que des centaines de tuiles. Sous l'échelle où le service accepte de dessiner, l'image est demandée plus grande puis réduite, pour que l'aperçu la montre quand même.

@@ -43,7 +43,8 @@
   },
   "devDependencies": {
     "electron": "^44.4.1",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "marked": "^18.0.13"
   },
   "main": "electron/main.js",
   "build": {

@@ -37,133 +37,21 @@ Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient s
 2. **Fait** : une page web pour générer une carte sans rien installer.
 3. **Fait** : une application de bureau, pour les cartes que le navigateur ne sait pas produire, avec ses installeurs pour macOS, Windows et Linux.
 4. **Fait** : ajouter les données de la commune sur les cartes (points, zones, tracés), avec leurs catégories, leur légende et un aperçu avant génération.
-5. **Prochaine étape** : proposer un catalogue de couches ouvertes à superposer, comme le cadastre, les zones inondables ou l'aléa retrait-gonflement des argiles.
+5. **Fait** : un catalogue de couches ouvertes à superposer — cadastre, PPR inondation et mouvements de terrain, cavités souterraines, canalisations de matières dangereuses, aléa retrait-gonflement des argiles.
+6. **Prochaine étape** : ouvrir le catalogue aux couches que la commune fournit elle-même, et publier une version qui embarque tout cela.
 
-## Page web
+## Documentation
 
-Une page web permet de générer une carte sans rien installer : <https://sebprunier.github.io/cartes/>. Tout s'y passe dans le navigateur, qui télécharge lui-même les tuiles ; aucune donnée ne transite par un serveur tiers.
+Le mode d'emploi est en ligne : **<https://sebprunier.github.io/cartes/documentation/>**
 
-Elle a deux limites par rapport à la ligne de commande : la taille des images est bornée par le navigateur (environ 268 millions de pixels sur Chrome, soit le zoom 17 pour une commune de la taille de Colombiers, davantage pour une petite commune) et le format TIFF n'est pas disponible. Tous les niveaux de zoom sont proposés : si l'image demandée dépasse ce que le navigateur sait dessiner, la page le dit avant de télécharger quoi que ce soit et renvoie vers la ligne de commande ou l'application de bureau.
+- [Prise en main](https://sebprunier.github.io/cartes/documentation/) — les trois façons de s'en servir, et une première carte en cinq minutes
+- [Zoom et impression](https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html) — pourquoi le zoom maximal n'est pas le bon choix
+- [Ajouter des données](https://sebprunier.github.io/cartes/documentation/donnees.html) — couches publiques et fichiers de la commune
+- [Application de bureau](https://sebprunier.github.io/cartes/documentation/application-de-bureau.html) et [ligne de commande](https://sebprunier.github.io/cartes/documentation/ligne-de-commande.html)
+- [Sources et licences](docs/donnees-et-licences.md) — ce que les données permettent, et ce qu'elles imposent
+- [Problèmes courants](https://sebprunier.github.io/cartes/documentation/problemes-courants.html)
 
-Avant de générer, un aperçu montre la carte telle qu'elle sera : la commune entière réduite, avec son contour, les données ajoutées, la légende et la mention des sources, et un extrait à l'échelle réelle, qui dit si les étiquettes seront lisibles une fois imprimées. Un clic sur la miniature déplace l'extrait. L'aperçu est dessiné par le même code que la carte finale, et ne télécharge qu'une vingtaine de tuiles.
-
-Pour la faire tourner en local : `npm run web`, puis <http://localhost:8000>.
-
-## Application de bureau
-
-Une application de bureau (Electron) reprend l'interface de la page web, mais génère les cartes avec le même moteur que la ligne de commande : les zooms 18 et 19, le format TIFF et le cache des tuiles sur disque y sont disponibles, et la carte est écrite directement dans le fichier choisi.
-
-Les installeurs pour macOS (Apple Silicon), Windows et Linux sont joints à chaque [version publiée](https://github.com/sebprunier/cartes/releases). Sur un Mac Intel, utilisez pour l'instant la page web ou la ligne de commande.
-
-Ces applications ne sont pas signées, faute de certificat, ce qui demande une manipulation au premier lancement :
-
-- **macOS** : faites un clic droit sur l'application, puis « Ouvrir », et confirmez. Si le système refuse toujours, lancez `xattr -dr com.apple.quarantine /Applications/cartes.app`.
-- **Windows** : SmartScreen affiche un avertissement ; cliquez sur « Informations complémentaires », puis « Exécuter quand même ».
-- **Linux** : rendez le fichier exécutable avec `chmod +x cartes-*.AppImage`.
-
-Pour la lancer depuis les sources : `npm run electron`.
-
-## Installation
-
-Il faut Node.js 22 ou plus récent.
-
-```sh
-npm install
-npm link   # facultatif : rend la commande `cartes` disponible partout
-```
-
-Sans `npm link`, remplacez `cartes` par `node src/cli.js` dans les exemples ci-dessous.
-
-## Utilisation
-
-```sh
-# Trouver une commune (et son code INSEE)
-cartes chercher colombiers -d 86
-
-# Voir, pour chaque niveau de zoom, la taille de l'image, le format d'impression, la mémoire nécessaire
-# et le poids estimé du fichier
-cartes generer colombiers -d 86 --estimer
-
-# Générer la carte (par défaut : Plan IGN, zoom 17, contour de la commune tracé)
-cartes generer 86081
-
-# Ajouter ses propres données (points de collecte, zones…)
-cartes generer 86081 --donnees exemples/colombiers-apport-volontaire.geojson
-
-# Une entrée de légende et une couleur par catégorie, lues dans une propriété des objets
-cartes generer 86081 --donnees exemples/colombiers-apport-volontaire.geojson --donnees-categorie dechets
-
-# Autres exemples
-cartes generer 86081 -z 16 --gris
-cartes generer 86081 -z 16 -f ortho-ign
-cartes generer 86081 -z 16 --format tif -o sorties/colombiers
-```
-
-Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--data`, `--data-category`, `--data-color`, `--output`, `--margin`, `--grayscale`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
-
-```sh
-cartes generate 86081 -z 16 --grayscale
-```
-
-Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
-
-Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format.
-
-Le PNG d'un plan est écrit avec une palette de 256 couleurs, invisible à l'œil sur une carte qui en utilise peu : le fichier pèse environ moitié moins, et reste plus léger qu'un JPEG sans en flouter les étiquettes (Colombiers au zoom 16 : 2,7 Mo en PNG palettisé, 3,2 Mo en JPEG, 5,9 Mo en PNG classique). La page web ne sait pas produire de palette, le navigateur ne le permettant pas.
-
-Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom et par couche cochée, qui restent ensuite en cache. Sur la page web et dans l'application, l'estimation porte sur le seul niveau de zoom choisi et s'obtient en même temps que l'aperçu, à l'étape « Vérifier avant de générer ». Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
-
-## Ajouter des données à la carte
-
-Deux façons d'ajouter des informations sur une carte, qui se combinent : cocher des **données publiques** déjà en ligne, ou fournir **ses propres fichiers**. Sur la page web et dans l'application, les deux vivent dans la même étape.
-
-### Données publiques
-
-Des données ouvertes, téléchargées au moment de la génération, sans fichier à fournir. La liste s'obtient avec `cartes couches` ; dans l'interface, un bouton « Ajouter une couche » ouvre le catalogue, et les couches choisies apparaissent avec leur opacité et de quoi les retirer.
-
-| Couche | Contenu | Source |
-| --- | --- | --- |
-| `cadastre` | limites et numéros des parcelles, à partir du zoom 16 | IGN – Parcellaire Express (PCI) |
-| `argiles` | aléa de retrait-gonflement des argiles (faible, moyen, fort), millésime 2026 | BRGM, via la DINUM |
-| `ppr-inondation` | zonage réglementaire des plans de prévention du risque inondation, à partir du zoom 13 | BRGM – Géorisques |
-| `ppr-mouvements` | zonage réglementaire des PPR mouvement de terrain, à partir du zoom 13 | BRGM – Géorisques |
-| `cavites` | carrières, caves et ouvrages souterrains abandonnés | BRGM – Géorisques |
-| `canalisations` | canalisations de gaz, d'hydrocarbures et de produits chimiques | BRGM – Géorisques |
-
-```sh
-cartes generer 86081 -z 16 --couches cadastre
-cartes generer 86081 -z 15 --couches argiles
-cartes generer 86066 -z 15 --couches ppr-inondation
-
-# Une couche plus discrète : 25 % au lieu des 60 % par défaut
-cartes generer 86081 -z 16 --couches cadastre --couches-opacite 0.25
-```
-
-Une couche est dessinée en semi-transparence pour laisser lire le fond de carte, et sa source est citée dans la mention des sources avec sa date de mise à jour. L'opacité par défaut vient du catalogue ; `--couches-opacite` la remplace (répétable, dans l'ordre des couches), et l'interface propose un curseur sous chaque couche cochée. Comme le contour de la commune et les données ajoutées, une couche garde ses couleurs quand le fond passe en niveaux de gris : `--gris` sert justement à faire ressortir ce qui est posé dessus. Une couche qui montre moins de choses au niveau de zoom demandé le signale avant de télécharger quoi que ce soit.
-
-Le zonage des PPR inondation vient d'un service qui dessine l'image de l'emprise demandée, et non de tuiles toutes faites : l'outil réclame deux ou trois grandes images plutôt que des centaines de tuiles, ce qui est plus rapide et plus respectueux d'un service public. Ses couleurs sont celles du service : la carte y ajoute la légende que le service publie lui-même, plutôt que d'en recopier les couleurs, qui deviendraient fausses le jour où il change de style.
-
-L'aléa argiles est dessiné par l'outil, à partir de tuiles vectorielles, et non recopié depuis des images : les zones restent nettes quelle que soit la taille d'impression, et leurs niveaux apparaissent dans la légende. La donnée s'arrête au zoom 12 ; au-delà, les mêmes contours sont dessinés en plus grand, nets mais pas plus précis. Seuls quelques kilooctets sont téléchargés, l'outil ne lisant que la partie de l'archive qui couvre la commune.
-
-Le poids annoncé par `--estimer` tient compte des couches cochées : une couche dessinée sur toute l'image pèse autant que le fond de carte lui-même. Pour Colombiers au zoom 16, le cadastre fait passer le fichier de 2,7 à 5,3 Mo.
-
-### Vos fichiers
-
-Un fichier de la commune peut être superposé à la carte : points de collecte, défibrillateurs, zones de travaux, circuits de randonnée. En ligne de commande, l'option `--donnees` est répétable pour superposer plusieurs fichiers ; sur la page web et dans l'application, les fichiers se glissent dans la zone prévue.
-
-- **Formats** : GeoJSON, tel qu'exporté par uMap, QGIS ou geojson.io, et CSV avec des colonnes de latitude et de longitude (les noms usuels sont reconnus, le point-virgule et la virgule décimale aussi).
-- **Étiquettes** : le contenu d'une colonne ou d'une propriété `nom`, `name`, `libelle` ou `title`, écrit à côté du point avec un contour blanc pour rester lisible. Une étiquette qui recouvrirait une autre étiquette ou un autre point est déplacée autour de son point, et abandonnée s'il n'y a vraiment pas la place : son point reste dessiné. Le placement tient compte de tous les fichiers ajoutés à la fois, dans leur ordre.
-- **Fichiers volumineux** : au-delà de 5 000 objets, l'outil prévient que le dessin demandera quelques secondes de plus, et que beaucoup d'étiquettes ne seront pas écrites faute de place autour de leur point.
-- **Nom du jeu de données** : il titre la légende et apparaît dans la mention des sources. Par défaut le nom du fichier, remplaçable par `--donnees-titre "Points d'apport volontaire"` (répétable, dans l'ordre des fichiers) ou, sur la page web et dans l'application, en écrivant directement dans le champ du nom.
-- **Catégories** : une propriété `categorie`, `category`, `type` ou `groupe` regroupe les objets. Chaque catégorie reçoit sa couleur et sa ligne dans la légende, ce qui permet de tout garder dans un seul fichier. `--donnees-categorie <propriété>` désigne une autre propriété, par exemple `--donnees-categorie dechets`.
-- **Couleurs** : celles du fichier quand elles y sont (`marker-color`, `fill`, `stroke-width`… comme dans uMap, ou une propriété `couleur`), sinon une couleur par catégorie, et à défaut une par fichier. `--donnees-couleur <propriété>` désigne la propriété qui porte la couleur.
-- **Coordonnées** : en longitude/latitude (WGS 84). Un fichier projeté, par exemple en Lambert 93, est refusé avec un message qui l'explique.
-- **Légende** : ajoutée en bas à gauche, titrée du nom du fichier quand un seul est ajouté, avec une ligne par catégorie, ou une ligne par fichier en l'absence de catégorie. `--sans-legende` la retire.
-- **Mention des sources** : les fichiers ajoutés y sont cités, pour ne pas laisser croire qu'ils viennent de l'IGN.
-
-Sur la page web et dans l'application, les propriétés utilisées pour la légende et pour les couleurs se choisissent dans une liste déroulante, sous chaque fichier ajouté.
-
-Le dossier [`exemples/`](exemples/) contient les points d'apport volontaire de Colombiers (source : Grand Châtellerault), avec leurs catégories, dans les deux formats acceptés : [GeoJSON](exemples/colombiers-apport-volontaire.geojson) et [CSV](exemples/colombiers-apport-volontaire.csv).
+Les pages sont écrites en Markdown dans [`docs/`](docs/) : elles se lisent aussi bien ici que sur le site.
 
 ## Fonctionnement
 
@@ -171,33 +59,7 @@ Le dossier [`exemples/`](exemples/) contient les points d'apport volontaire de C
 2. **Contour** : récupéré depuis ADMIN EXPRESS via le service WFS de la Géoplateforme (couche `ADMINEXPRESS-COG.LATEST:commune`, filtre sur `code_insee`).
 3. **Emprise** : la bbox du contour, élargie d'une marge (3 % par défaut), est convertie en pixels Web Mercator au niveau de zoom demandé, ce qui donne la liste des tuiles à récupérer.
 4. **Téléchargement** : 6 requêtes simultanées, nouvelles tentatives en cas d'erreur (la Géoplateforme renvoie parfois des erreurs passagères), cache sur disque.
-5. **Assemblage** : les tuiles sont recopiées dans une image aux dimensions exactes de l'emprise, puis le contour et la mention des sources sont superposés sous forme de calques SVG (le même mécanisme servira pour ajouter des données : points de collecte, zones de risques…).
-
-## Ce qu'on apprend sur l'impression
-
-Les noms de rues et de lieux sont **dessinés dans les tuiles** à une taille fixe en pixels (environ 11 px), quel que soit le zoom. Plus le zoom est élevé, plus l'image est grande. Mais si on la réduit pour la faire tenir sur une feuille, le texte devient illisible.
-
-Pour Colombiers (environ 8 × 6 km), à 150 dpi :
-
-| zoom | image (px)     | taille imprimée | format |
-|------|----------------|-----------------|--------|
-| 15   | 2 553 × 1 953  | 43 × 33 cm      | A2     |
-| 16   | 5 104 × 3 904  | 86 × 66 cm      | A0     |
-| 17   | 10 207 × 7 807 | 173 × 132 cm    | > A0   |
-
-En A3, une image au zoom 17 serait réduite environ 4 fois et ses étiquettes mesureraient à peine 0,5 mm. Avec des tuiles raster, il faut donc choisir entre la finesse du détail et un petit format : `--estimer` aide à faire ce choix.
-
-Piste pour la suite : la Géoplateforme publie aussi le Plan IGN en **tuiles vectorielles** (`https://data.geopf.fr/tms/1.0.0/PLAN.IGN/{z}/{x}/{y}.pbf`, avec les styles `standard` et `gris`). Rendues avec MapLibre à l'échelle et à la résolution voulues, elles donneraient des étiquettes dimensionnées pour le papier et nettes à 300 dpi, quel que soit le format.
-
-## Sources des données et conditions d'utilisation
-
-Toutes les données affichées sur les cartes viennent de l'IGN (Plan IGN, photographies aériennes, ADMIN EXPRESS), via la Géoplateforme. Elles sont diffusées sous la licence ouverte 2.0 d'Etalab : leur réutilisation est libre, y compris pour un usage commercial, à condition de mentionner la source et la date de dernière mise à jour des données, sans laisser penser que l'IGN cautionne la carte.
-
-Chaque carte générée porte en bas à droite la mention des sources utilisées, avec la date de dernière mise à jour de chaque donnée, lue dans le catalogue de la Géoplateforme, et la date de génération de la carte. Par exemple : « Sources : © IGN – Plan IGN (mise à jour du 05/08/2026) ; © IGN – ADMIN EXPRESS (mise à jour du 27/08/2026) · Carte générée le 17/09/2026 ». Si le catalogue ne répond pas, la carte est générée sans ces dates et un avertissement s'affiche.
-
-La licence du projet porte sur son code : les cartes produites restent soumises aux conditions des fournisseurs de données.
-
-L'analyse détaillée des licences, des conditions d'accès aux services et des raisons du retrait des fonds de carte Esri est dans [Données utilisées et licences](docs/donnees-et-licences.md).
+5. **Assemblage** : les tuiles sont recopiées dans une image aux dimensions exactes de l'emprise, puis les couches, le contour, les données ajoutées, la légende et la mention des sources sont superposés — en images pour les couches servies comme telles, en calques SVG pour ce que l'outil dessine lui-même.
 
 ## Versions
 
