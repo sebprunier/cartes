@@ -6,10 +6,18 @@ import { after, before, describe, it } from 'node:test';
 
 import sharp from 'sharp';
 
+import { readLayer } from '../src/core/layers.js';
 import { attributionText } from '../src/core/overlays.js';
 import { paperFormat, printSizeMm } from '../src/core/print.js';
-import { lonLatToPixel } from '../src/core/tiles.js';
-import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, saveImage } from '../src/node/render.js';
+import { extentFromBbox, lonLatToPixel } from '../src/core/tiles.js';
+import {
+  assembleTiles,
+  attributionLabel,
+  boundaryOutline,
+  drawOverlays,
+  layerOverlay,
+  saveImage,
+} from '../src/node/render.js';
 
 let tempDir;
 
@@ -121,6 +129,42 @@ describe('boundaryOutline', () => {
     assert.match(outline, /^<path d="M/);
     assert.equal(outline.match(/M/g).length, 2);
     assert.ok(outline.includes(`M${(x - extent.xMin).toFixed(1)},${(y - extent.yMin).toFixed(1)}L`));
+  });
+});
+
+describe('layerOverlay', () => {
+  const extent = extentFromBbox([0.42, 46.77, 0.445, 46.79], 16, 0);
+  const layer = readLayer(
+    JSON.stringify({
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', properties: { nom: 'Déchèterie & cie' }, geometry: { type: 'Point', coordinates: [0.43, 46.78] } },
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[[0.425, 46.775], [0.44, 46.775], [0.44, 46.785], [0.425, 46.775]]] },
+        },
+      ],
+    }),
+    { fileName: 'collecte.geojson', color: '#b3261e' },
+  );
+
+  it('draws the shapes, the labels, and escapes the text', () => {
+    const svg = layerOverlay(layer, extent);
+    assert.match(svg, /<path d="M[\d.,]+L/);
+    assert.match(svg, /<circle /);
+    assert.match(svg, /Déchèterie &amp; cie/);
+    assert.ok(svg.includes('#b3261e'));
+  });
+
+  it('really draws on the image, through the rendering engine', async () => {
+    const pixels = Buffer.alloc(extent.width * extent.height * 3, 255);
+    await drawOverlays(pixels, extent, [layerOverlay(layer, extent)]);
+    let colored = 0;
+    for (let index = 0; index < pixels.length; index += 3) {
+      if (pixels[index] > 100 && pixels[index + 1] < 100 && pixels[index + 2] < 100) colored++;
+    }
+    assert.ok(colored > 50, `pixels de la couche : ${colored}`);
   });
 });
 

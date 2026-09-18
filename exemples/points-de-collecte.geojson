@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "nom": "Déchèterie" }, "geometry": { "type": "Point", "coordinates": [0.4372, 46.7796] } },
+    { "type": "Feature", "properties": { "nom": "Point verre – Mairie" }, "geometry": { "type": "Point", "coordinates": [0.4265, 46.7724] } },
+    { "type": "Feature", "properties": { "nom": "Point verre – Pouilly" }, "geometry": { "type": "Point", "coordinates": [0.4468, 46.7834] } },
+    { "type": "Feature", "properties": { "nom": "Zone de collecte", "fill": "#15814f", "fill-opacity": 0.25 },
+      "geometry": { "type": "Polygon", "coordinates": [[[0.415, 46.770], [0.450, 46.770], [0.450, 46.786], [0.415, 46.786], [0.415, 46.770]]] } }
+  ]
+}

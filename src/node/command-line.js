@@ -14,6 +14,7 @@ Options de « generer » :
   -d, --departement <code>  département, pour lever une homonymie, ex. 86
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
+      --donnees <fichier>   données à ajouter sur la carte (.geojson ou .csv), répétable
   -o, --sortie <fichier>    fichier de sortie, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].<format>
       --format <format>     png, jpg ou tif ; défaut : jpg pour les photographies aériennes (ortho-ign), png sinon
       --marge <fraction>    marge autour de la commune, défaut : 0.03
@@ -28,8 +29,8 @@ Options de « generer » :
   -h, --aide                afficher cette aide
   -v, --version             afficher la version de cartes
 
-Les commandes et options existent aussi en anglais : search, basemaps, generate, --department,
---basemap, --output, --margin, --grayscale, --no-outline, --estimate, --max-tiles, --concurrency, --help.`;
+Les commandes et options existent aussi en anglais : search, basemaps, generate, --department, --basemap,
+--data, --output, --margin, --grayscale, --no-outline, --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = { chercher: 'search', fonds: 'basemaps', generer: 'generate', générer: 'generate' };
@@ -39,6 +40,7 @@ export const OPTIONS = {
   department: { type: 'string', short: 'd', french: 'departement' },
   basemap: { type: 'string', short: 'f', french: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
+  data: { type: 'string', french: 'donnees', multiple: true, default: [] },
   output: { type: 'string', short: 'o', french: 'sortie' },
   format: { type: 'string' },
   margin: { type: 'string', french: 'marge', default: '0.03' },
@@ -58,9 +60,9 @@ export class UsageError extends Error {}
 /** Parses the command line, resolving French names to the English names used in code. */
 export function parseCommandLine(args = process.argv.slice(2)) {
   const config = {};
-  for (const [name, { type, short, french }] of Object.entries(OPTIONS)) {
-    config[name] = short ? { type, short } : { type };
-    if (french) config[french] = { type };
+  for (const [name, { type, short, french, multiple }] of Object.entries(OPTIONS)) {
+    config[name] = { type, ...(short && { short }), ...(multiple && { multiple }) };
+    if (french) config[french] = { type, ...(multiple && { multiple }) };
   }
   // Parsed in non strict mode so that option errors are reported in French by checkOptions.
   const { values, positionals, tokens } = parseArgs({
@@ -73,8 +75,10 @@ export function parseCommandLine(args = process.argv.slice(2)) {
   checkOptions(tokens, config);
 
   const options = {};
-  for (const [name, { french, default: defaultValue }] of Object.entries(OPTIONS)) {
-    options[name] = values[name] ?? (french && values[french]) ?? defaultValue;
+  for (const [name, { french, multiple, default: defaultValue }] of Object.entries(OPTIONS)) {
+    options[name] = multiple
+      ? [...(values[name] ?? []), ...((french && values[french]) ?? [])]
+      : (values[name] ?? (french && values[french]) ?? defaultValue);
   }
   const [command, argument] = positionals;
   return { command: FRENCH_COMMANDS[command] ?? command, argument, options };

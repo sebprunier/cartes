@@ -31,6 +31,7 @@ node src/cli.js --aide
 | `src/core/tiles.js` | calcul des tuiles, échantillonnage et téléchargement |
 | `src/core/image.js` | assemblage des tuiles décodées en pixels |
 | `src/core/overlays.js` | géométrie, texte et styles du contour et de la mention des sources |
+| `src/core/layers.js` | lecture des données ajoutées (GeoJSON, CSV) et conversion en formes |
 | `src/core/print.js` | tailles d'impression et formats de papier |
 | `src/core/estimates.js` | mémoire nécessaire et poids estimé des fichiers |
 | `src/core/http.js` | requêtes HTTP |

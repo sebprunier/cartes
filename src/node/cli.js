@@ -2,6 +2,7 @@
 // Command line interface.
 
 import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
 
 import { BASEMAPS } from '../core/basemaps.js';
 import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
@@ -16,12 +17,13 @@ import {
   resolveMunicipality,
   searchMunicipalities,
 } from '../core/municipalities.js';
+import { LayerError, readLayer } from '../core/layers.js';
 import { attributionText } from '../core/overlays.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { downloadTiles, extentFromBbox, groundResolution, sampleTiles, tilesInExtent } from '../core/tiles.js';
 import { cachedTileLoader, tileSizes } from './cache.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
-import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, saveImage } from './render.js';
+import { assembleTiles, attributionLabel, boundaryOutline, drawOverlays, layerOverlay, saveImage } from './render.js';
 
 // Size of the grid of tiles downloaded for each zoom level to estimate the size of the generated file:
 // 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
@@ -77,6 +79,16 @@ async function generate(input, options) {
   const margin = Number(options.margin);
   if (!(margin >= 0)) throw new UsageError('--marge doit être un nombre positif.');
 
+  const layers = options.data.map((file, index) => {
+    try {
+      return readLayer(readFileSync(file, 'utf8'), { fileName: basename(file), index });
+    } catch (error) {
+      if (error instanceof LayerError) throw new UsageError(`${file} : ${error.message}`);
+      if (error.code === 'ENOENT') throw new UsageError(`Fichier de données introuvable : ${file}`);
+      throw error;
+    }
+  });
+
   const inseeCode = await resolveMunicipality(input, options.department);
   const boundary = await fetchBoundary(inseeCode);
   const bbox = boundaryBbox(boundary);
@@ -128,7 +140,9 @@ async function generate(input, options) {
 
   const outline = !options['no-outline'];
   const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
+  for (const layer of layers) overlays.push(layerOverlay(layer, extent));
   const sources = await withUpdateDates(outline ? [basemap, BOUNDARY_SOURCE] : [basemap]);
+  if (layers.length > 0) sources.push({ attribution: `Données ajoutées : ${layers.map((l) => l.name).join(', ')}` });
   if (sources.some((source) => !source.updateDate)) {
     console.log(
       "  Attention : date de mise à jour des données indisponible dans le catalogue de la Géoplateforme. " +

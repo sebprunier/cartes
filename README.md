@@ -78,6 +78,9 @@ cartes generer colombiers -d 86 --estimer
 # Générer la carte (par défaut : Plan IGN, zoom 17, contour de la commune tracé)
 cartes generer 86081
 
+# Ajouter ses propres données (points de collecte, zones…)
+cartes generer 86081 --donnees exemples/points-de-collecte.geojson
+
 # Autres exemples
 cartes generer 86081 -z 16 --gris
 cartes generer 86081 -z 16 -f ortho-ign
@@ -95,6 +98,18 @@ Toutes les options : `cartes -h`. Fonds disponibles : `cartes fonds`.
 Les cartes sont écrites dans `sorties/`, en PNG pour les plans et en JPEG pour les photographies aériennes, que le PNG compresse mal (une photo pèse environ 8 fois plus lourd en PNG). L'option `--format` (`png`, `jpg` ou `tif`) ou l'extension du fichier passé à `-o` permettent de choisir un autre format.
 
 Avec `--estimer`, l'outil indique pour chaque niveau de zoom la mémoire nécessaire (l'image non compressée, à prévoir en RAM pendant la génération) et le poids estimé du fichier. Cette estimation, à ±30 % environ, s'appuie sur un échantillon de 36 tuiles téléchargées par niveau de zoom, qui restent ensuite en cache. Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
+
+## Ajouter ses propres données
+
+L'option `--donnees` superpose à la carte un fichier de la commune : points de collecte, défibrillateurs, zones de travaux, circuits de randonnée. Elle est répétable, pour superposer plusieurs fichiers.
+
+- **Formats** : GeoJSON, tel qu'exporté par uMap, QGIS ou geojson.io, et CSV avec des colonnes de latitude et de longitude (les noms usuels sont reconnus, le point-virgule et la virgule décimale aussi).
+- **Étiquettes** : le contenu d'une colonne ou d'une propriété `nom`, `name`, `libelle` ou `title`, écrit à côté du point avec un contour blanc pour rester lisible.
+- **Couleurs** : celles du fichier quand elles y sont (`marker-color`, `fill`, `stroke-width`… comme dans uMap), sinon une couleur par fichier.
+- **Coordonnées** : en longitude/latitude (WGS 84). Un fichier projeté, par exemple en Lambert 93, est refusé avec un message qui l'explique.
+- **Mention des sources** : les fichiers ajoutés y sont cités, pour ne pas laisser croire qu'ils viennent de l'IGN.
+
+Le dossier [`exemples/`](exemples/) contient un fichier d'essai pour Colombiers.
 
 ## Fonctionnement
 

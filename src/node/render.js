@@ -6,6 +6,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 
 import { CHANNELS, assemblePixels, copyPixels } from '../core/image.js';
+import { layerShapes } from '../core/layers.js';
 import {
   ATTRIBUTION_COLOR,
   OUTLINE_COLOR,
@@ -46,6 +47,38 @@ export function boundaryOutline(boundary, extent) {
     `<path d="${boundaryPath(boundary, extent)}" fill="none" stroke="${OUTLINE_COLOR}" ` +
     `stroke-width="${outlineStrokeWidth(extent)}" stroke-linejoin="round"/>`
   );
+}
+
+/** SVG elements drawing a data layer: polygons and lines, then points and their labels. */
+export function layerOverlay(layer, extent) {
+  const { points, paths, radius } = layerShapes(layer, extent);
+  const fontSize = Math.max(11, Math.round(radius * 1.6));
+  const elements = paths.map(
+    ({ path, color, strokeWidth, fill, fillOpacity }) =>
+      `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" stroke="${color}" ` +
+      `stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>`,
+  );
+
+  for (const { x, y, radius: pointRadius, color, label } of points) {
+    elements.push(
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pointRadius}" fill="${color}" ` +
+        `stroke="#ffffff" stroke-width="${Math.max(1, Math.round(pointRadius / 3))}"/>`,
+    );
+    if (!label) continue;
+    // The white outline keeps the label readable over a busy map.
+    const position = `x="${(x + pointRadius * 1.5).toFixed(1)}" y="${(y + fontSize / 3).toFixed(1)}"`;
+    const font = `font-family="sans-serif" font-size="${fontSize}"`;
+    elements.push(
+      `<text ${position} ${font} stroke="#ffffff" stroke-width="${Math.max(2, Math.round(fontSize / 4))}" ` +
+        `stroke-linejoin="round" fill="none">${escapeXml(label)}</text>`,
+      `<text ${position} ${font} fill="${color}">${escapeXml(label)}</text>`,
+    );
+  }
+  return elements.join('');
+}
+
+function escapeXml(text) {
+  return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
 /**
