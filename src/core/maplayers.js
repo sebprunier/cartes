@@ -6,8 +6,10 @@ import { geoplateformeWmts } from './basemaps.js';
 // A layer is downloaded like a basemap: `tileUrl` builds the address of each of its tiles, and is the place
 // to extend when a service needs something else than a template, a WMS asking for the bounds of each tile.
 // `url` is a template with {z}, {x} and {y}, as for a basemap. `opacity` fades the layer over the map, the
-// tiles carrying their own transparency. `minZoom` is the level from which the layer shows what it promises,
-// and `zoomNote` says what is missing below it.
+// tiles carrying their own transparency. `minZoom`, when a layer has one, is the level from which it shows
+// what it promises, and `zoomNote` says what is missing below it.
+// `dataMaxZoom` caps the resolution asked for: above it the drawing is stretched, which spares a service and
+// suits data that has no more detail to give — and, for some services, keeps them drawing at all.
 const MAP_LAYER_LIST = [
   {
     id: 'cadastre',
@@ -42,6 +44,54 @@ const MAP_LAYER_LIST = [
     opacity: 0.55,
     attribution: '© BRGM – Géorisques, PPR inondation',
     // The service publishes no update date: the map credits the day the zoning was read instead.
+    datedByConsultation: true,
+  },
+  {
+    id: 'ppr-mouvements',
+    name: 'PPR mouvements de terrain',
+    description: 'Zonage réglementaire des plans de prévention du risque mouvement de terrain, à partir du zoom 13.',
+    kind: 'wms',
+    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    wmsLayers: 'PPRN_ZONE_MVT',
+    wmsStyle: 'inspire_common:DEFAULT',
+    dataMaxZoom: 16,
+    minZoom: 13,
+    maxZoom: 19,
+    zoomNote: 'En dessous du zoom 13, le service ne dessine pas ce zonage.',
+    opacity: 0.55,
+    attribution: '© BRGM – Géorisques, PPR mouvements de terrain',
+    datedByConsultation: true,
+  },
+  {
+    id: 'cavites',
+    name: 'Cavités souterraines',
+    description: 'Carrières, caves et ouvrages souterrains abandonnés, d’origine non minière.',
+    kind: 'wms',
+    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    wmsLayers: 'CAVITE_LOCALISEE',
+    wmsStyle: 'inspire_common:DEFAULT',
+    // The service stops drawing this layer when zoomed past 1:2000: the image is asked for at zoom 17, where
+    // the scale is still large enough, and drawn bigger if needed.
+    dataMaxZoom: 17,
+    maxZoom: 19,
+    opacity: 0.9,
+    attribution: '© BRGM – Géorisques, cavités souterraines',
+    datedByConsultation: true,
+  },
+  {
+    id: 'canalisations',
+    name: 'Canalisations de matières dangereuses',
+    description: 'Canalisations de transport de gaz, d’hydrocarbures et de produits chimiques, et leurs servitudes.',
+    kind: 'wms',
+    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    wmsLayers: 'CANALISATIONS',
+    wmsStyle: 'default',
+    // Nothing is drawn below 1:20000: the image is always asked for at zoom 14, then drawn larger, which
+    // thickens the lines at the highest zoom levels.
+    dataMaxZoom: 14,
+    maxZoom: 19,
+    opacity: 0.9,
+    attribution: '© BRGM – Géorisques, canalisations de matières dangereuses',
     datedByConsultation: true,
   },
   {

@@ -23,7 +23,11 @@ describe('MAP_LAYERS', () => {
       // The open licence asks for the freshness of the data: a date read from a catalog, written here, or
       // failing that the day the service was read.
       assert.ok(layer.metadataId || layer.updateDate || layer.datedByConsultation, `${id} date`);
-      assert.ok(layer.minZoom <= layer.maxZoom, id);
+      // A zoom level below which a layer shows less is optional, but never silent.
+      if (layer.minZoom !== undefined) {
+        assert.ok(layer.minZoom <= layer.maxZoom, id);
+        assert.ok(layer.zoomNote, `${id} zoomNote`);
+      }
       // A layer laid down as tiles carries measured weight ratios; the others are not sampled at all.
       if (!isTileLayer(layer)) {
         assert.equal(layer.fileSizeRatios, undefined, id);
@@ -36,7 +40,6 @@ describe('MAP_LAYERS', () => {
       }
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);
       // A layer that shows less below its minimum zoom says what is missing.
-      assert.ok(layer.zoomNote, id);
     }
   });
 

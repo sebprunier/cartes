@@ -126,6 +126,9 @@ Des données ouvertes, téléchargées au moment de la génération, sans fichie
 | `cadastre` | limites et numéros des parcelles, à partir du zoom 16 | IGN – Parcellaire Express (PCI) |
 | `argiles` | aléa de retrait-gonflement des argiles (faible, moyen, fort), millésime 2026 | BRGM, via la DINUM |
 | `ppr-inondation` | zonage réglementaire des plans de prévention du risque inondation, à partir du zoom 13 | BRGM – Géorisques |
+| `ppr-mouvements` | zonage réglementaire des PPR mouvement de terrain, à partir du zoom 13 | BRGM – Géorisques |
+| `cavites` | carrières, caves et ouvrages souterrains abandonnés | BRGM – Géorisques |
+| `canalisations` | canalisations de gaz, d'hydrocarbures et de produits chimiques | BRGM – Géorisques |
 
 ```sh
 cartes generer 86081 -z 16 --couches cadastre
