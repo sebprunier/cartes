@@ -55,9 +55,6 @@
           </p>
         </div>
 
-        <h3>Couches à superposer <span class="note">(facultatif)</span></h3>
-        <ul id="map-layers"></ul>
-
         <h3>Tailles selon le niveau de zoom</h3>
         <div class="table-wrapper">
           <table id="estimates">
@@ -86,7 +83,19 @@
       </section>
 
       <section id="data" hidden>
-        <h2>3. Ajouter vos données <span class="note">(facultatif)</span></h2>
+        <h2>3. Ajouter des données <span class="note">(facultatif)</span></h2>
+        <p class="note">
+          Deux façons d'ajouter des informations sur la carte : cocher des données publiques déjà en ligne, ou
+          déposer vos propres fichiers. Les deux se combinent.
+        </p>
+
+        <h3>Données publiques</h3>
+        <p class="note">
+          Des données ouvertes, téléchargées au moment de la génération et citées dans la mention des sources.
+        </p>
+        <ul id="map-layers"></ul>
+
+        <h3>Vos fichiers</h3>
         <p class="note">
           Fichiers GeoJSON, tels qu'exportés par uMap ou QGIS, ou CSV avec des colonnes de latitude et de
           longitude : points de collecte, zones de travaux, circuits… Une propriété des objets (« categorie »,
