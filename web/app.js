@@ -91,22 +91,51 @@ function showMapLayers() {
       box.type = 'checkbox';
       box.value = layer.id;
       box.className = 'map-layer';
-      box.addEventListener('change', () => {
-        showMapLayerWarnings();
-        agePreview();
-      });
       choice.append(box, ` ${layer.name}`);
+
       const description = document.createElement('p');
       description.className = 'map-layer-description';
       description.textContent = `${layer.description} ${layer.attribution}`;
+
+      const opacity = opacityChoice(layer);
+      box.addEventListener('change', () => {
+        opacity.hidden = !box.checked;
+        showMapLayerWarnings();
+        agePreview();
+      });
+
       const warning = document.createElement('p');
       warning.className = 'map-layer-warning';
       warning.dataset.layer = layer.id;
       warning.hidden = true;
-      item.append(choice, description, warning);
+      item.append(choice, description, opacity, warning);
       return item;
     }),
   );
+}
+
+/** The opacity of a layer over the basemap: at 1 it hides what is under it, at 0.2 it is barely visible. */
+function opacityChoice(layer) {
+  const line = document.createElement('p');
+  line.className = 'map-layer-opacity';
+  line.hidden = true;
+  const label = document.createElement('label');
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = '0.1';
+  slider.max = '1';
+  slider.step = '0.05';
+  slider.value = String(layer.opacity);
+  slider.className = 'map-layer-opacity-value';
+  slider.dataset.layer = layer.id;
+  const share = document.createElement('span');
+  const showShare = () => (share.textContent = `${Math.round(Number(slider.value) * 100)} %`);
+  showShare();
+  slider.addEventListener('input', showShare);
+  slider.addEventListener('change', agePreview);
+  label.append('Opacité ', slider, ' ', share);
+  line.append(label);
+  return line;
 }
 
 /** Says which chosen layers have nothing to show at the chosen zoom level. */
@@ -120,9 +149,12 @@ function showMapLayerWarnings() {
   }
 }
 
-/** Identifiers of the layers to lay over the basemap. */
+/** The layers to lay over the basemap, with the opacity chosen for each. */
 function chosenMapLayers() {
-  return [...mapLayerList.querySelectorAll('.map-layer:checked')].map(({ value }) => value);
+  return [...mapLayerList.querySelectorAll('.map-layer:checked')].map(({ value }) => ({
+    id: value,
+    opacity: Number(mapLayerList.querySelector(`.map-layer-opacity-value[data-layer="${value}"]`).value),
+  }));
 }
 
 searchField.addEventListener('input', debounce(search, 300));
@@ -545,7 +577,7 @@ async function generate() {
 function defaultFileName() {
   return (
     `${municipality.boundary.inseeCode}-${normalizeName(municipality.boundary.name).replaceAll(' ', '-')}` +
-    `-${basemapChoice.value}${chosenMapLayers().map((id) => `-${id}`).join('')}-z${zoomChoice.value}` +
+    `-${basemapChoice.value}${chosenMapLayers().map(({ id }) => `-${id}`).join('')}-z${zoomChoice.value}` +
     `${grayscaleBox.checked ? '-gris' : ''}.${formatChoice.value}`
   );
 }

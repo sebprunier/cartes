@@ -123,9 +123,12 @@ Des couches d'information peuvent être ajoutées par-dessus le fond de carte, s
 
 ```sh
 cartes generer 86081 -z 16 --couches cadastre
+
+# Une couche plus discrète : 25 % au lieu des 60 % par défaut
+cartes generer 86081 -z 16 --couches cadastre --couches-opacite 0.25
 ```
 
-Une couche est dessinée en semi-transparence pour laisser lire le fond de carte, et sa source est citée dans la mention des sources avec sa date de mise à jour. Comme le contour de la commune et les données ajoutées, une couche garde ses couleurs quand le fond passe en niveaux de gris : `--gris` sert justement à faire ressortir ce qui est posé dessus. Une couche qui montre moins de choses au niveau de zoom demandé le signale avant de télécharger quoi que ce soit.
+Une couche est dessinée en semi-transparence pour laisser lire le fond de carte, et sa source est citée dans la mention des sources avec sa date de mise à jour. L'opacité par défaut vient du catalogue ; `--couches-opacite` la remplace (répétable, dans l'ordre des couches), et l'interface propose un curseur sous chaque couche cochée. Comme le contour de la commune et les données ajoutées, une couche garde ses couleurs quand le fond passe en niveaux de gris : `--gris` sert justement à faire ressortir ce qui est posé dessus. Une couche qui montre moins de choses au niveau de zoom demandé le signale avant de télécharger quoi que ce soit.
 
 Le poids annoncé par `--estimer` ne tient pas compte des couches superposées : une carte avec le cadastre pèse sensiblement plus lourd.
 

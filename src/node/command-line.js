@@ -16,6 +16,8 @@ Options de « generer » :
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
       --couches <id>        couches à superposer au fond de carte, répétable ; liste : cartes couches
+      --couches-opacite <n> opacité d'une couche, entre 0 et 1 ; répétable, dans l'ordre des couches ;
+                            par défaut, celle du catalogue (0.6 pour le cadastre)
       --donnees <fichier>   données à ajouter sur la carte (.geojson ou .csv), répétable
       --donnees-titre <titre>   nom du jeu de données, pour la légende et la mention des sources ; par défaut,
                             le nom du fichier ; répétable, dans l'ordre des fichiers
@@ -41,7 +43,7 @@ Options de « generer » :
   -v, --version             afficher la version de cartes
 
 Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, --department,
---basemap, --maplayers, --data, --data-title, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
+--basemap, --maplayers, --maplayers-opacity, --data, --data-title, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
 --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
@@ -59,6 +61,7 @@ export const OPTIONS = {
   basemap: { type: 'string', short: 'f', french: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
   maplayers: { type: 'string', french: 'couches', multiple: true, default: [] },
+  'maplayers-opacity': { type: 'string', french: 'couches-opacite', multiple: true, default: [] },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
   'data-title': { type: 'string', french: 'donnees-titre', multiple: true, default: [] },
   'data-category': { type: 'string', french: 'donnees-categorie' },

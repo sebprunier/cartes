@@ -25,15 +25,34 @@ const MAP_LAYER_LIST = [
 
 export const MAP_LAYERS = Object.fromEntries(MAP_LAYER_LIST.map((layer) => [layer.id, layer]));
 
-/** The layers chosen by their identifier, in the order of the catalog, rejecting unknown ones. */
-export function chooseMapLayers(ids) {
-  const unknown = ids.filter((id) => !MAP_LAYERS[id]);
+/**
+ * The layers chosen, in the order of the catalog, rejecting the unknown ones. A choice is an identifier, or
+ * an object `{ id, opacity }` when the opacity of the catalog is not the one wanted.
+ */
+export function chooseMapLayers(selection = []) {
+  const chosen = selection.map((entry) => (typeof entry === 'string' ? { id: entry } : entry));
+  const unknown = chosen.filter(({ id }) => !MAP_LAYERS[id]).map(({ id }) => id);
   if (unknown.length > 0) {
     throw new MapLayerError(
       `Couche inconnue : ${unknown.join(', ')}. Couches disponibles : ${Object.keys(MAP_LAYERS).join(', ')}.`,
     );
   }
-  return MAP_LAYER_LIST.filter((layer) => ids.includes(layer.id));
+  return MAP_LAYER_LIST.filter((layer) => chosen.some(({ id }) => id === layer.id)).map((layer) => {
+    const { opacity } = chosen.find(({ id }) => id === layer.id);
+    return opacity === undefined ? layer : { ...layer, opacity: checkOpacity(opacity, layer) };
+  });
+}
+
+/** An opacity is a share of 1: 1 hides the basemap, and 0 would draw nothing at all. */
+function checkOpacity(value, layer) {
+  const opacity = typeof value === 'string' ? Number(value.replace(',', '.')) : value;
+  if (!Number.isFinite(opacity) || opacity <= 0 || opacity > 1) {
+    throw new MapLayerError(
+      `Opacité invalide pour la couche ${layer.id} : ${value}. Attendu : un nombre supérieur à 0 et au plus 1, ` +
+        'par exemple 0.6.',
+    );
+  }
+  return opacity;
 }
 
 /** What the layer does not show at this zoom level, or undefined when it shows everything. */

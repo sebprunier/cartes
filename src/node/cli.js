@@ -117,7 +117,9 @@ async function generate(input, options) {
 
   let mapLayers;
   try {
-    mapLayers = chooseMapLayers(options.maplayers);
+    mapLayers = chooseMapLayers(
+      options.maplayers.map((id, index) => ({ id, opacity: options['maplayers-opacity'][index] })),
+    );
   } catch (error) {
     throw error instanceof MapLayerError ? new UsageError(error.message) : error;
   }
@@ -136,7 +138,9 @@ async function generate(input, options) {
 
   console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
   console.log(`Fond de carte : ${basemap.name} — ${basemap.attribution}`);
-  for (const layer of mapLayers) console.log(`Couche        : ${layer.name} — ${layer.attribution}`);
+  for (const layer of mapLayers) {
+    console.log(`Couche        : ${layer.name} (opacité ${layer.opacity}) — ${layer.attribution}`);
+  }
   console.log();
   for (const layer of mapLayers) {
     const warning = mapLayerZoomWarning(layer, zoom);

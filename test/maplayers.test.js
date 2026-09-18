@@ -44,6 +44,26 @@ describe('chooseMapLayers', () => {
   });
 });
 
+describe('layer opacity', () => {
+  it('keeps the opacity of the catalog when none is asked for', () => {
+    const [layer] = chooseMapLayers(['cadastre']);
+    assert.equal(layer.opacity, MAP_LAYERS.cadastre.opacity);
+  });
+
+  it('takes the opacity asked for, written with a dot or a comma', () => {
+    assert.equal(chooseMapLayers([{ id: 'cadastre', opacity: 0.35 }])[0].opacity, 0.35);
+    assert.equal(chooseMapLayers([{ id: 'cadastre', opacity: '0,8' }])[0].opacity, 0.8);
+    // The catalog itself is left alone.
+    assert.equal(MAP_LAYERS.cadastre.opacity, 0.6);
+  });
+
+  it('refuses an opacity outside of what it means', () => {
+    for (const opacity of [0, -1, 1.5, 'beaucoup', '']) {
+      assert.throws(() => chooseMapLayers([{ id: 'cadastre', opacity }]), /Opacité invalide/, String(opacity));
+    }
+  });
+});
+
 describe('mapLayerZoomWarning', () => {
   it('says what a layer does not show below its zoom level', () => {
     const { cadastre } = MAP_LAYERS;

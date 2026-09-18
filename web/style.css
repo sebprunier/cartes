@@ -216,6 +216,17 @@ button:disabled {
   padding: 0.25rem 0;
 }
 
+#map-layers .map-layer-opacity {
+  margin: 0.25rem 0 0 1.6rem;
+  color: var(--grey);
+  font-size: 0.85rem;
+}
+
+#map-layers .map-layer-opacity input {
+  vertical-align: middle;
+  width: 8rem;
+}
+
 #map-layers .map-layer-description,
 #map-layers .map-layer-warning {
   margin: 0.1rem 0 0 1.6rem;
