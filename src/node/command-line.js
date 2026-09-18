@@ -15,10 +15,12 @@ Options de « generer » :
   -f, --fond <id>           fond de carte, défaut : plan-ign
   -z, --zoom <n>            niveau de zoom des tuiles, défaut : 17
       --donnees <fichier>   données à ajouter sur la carte (.geojson ou .csv), répétable
-      --categorie <prop>    propriété qui porte la catégorie des objets (une entrée de légende et une couleur
-                            par catégorie) ; par défaut : categorie, catégorie, category, type, groupe
-      --couleur <prop>      propriété qui porte la couleur des objets ; par défaut : couleur, color
-                            (les styles uMap du fichier sont toujours respectés)
+      --donnees-categorie <propriete>
+                            propriété qui porte la catégorie des objets : une entrée de légende et une couleur
+                            par catégorie ; par défaut : categorie, catégorie, category, type, groupe
+      --donnees-couleur <propriete>
+                            propriété qui porte la couleur des objets ; par défaut : couleur, color
+                            (les styles écrits dans le fichier sont toujours respectés)
   -o, --sortie <fichier>    fichier de sortie, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].<format>
       --format <format>     png, jpg ou tif ; défaut : jpg pour les photographies aériennes (ortho-ign), png sinon
       --marge <fraction>    marge autour de la commune, défaut : 0.03
@@ -35,8 +37,8 @@ Options de « generer » :
   -v, --version             afficher la version de cartes
 
 Les commandes et options existent aussi en anglais : search, basemaps, generate, --department, --basemap,
---data, --category, --color, --output, --margin, --grayscale, --no-outline, --no-legend, --estimate,
---max-tiles, --concurrency, --help.`;
+--data, --data-category, --data-color, --output, --margin, --grayscale, --no-outline, --no-legend,
+--estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = { chercher: 'search', fonds: 'basemaps', generer: 'generate', générer: 'generate' };
@@ -47,8 +49,8 @@ export const OPTIONS = {
   basemap: { type: 'string', short: 'f', french: 'fond', default: 'plan-ign' },
   zoom: { type: 'string', short: 'z', default: '17' },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
-  category: { type: 'string', french: 'categorie' },
-  color: { type: 'string', french: 'couleur' },
+  'data-category': { type: 'string', french: 'donnees-categorie' },
+  'data-color': { type: 'string', french: 'donnees-couleur' },
   output: { type: 'string', short: 'o', french: 'sortie' },
   format: { type: 'string' },
   margin: { type: 'string', french: 'marge', default: '0.03' },

@@ -82,7 +82,7 @@ cartes generer 86081
 cartes generer 86081 --donnees exemples/points-de-collecte.geojson
 
 # Une entrée de légende et une couleur par catégorie, lues dans une propriété des objets
-cartes generer 86081 --donnees exemples/colombiers-apport-volontaire.geojson --categorie dechets
+cartes generer 86081 --donnees exemples/colombiers-apport-volontaire.geojson --donnees-categorie dechets
 
 # Autres exemples
 cartes generer 86081 -z 16 --gris
@@ -90,7 +90,7 @@ cartes generer 86081 -z 16 -f ortho-ign
 cartes generer 86081 -z 16 --format tif -o sorties/colombiers
 ```
 
-Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--data`, `--category`, `--color`, `--output`, `--margin`, `--grayscale`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
+Les commandes et les options existent aussi en anglais : `search`, `basemaps`, `generate`, `--department`, `--basemap`, `--data`, `--data-category`, `--data-color`, `--output`, `--margin`, `--grayscale`, `--no-outline`, `--estimate`, `--max-tiles`, `--concurrency`, `--help`. Par exemple :
 
 ```sh
 cartes generate 86081 -z 16 --grayscale
@@ -108,8 +108,8 @@ Un fichier de la commune peut être superposé à la carte : points de collecte,
 
 - **Formats** : GeoJSON, tel qu'exporté par uMap, QGIS ou geojson.io, et CSV avec des colonnes de latitude et de longitude (les noms usuels sont reconnus, le point-virgule et la virgule décimale aussi).
 - **Étiquettes** : le contenu d'une colonne ou d'une propriété `nom`, `name`, `libelle` ou `title`, écrit à côté du point avec un contour blanc pour rester lisible.
-- **Catégories** : une propriété `categorie`, `category`, `type` ou `groupe` regroupe les objets. Chaque catégorie reçoit sa couleur et sa ligne dans la légende, ce qui permet de tout garder dans un seul fichier. `--categorie <propriété>` désigne une autre propriété, par exemple `--categorie dechets`.
-- **Couleurs** : celles du fichier quand elles y sont (`marker-color`, `fill`, `stroke-width`… comme dans uMap, ou une propriété `couleur`), sinon une couleur par catégorie, et à défaut une par fichier. `--couleur <propriété>` désigne la propriété qui porte la couleur.
+- **Catégories** : une propriété `categorie`, `category`, `type` ou `groupe` regroupe les objets. Chaque catégorie reçoit sa couleur et sa ligne dans la légende, ce qui permet de tout garder dans un seul fichier. `--donnees-categorie <propriété>` désigne une autre propriété, par exemple `--donnees-categorie dechets`.
+- **Couleurs** : celles du fichier quand elles y sont (`marker-color`, `fill`, `stroke-width`… comme dans uMap, ou une propriété `couleur`), sinon une couleur par catégorie, et à défaut une par fichier. `--donnees-couleur <propriété>` désigne la propriété qui porte la couleur.
 - **Coordonnées** : en longitude/latitude (WGS 84). Un fichier projeté, par exemple en Lambert 93, est refusé avec un message qui l'explique.
 - **Légende** : ajoutée en bas à gauche, avec une ligne par catégorie, ou une ligne par fichier en l'absence de catégorie. `--sans-legende` la retire.
 - **Mention des sources** : les fichiers ajoutés y sont cités, pour ne pas laisser croire qu'ils viennent de l'IGN.

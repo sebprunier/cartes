@@ -92,8 +92,8 @@ async function generate(input, options) {
       return readLayer(readFileSync(file, 'utf8'), {
         fileName: basename(file),
         index,
-        categoryProperty: options.category,
-        colorProperty: options.color,
+        categoryProperty: options['data-category'],
+        colorProperty: options['data-color'],
       });
     } catch (error) {
       if (error instanceof LayerError) throw new UsageError(`${file} : ${error.message}`);
