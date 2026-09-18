@@ -89,7 +89,7 @@ async function generate({
       return content ? true : null;
     },
     concurrency: CONCURRENCY,
-    onProgress: (done, total) => postMessage({ progress: { done: (drawn = done), total } }),
+    onProgress: (done, total) => postMessage({ progress: { sourceId: basemap.id, done: (drawn = done), total } }),
   });
 
   for (const layer of chosen) {
@@ -100,7 +100,7 @@ async function generate({
         return content ? true : null;
       },
       concurrency: CONCURRENCY,
-      onProgress: (done, total) => postMessage({ progress: { done: drawn + done, total: total * (1 + chosen.length) } }),
+      onProgress: (done, total) => postMessage({ progress: { sourceId: layer.id, done, total } }),
     });
   }
 

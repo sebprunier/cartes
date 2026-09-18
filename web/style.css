@@ -206,6 +206,34 @@ button:disabled {
   font-size: 0.85rem;
 }
 
+#progress-line {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+#progress-line li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+#progress-line .progress-name {
+  min-width: 14rem;
+}
+
+#progress-line .progress-status {
+  color: var(--grey);
+}
+
+#progress-line li.done .progress-name::after {
+  content: ' ✓';
+  color: var(--green);
+}
+
 #map-layers {
   margin: 0.5rem 0 0;
   padding: 0;

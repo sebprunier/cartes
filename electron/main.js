@@ -100,7 +100,7 @@ ipcMain.handle('generate', async (event, request) => {
       loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: basemap.id, zoom: extent.zoom }),
       concurrency: CONCURRENCY,
       signal: generation.signal,
-      onProgress: (done, total) => event.sender.send('progress', { done, total }),
+      onProgress: (done, total) => event.sender.send('progress', { sourceId: basemap.id, done, total }),
     });
 
     const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale: request.grayscale });
@@ -111,7 +111,7 @@ ipcMain.handle('generate', async (event, request) => {
         loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: layer.id, zoom: extent.zoom }),
         concurrency: CONCURRENCY,
         signal: generation.signal,
-        onProgress: (done, total) => event.sender.send('progress', { done, total }),
+        onProgress: (done, total) => event.sender.send('progress', { sourceId: layer.id, done, total }),
       });
       await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
     }

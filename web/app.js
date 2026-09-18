@@ -58,8 +58,6 @@ const estimateNote = element('estimate-note');
 const generateButton = element('generate');
 const cancelButton = element('cancel');
 const progressLine = element('progress-line');
-const progressBar = element('progress-bar');
-const progressStatus = element('progress-status');
 const result = element('result');
 const errorLine = element('error');
 const zoomNote = element('zoom-note');
@@ -535,11 +533,9 @@ async function generate() {
   if (!municipality) return;
   generateButton.disabled = true;
   cancelButton.hidden = false;
-  progressLine.hidden = false;
   result.hidden = true;
   errorLine.hidden = true;
-  progressBar.value = 0;
-  progressStatus.textContent = 'Téléchargement des tuiles…';
+  showProgressSources();
   const start = performance.now();
 
   try {
@@ -558,10 +554,7 @@ async function generate() {
         legend: legendBox.checked,
         fileName: defaultFileName(),
       },
-      ({ done, total }) => {
-        progressBar.value = (done / total) * 100;
-        progressStatus.textContent = `${done} / ${total} tuiles`;
-      },
+      showProgress,
     );
     if (!map.canceled) showMap(map, Math.round((performance.now() - start) / 1000));
   } catch (error) {
@@ -571,6 +564,41 @@ async function generate() {
     cancelButton.hidden = true;
     progressLine.hidden = true;
   }
+}
+
+/**
+ * One line per source to download, in the order they are drawn: the basemap, then the layers laid over it.
+ * Each keeps its own count, rather than a single total where nothing says what is being downloaded.
+ */
+function showProgressSources() {
+  const sources = [BASEMAPS[basemapChoice.value], ...chosenMapLayers().map(({ id }) => MAP_LAYERS[id])];
+  progressLine.replaceChildren(
+    ...sources.map((source) => {
+      const item = document.createElement('li');
+      item.dataset.source = source.id;
+      const name = document.createElement('span');
+      name.className = 'progress-name';
+      name.textContent = source.name;
+      const bar = document.createElement('progress');
+      bar.max = 100;
+      bar.value = 0;
+      const status = document.createElement('span');
+      status.className = 'progress-status';
+      status.textContent = 'en attente';
+      item.append(name, bar, status);
+      return item;
+    }),
+  );
+  progressLine.hidden = false;
+}
+
+function showProgress({ sourceId, done, total }) {
+  const item = progressLine.querySelector(`li[data-source="${sourceId}"]`);
+  if (!item) return;
+  item.querySelector('progress').value = (done / total) * 100;
+  item.querySelector('.progress-status').textContent =
+    done < total ? `${done} / ${total} tuiles` : `${total} tuiles`;
+  item.classList.toggle('done', done >= total);
 }
 
 /** Name of the generated file: municipality, basemap, zoom level and rendering. */
@@ -610,7 +638,6 @@ function cancel() {
   cancelButton.hidden = true;
   progressLine.hidden = true;
   generateButton.disabled = false;
-  progressStatus.textContent = '';
 }
 
 function showError(message) {

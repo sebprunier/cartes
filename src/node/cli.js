@@ -163,7 +163,7 @@ async function generate(input, options) {
   }
 
   const start = performance.now();
-  console.log(`Téléchargement de ${extent.tileCount} tuiles (zoom ${zoom})…`);
+  console.log(`Téléchargement de ${extent.tileCount} tuiles pour « ${basemap.name} » (zoom ${zoom})…`);
   const tiles = await downloadTiles(basemap, zoom, [...tilesInExtent(extent)], {
     loadTile: cachedTileLoader({ cacheDir: options.cache, basemapId: basemap.id, zoom }),
     concurrency,
@@ -186,7 +186,7 @@ async function generate(input, options) {
   }
 
   for (const layer of mapLayers) {
-    console.log(`Téléchargement de la couche « ${layer.name} »…`);
+    console.log(`Téléchargement de ${extent.tileCount} tuiles pour « ${layer.name} »…`);
     const layerTiles = await downloadTiles(layer, zoom, [...tilesInExtent(extent)], {
       loadTile: cachedTileLoader({ cacheDir: options.cache, basemapId: layer.id, zoom }),
       concurrency,
