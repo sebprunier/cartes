@@ -6,7 +6,13 @@ import path from 'node:path';
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
-import { chooseMapLayers } from '../src/core/maplayers.js';
+import {
+  chooseMapLayers,
+  isVectorLayer,
+  mapLayerLegendEntries,
+  vectorStyleOf,
+} from '../src/core/maplayers.js';
+import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../src/core/vectortiles.js';
 import { estimateFileSize } from '../src/core/estimates.js';
 import { withUpdateDates } from '../src/core/metadata.js';
 import { layersSource } from '../src/core/layers.js';
@@ -19,6 +25,7 @@ import {
   attributionLabel,
   boundaryOutline,
   drawMapLayer,
+  vectorOverlays,
   drawOverlays,
   layerOverlays,
   legendOverlay,
@@ -117,7 +124,17 @@ ipcMain.handle('generate', async (event, request) => {
     const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale: request.grayscale });
 
     const mapLayers = chooseMapLayers(request.mapLayers ?? []);
+    const vectorShapes = [];
+    const legendExtra = [];
     for (const layer of mapLayers) {
+      if (isVectorLayer(layer)) {
+        const vectorTiles = await readVectorLayer(layer, extent);
+        vectorShapes.push(...vectorTileShapes(vectorTiles, extent, { styleOf: vectorStyleOf(layer) }));
+        legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, vectorTiles)));
+        event.sender.send('progress', { sourceId: layer.id, done: 1, total: 1 });
+        continue;
+      }
+
       const layerTiles = await downloadTiles(layer, extent.zoom, [...tilesInExtent(extent)], {
         loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: layer.id, zoom: extent.zoom }),
         concurrency: CONCURRENCY,
@@ -136,9 +153,10 @@ ipcMain.handle('generate', async (event, request) => {
     const added = layersSource(layers);
     if (added) sources.push(added);
 
-    const overlays = request.outline ? [boundaryOutline(request.boundary, extent)] : [];
+    const overlays = vectorOverlays(vectorShapes);
+    if (request.outline) overlays.push(boundaryOutline(request.boundary, extent));
     overlays.push(...layerOverlays(layers, extent));
-    if (request.legend !== false) overlays.push(await legendOverlay(layers, extent));
+    if (request.legend !== false) overlays.push(await legendOverlay(layers, extent, legendExtra));
     overlays.push(await attributionLabel(attributionText({ sources }), extent));
     await drawOverlays(pixels, extent, overlays);
     await saveImage(pixels, extent, filePath, {

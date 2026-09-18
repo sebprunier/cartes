@@ -5,7 +5,16 @@ import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 
 import { BASEMAPS, canUsePalette } from '../core/basemaps.js';
-import { MAP_LAYERS, MapLayerError, chooseMapLayers, mapLayerZoomWarning } from '../core/maplayers.js';
+import {
+  MAP_LAYERS,
+  MapLayerError,
+  chooseMapLayers,
+  isVectorLayer,
+  mapLayerLegendEntries,
+  mapLayerZoomWarning,
+  vectorStyleOf,
+} from '../core/maplayers.js';
+import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
 import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
 import { withUpdateDates } from '../core/metadata.js';
 import {
@@ -29,6 +38,7 @@ import {
   attributionLabel,
   boundaryOutline,
   drawMapLayer,
+  vectorOverlays,
   drawOverlays,
   layerOverlays,
   legendOverlay,
@@ -187,7 +197,19 @@ async function generate(input, options) {
     );
   }
 
+  const vectorShapes = [];
+  const legendExtra = [];
   for (const layer of mapLayers) {
+    if (isVectorLayer(layer)) {
+      console.log(`Lecture des tuiles vectorielles de « ${layer.name} »…`);
+      const tiles = await readVectorLayer(layer, extent);
+      const shapes = vectorTileShapes(tiles, extent, { styleOf: vectorStyleOf(layer) });
+      console.log(`  ${shapes.length} forme(s) dessinée(s) depuis ${tiles.length} tuile(s).`);
+      vectorShapes.push(...shapes);
+      legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, tiles)));
+      continue;
+    }
+
     console.log(`Téléchargement de ${extent.tileCount} tuiles pour « ${layer.name} »…`);
     const layerTiles = await downloadTiles(layer, zoom, [...tilesInExtent(extent)], {
       loadTile: cachedTileLoader({ cacheDir: options.cache, basemapId: layer.id, zoom }),
@@ -201,9 +223,10 @@ async function generate(input, options) {
   }
 
   const outline = !options['no-outline'];
-  const overlays = outline ? [boundaryOutline(boundary, extent)] : [];
+  const overlays = vectorOverlays(vectorShapes);
+  if (outline) overlays.push(boundaryOutline(boundary, extent));
   overlays.push(...layerOverlays(layers, extent));
-  if (!options['no-legend']) overlays.push(await legendOverlay(layers, extent));
+  if (!options['no-legend']) overlays.push(await legendOverlay(layers, extent, legendExtra));
 
   const sources = await withUpdateDates([basemap, ...mapLayers, ...(outline ? [BOUNDARY_SOURCE] : [])]);
   const added = layersSource(layers);

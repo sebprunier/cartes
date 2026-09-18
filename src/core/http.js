@@ -11,11 +11,18 @@ export class HttpError extends Error {
   }
 }
 
-export function request(url) {
+export function request(url, headers = {}) {
   return fetch(url, {
-    headers: isNode ? { 'User-Agent': USER_AGENT } : {},
+    headers: { ...(isNode ? { 'User-Agent': USER_AGENT } : {}), ...headers },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
+}
+
+/** Bytes of a part of a file, for the services that serve a large file by ranges. */
+export async function requestRange(url, start, length) {
+  const response = await request(url, { Range: `bytes=${start}-${start + length - 1}` });
+  if (!response.ok) throw new HttpError(url, response.status);
+  return new Uint8Array(await response.arrayBuffer());
 }
 
 export async function requestJson(url) {

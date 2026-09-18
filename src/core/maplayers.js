@@ -27,6 +27,32 @@ const MAP_LAYER_LIST = [
       grayscale: { png: 0.8, pngPalette: 0.3, jpg: 0.35, tif: 1.35 },
     },
   },
+  {
+    id: 'argiles',
+    name: 'Retrait-gonflement des argiles',
+    description: 'Aléa de retrait-gonflement des argiles, millésime 2026, par niveau.',
+    kind: 'vector',
+    url: 'https://static.data.gouv.fr/resources/carte-des-risques-retrait-gonflement-des-argiles-2026/20260401-081931/argile-2026.pmtiles',
+    dataMaxZoom: 12,
+    minZoom: 4,
+    maxZoom: 19,
+    zoomNote: 'La donnée s’arrête au zoom 12 : au-delà, les mêmes contours sont dessinés en plus grand, nets mais pas plus précis.',
+    opacity: 0.45,
+    attribution: '© BRGM – Retrait-gonflement des argiles 2026, via la DINUM',
+    updateDate: '2026-04-01',
+    // The level of hazard, whose colors stay distinct once printed in grayscale (luminance 213, 161 and 96).
+    // Zones are filled without an outline: a tile cuts the shapes it holds, and an outline would draw the cut.
+    categoryProperty: 'ALEA',
+    styles: {
+      Faible: { fill: '#f7d774', label: 'Aléa faible' },
+      Moyen: { fill: '#e8913c', label: 'Aléa moyen' },
+      Fort: { fill: '#c0392b', label: 'Aléa fort' },
+    },
+    fileSizeRatios: {
+      color: { png: 1, pngPalette: 0.4, jpg: 0.4, tif: 1.2 },
+      grayscale: { png: 1, pngPalette: 0.4, jpg: 0.45, tif: 1.4 },
+    },
+  },
 ];
 
 export const MAP_LAYERS = Object.fromEntries(MAP_LAYER_LIST.map((layer) => [layer.id, layer]));
@@ -59,6 +85,32 @@ function checkOpacity(value, layer) {
     );
   }
   return opacity;
+}
+
+/** Whether a layer is drawn by us, from vector tiles, rather than laid down as ready-made images. */
+export function isVectorLayer(layer) {
+  return layer.kind === 'vector';
+}
+
+/**
+ * Colors of a feature of a vector layer, from the property that carries its category, faded by the opacity of
+ * the layer: a hazard drawn over a map must not hide it.
+ */
+export function vectorStyleOf(layer) {
+  return (properties) => {
+    const style = layer.styles[properties[layer.categoryProperty]];
+    return style && { ...style, fillOpacity: layer.opacity };
+  };
+}
+
+/**
+ * Legend entries of a vector layer: one per level it draws. `drawn` limits them to the levels really present
+ * on the map, a legend naming a level that is nowhere to be seen being misleading.
+ */
+export function mapLayerLegendEntries(layer, drawn) {
+  return Object.entries(layer.styles ?? {})
+    .filter(([name]) => !drawn || drawn.has(name))
+    .map(([, style]) => ({ label: style.label, color: style.fill, shape: 'polygon' }));
 }
 
 /** What the layer does not show at this zoom level, or undefined when it shows everything. */

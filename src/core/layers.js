@@ -1,7 +1,7 @@
 // Data layers added to a map: reading the files provided by the municipality (GeoJSON, CSV), and conversion
 // of their features into shapes in image pixels, ready to be drawn by the platform.
 
-import { box, boxesOverlap, expandBox, mergeBoxes } from './overlays.js';
+import { box, boxesOverlap, expandBox, mergeBoxes, pathData } from './overlays.js';
 import { lonLatToPixel } from './tiles.js';
 
 // Colors given to the layers that do not carry their own, distinguishable once printed in grayscale.
@@ -268,7 +268,7 @@ export function layersSource(layers) {
  * the color drawn for it and the shape that represents it best. What is outside the extent is left out, as
  * nothing is drawn for it.
  */
-export function legendEntries(layers, extent) {
+export function legendEntries(layers, extent, extra = []) {
   return layers.flatMap((layer) => {
     const drawn = layerShapes(layer, extent).features;
     if (drawn.length === 0) return [];
@@ -279,16 +279,17 @@ export function legendEntries(layers, extent) {
       const features = drawn.filter((feature) => feature.category === name);
       return features.length === 0 ? [] : [{ label: name, color, shape: dominantShape(features) }];
     });
-  });
+  }).concat(extra);
 }
 
 /**
  * Title of the legend: the name of the layer when a single file is added and its entries are its categories,
  * otherwise a plain word, as the entries then come from several files.
  */
-export function legendTitle(layers) {
+export function legendTitle(layers, extra = []) {
   const [layer, ...others] = layers;
-  return others.length === 0 && (layer?.categories ?? []).length > 0 ? layer.name : 'Légende';
+  const alone = others.length === 0 && extra.length === 0;
+  return alone && (layer?.categories ?? []).length > 0 ? layer.name : 'Légende';
 }
 
 function dominantShape(features) {
@@ -451,8 +452,3 @@ function sizeFactor(size) {
   return { small: 0.7, medium: 1, large: 1.5 }[size] ?? 1;
 }
 
-function pathData(rings, closed) {
-  return rings
-    .map((ring) => `M${ring.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join('L')}${closed ? 'Z' : ''}`)
-    .join('');
-}

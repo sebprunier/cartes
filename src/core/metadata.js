@@ -46,6 +46,8 @@ export function updateDateFromRecord(xml) {
 export function withUpdateDates(sources) {
   return Promise.all(
     sources.map(async (source) => {
+      // A source without a record in the catalog carries its own date, if it has one.
+      if (!source.metadataId) return source;
       try {
         const updateDate = await fetchUpdateDate(source.metadataId);
         return updateDate ? { ...source, updateDate } : source;

@@ -104,13 +104,23 @@ export function layerOverlays(layers, extent) {
   return layersShapes(layers, extent).flatMap(layerElements);
 }
 
-function layerElements({ points, paths, fontSize }) {
-  const overlays = paths.map(({ path, box: area, color, strokeWidth, fill, fillOpacity }) => ({
+/** Overlays drawing the shapes of a vector layer: one per shape, each with the area it covers. */
+export function vectorOverlays(shapes) {
+  return shapes.map(pathOverlay);
+}
+
+function pathOverlay({ path, box: area, color, strokeWidth, fill, fillOpacity }) {
+  const stroke = color && strokeWidth > 0 ? `stroke="${color}" stroke-width="${strokeWidth}"` : 'stroke="none"';
+  return {
     svg:
-      `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" stroke="${color}" ` +
-      `stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round"/>`,
+      `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" ${stroke} ` +
+      'stroke-linejoin="round" stroke-linecap="round"/>',
     box: area,
-  }));
+  };
+}
+
+function layerElements({ points, paths, fontSize }) {
+  const overlays = paths.map(pathOverlay);
 
   for (const { x, y, radius: pointRadius, color, label, labelX, labelY, labelAlign, box: area, labelBox } of points) {
     const elements = [
@@ -174,12 +184,12 @@ function textImage(text, fontSize, maxWidth, { bold = false } = {}) {
 }
 
 /** SVG elements showing the legend of the data layers, in the bottom left corner of the image. */
-export async function legendOverlay(layers, extent) {
-  const entries = legendEntries(layers, extent);
+export async function legendOverlay(layers, extent, extra = []) {
+  const entries = legendEntries(layers, extent, extra);
   if (entries.length === 0) return undefined;
 
   const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
-  const title = await textImage(legendTitle(layers), fontSize, undefined, { bold: true });
+  const title = await textImage(legendTitle(layers, extra), fontSize, undefined, { bold: true });
   const labels = await Promise.all(entries.map(({ label }) => textImage(label, fontSize)));
   const labelsWidth = 2 * padding + symbolSize + Math.max(...labels.map(({ info }) => info.width));
   const boxWidth = padding + Math.max(labelsWidth, title.info.width + padding);

@@ -14,6 +14,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- Couche de l'aléa retrait-gonflement des argiles (millésime 2026, BRGM via la DINUM), dessinée par l'outil à partir de tuiles vectorielles : les zones restent nettes à l'impression et leurs niveaux figurent dans la légende. L'archive n'est lue que par morceaux, quelques kilooctets suffisant pour une commune.
 - Couches superposables au fond de carte, choisies dans un catalogue : la première est le cadastre (Parcellaire Express de l'IGN), en semi-transparence et citée dans la mention des sources. Option `--couches` et commande `cartes couches` en ligne de commande, cases à cocher sur la page web et dans l'application. L'opacité, 0,6 par défaut, se règle avec `--couches-opacite` ou avec un curseur dans l'interface.
 - L'aperçu s'efface quand un réglage change, comme le poids estimé : une image qui ne correspond plus aux réglages induit en erreur, même accompagnée d'un avertissement.
 - L'estimation du poids rejoint l'aperçu dans une étape « Vérifier avant de générer », après le choix des données : elle en dépend désormais. Elle porte sur le seul niveau de zoom choisi, ce qui la rend bien plus rapide, et le tableau des réglages ne montre plus que les dimensions.

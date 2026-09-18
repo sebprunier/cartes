@@ -2,15 +2,24 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { tileUrl } from '../src/core/basemaps.js';
-import { MAP_LAYERS, MapLayerError, chooseMapLayers, mapLayerZoomWarning } from '../src/core/maplayers.js';
+import {
+  MAP_LAYERS,
+  MapLayerError,
+  chooseMapLayers,
+  isVectorLayer,
+  mapLayerLegendEntries,
+  mapLayerZoomWarning,
+} from '../src/core/maplayers.js';
 
 describe('MAP_LAYERS', () => {
   it('describes every layer with what a map and its sources mention need', () => {
     for (const [id, layer] of Object.entries(MAP_LAYERS)) {
       assert.equal(layer.id, id);
-      for (const field of ['name', 'description', 'url', 'attribution', 'metadataId']) {
+      for (const field of ['name', 'description', 'url', 'attribution']) {
         assert.ok(layer[field], `${id} ${field}`);
       }
+      // The open licence asks for the update date: either read from the catalog, or written here.
+      assert.ok(layer.metadataId || layer.updateDate, `${id} date de mise à jour`);
       assert.ok(layer.minZoom <= layer.maxZoom, id);
       // The weight a layer adds to the file is measured, as for the basemaps.
       for (const mode of ['color', 'grayscale']) {
@@ -21,6 +30,21 @@ describe('MAP_LAYERS', () => {
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);
       // A layer that shows less below its minimum zoom says what is missing.
       assert.ok(layer.zoomNote, id);
+    }
+  });
+
+  it('gives every vector layer the styles and labels its legend needs', () => {
+    for (const layer of Object.values(MAP_LAYERS).filter(isVectorLayer)) {
+      assert.ok(layer.categoryProperty, layer.id);
+      assert.ok(Object.keys(layer.styles).length > 0, layer.id);
+      for (const [name, style] of Object.entries(layer.styles)) {
+        assert.ok(style.fill, `${layer.id} ${name} fill`);
+        assert.ok(style.label, `${layer.id} ${name} label`);
+      }
+      assert.deepEqual(
+        mapLayerLegendEntries(layer, new Set(['Fort'])).map(({ label }) => label),
+        [layer.styles.Fort.label],
+      );
     }
   });
 

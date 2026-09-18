@@ -45,6 +45,13 @@ export function boundaryPath(boundary, extent) {
   return { path, box: expandBox(box ?? box0(), outlineStrokeWidth(extent)) };
 }
 
+/** SVG path data of rings of pixels, usable by an SVG overlay as well as by a canvas (Path2D). */
+export function pathData(rings, closed) {
+  return rings
+    .map((ring) => `M${ring.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join('L')}${closed ? 'Z' : ''}`)
+    .join('');
+}
+
 /** Rectangle in image pixels, used to place labels and to know which block of the image an overlay falls in. */
 export function box(x, y, width, height) {
   return { x, y, width, height };

@@ -4,13 +4,22 @@
 
 import { BASEMAPS } from './core/basemaps.js';
 import { layersSource } from './core/layers.js';
-import { chooseMapLayers } from './core/maplayers.js';
+import { chooseMapLayers, isVectorLayer, mapLayerLegendEntries, vectorStyleOf } from './core/maplayers.js';
+import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { withUpdateDates } from './core/metadata.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
 import { downloadTiles, extentFromBbox, extentWindow, fetchTile, tilesInExtent } from './core/tiles.js';
 import { engine } from './engine.js';
-import { createCanvas, drawAttribution, drawBoundary, drawLayers, drawLegend, drawTile } from './render.js';
+import {
+  createCanvas,
+  drawAttribution,
+  drawBoundary,
+  drawLayers,
+  drawLegend,
+  drawPaths,
+  drawTile,
+} from './render.js';
 
 // Sizes in pixels of the two views, chosen to stay readable on a page without downloading many tiles.
 const OVERVIEW_SIDE = 700;
@@ -85,8 +94,17 @@ function overviewZoom(bbox, margin) {
 async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, boundary, layers, legend, attribution }) {
   const { canvas, context } = createCanvas(area.width, area.height);
   const tiles = [...tilesInExtent(area)];
-  // The basemap first, then the layers laid over it, in the order of the catalog.
-  for (const source of [basemap, ...mapLayers]) {
+  // Layers drawn from vector tiles are read once from their archive, not downloaded tile by tile.
+  const legendExtra = [];
+  const vectors = [];
+  for (const layer of mapLayers.filter(isVectorLayer)) {
+    const tiles = await readVectorLayer(layer, sizedFor);
+    vectors.push({ layer, tiles });
+    legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, tiles)));
+  }
+
+  // The basemap first, then the image layers laid over it, in the order of the catalog.
+  for (const source of [basemap, ...mapLayers.filter((layer) => !isVectorLayer(layer))]) {
     await downloadTiles(source, area.zoom, tiles, {
       loadTile: async (url, tile) => {
         // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
@@ -106,9 +124,12 @@ async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, bound
 
   context.save();
   context.translate(sizedFor.xMin - area.xMin, sizedFor.yMin - area.yMin);
+  for (const { layer, tiles } of vectors) {
+    drawPaths(context, vectorTileShapes(tiles, sizedFor, { styleOf: vectorStyleOf(layer) }));
+  }
   if (boundary) drawBoundary(context, boundary, sizedFor);
   drawLayers(context, layers, sizedFor);
-  if (legend) drawLegend(context, layers, sizedFor);
+  if (legend) drawLegend(context, layers, sizedFor, legendExtra);
   if (attribution) drawAttribution(context, attribution, sizedFor);
   context.restore();
   return canvas;

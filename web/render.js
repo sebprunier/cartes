@@ -68,11 +68,11 @@ export function drawLayers(context, layers, extent) {
   for (const shapes of layersShapes(layers, extent)) drawShapes(context, shapes);
 }
 
-function drawShapes(context, { points, paths, fontSize }) {
+/** Draws filled and stroked paths, shared by the data layers and the layers drawn from vector tiles. */
+export function drawPaths(context, paths) {
   context.save();
   context.lineJoin = 'round';
   context.lineCap = 'round';
-
   for (const { path, color, strokeWidth, fill, fillOpacity } of paths) {
     const shape = new Path2D(path);
     if (fill) {
@@ -81,10 +81,20 @@ function drawShapes(context, { points, paths, fontSize }) {
       context.fill(shape);
       context.globalAlpha = 1;
     }
-    context.strokeStyle = color;
-    context.lineWidth = strokeWidth;
-    context.stroke(shape);
+    if (color && strokeWidth > 0) {
+      context.strokeStyle = color;
+      context.lineWidth = strokeWidth;
+      context.stroke(shape);
+    }
   }
+  context.restore();
+}
+
+function drawShapes(context, { points, paths, fontSize }) {
+  drawPaths(context, paths);
+  context.save();
+  context.lineJoin = 'round';
+  context.lineCap = 'round';
 
   context.font = `${fontSize}px sans-serif`;
   context.textBaseline = 'alphabetic';
@@ -109,12 +119,12 @@ function drawShapes(context, { points, paths, fontSize }) {
 }
 
 /** Draws the legend of the data layers in the bottom left corner. */
-export function drawLegend(context, layers, extent) {
-  const entries = legendEntries(layers, extent);
+export function drawLegend(context, layers, extent, extra = []) {
+  const entries = legendEntries(layers, extent, extra);
   if (entries.length === 0) return;
 
   const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
-  const title = legendTitle(layers);
+  const title = legendTitle(layers, extra);
   context.save();
   context.textBaseline = 'middle';
   context.textAlign = 'left';
