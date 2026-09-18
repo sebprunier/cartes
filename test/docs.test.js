@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, it } from 'node:test';
 
 import { DOCUMENTATION_PAGES } from '../scripts/build-docs.js';
+import { FRENCH_COMMANDS } from '../src/node/command-line.js';
 
 const SOURCE = 'docs';
 
@@ -26,6 +27,19 @@ describe('documentation', () => {
       for (const [, target] of markdown.matchAll(/\]\(([^)#]+\.md)\)/g)) {
         assert.ok(available.has(path.basename(target)), `${file} → ${target}`);
       }
+    }
+  });
+
+  // A command added to the tool and forgotten in its page is a command nobody discovers.
+  it('shows every command of the tool on the command line page', async () => {
+    const markdown = await readFile(path.join(SOURCE, 'ligne-de-commande.md'), 'utf8');
+    const names = new Map();
+    for (const [french, english] of Object.entries(FRENCH_COMMANDS)) {
+      names.set(english, [...(names.get(english) ?? []), french]);
+    }
+    for (const [english, french] of names) {
+      const shown = french.some((name) => markdown.includes(`cartes ${name}`));
+      assert.ok(shown, `la commande ${english} (${french.join(', ')}) n’est pas dans ligne-de-commande.md`);
     }
   });
 

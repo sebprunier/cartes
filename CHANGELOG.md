@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Corrigé
+
+- La page « Ligne de commande » de la documentation annonçait « les trois commandes » et en listait quatre depuis l'arrivée de `cartes couches`. Le titre ne compte plus, et un test vérifie que chaque commande de l'outil figure bien sur cette page.
+
 ## [0.3.0] – 2026-09-19
 
 Les cartes portent enfin des données : celles que la commune fournit elle-même, et six couches de services publics à superposer au fond de carte. Un aperçu montre le résultat avant de lancer la génération, et une documentation en ligne accompagne les trois outils.

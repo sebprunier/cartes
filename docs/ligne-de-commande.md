@@ -15,7 +15,7 @@ npm link   # facultatif : rend la commande « cartes » disponible partout
 
 Sans `npm link`, remplacez `cartes` par `node src/node/cli.js` dans les exemples.
 
-## Les trois commandes
+## Les commandes
 
 ```sh
 cartes chercher Colombiers        # retrouver une commune et son code INSEE
