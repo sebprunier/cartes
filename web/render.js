@@ -7,6 +7,7 @@ import {
   OUTLINE_COLOR,
   attributionLayout,
   boundaryPath,
+  legendBoxLayout,
   legendLayout,
   outlineStrokeWidth,
 } from './core/overlays.js';
@@ -48,6 +49,12 @@ export async function drawTile(context, extent, tile, { grayscale = false, opaci
   context.drawImage(bitmap, tile.x * TILE_SIZE - extent.xMin, tile.y * TILE_SIZE - extent.yMin);
   context.restore();
   bitmap.close();
+}
+
+/** A legend published by a map service, as an entry the legend can draw: the image and its natural size. */
+export async function legendImageEntry(content) {
+  const bitmap = await createImageBitmap(new Blob([content]));
+  return { image: bitmap, width: bitmap.width, height: bitmap.height };
 }
 
 /** Draws one image of a WMS layer at its place, scaled when it was asked for at a lower resolution. */
@@ -133,7 +140,8 @@ export function drawLegend(context, layers, extent, extra = []) {
   const entries = legendEntries(layers, extent, extra);
   if (entries.length === 0) return;
 
-  const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
+  const layout = legendLayout(extent);
+  const { fontSize, padding, symbolSize, lineHeight } = layout;
   const title = legendTitle(layers, extra);
   context.save();
   context.textBaseline = 'middle';
@@ -142,9 +150,9 @@ export function drawLegend(context, layers, extent, extra = []) {
   context.font = `bold ${fontSize}px sans-serif`;
   const titleWidth = context.measureText(title).width;
   context.font = `${fontSize}px sans-serif`;
-  const labelWidth = Math.max(...entries.map(({ label }) => context.measureText(label).width));
-  const boxWidth = padding + Math.max(2 * padding + symbolSize + labelWidth, titleWidth + padding);
-  const boxHeight = 2 * padding + (entries.length + 1) * lineHeight;
+  const labelWidths = entries.map((entry) => (entry.image ? 0 : context.measureText(entry.label).width));
+  const { rows, boxWidth, boxHeight } = legendBoxLayout({ entries, titleWidth, labelWidths, layout, extent });
+
   const x = padding;
   const y = extent.height - boxHeight - padding;
   context.fillStyle = ATTRIBUTION_BACKGROUND;
@@ -155,11 +163,17 @@ export function drawLegend(context, layers, extent, extra = []) {
   context.fillText(title, x + padding, y + padding + lineHeight / 2);
 
   context.font = `${fontSize}px sans-serif`;
-  entries.forEach((entry, index) => {
-    const middle = y + padding + (index + 1) * lineHeight + lineHeight / 2;
-    drawLegendSymbol(context, entry, x + padding, middle, symbolSize);
-    context.fillStyle = ATTRIBUTION_COLOR;
-    context.fillText(entry.label, x + 2 * padding + symbolSize, middle);
+  let top = y + padding + lineHeight;
+  rows.forEach(({ entry, height, scale }) => {
+    if (entry.image) {
+      context.drawImage(entry.image, x + padding, top, entry.width * scale, entry.height * scale);
+    } else {
+      const middle = top + height / 2;
+      drawLegendSymbol(context, entry, x + padding, middle, symbolSize);
+      context.fillStyle = ATTRIBUTION_COLOR;
+      context.fillText(entry.label, x + 2 * padding + symbolSize, middle);
+    }
+    top += height;
   });
   context.restore();
 }

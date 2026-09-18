@@ -34,6 +34,7 @@ const MAP_LAYER_LIST = [
     kind: 'wms',
     url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
     wmsLayers: 'PPRN_ZONE_INOND',
+    wmsStyle: 'inspire_common:DEFAULT',
     dataMaxZoom: 16,
     minZoom: 13,
     maxZoom: 19,

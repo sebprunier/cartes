@@ -17,7 +17,7 @@ import {
   vectorStyleOf,
 } from '../core/maplayers.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
-import { wmsRequests } from '../core/wms.js';
+import { wmsLegendUrl, wmsRequests } from '../core/wms.js';
 import { estimateFileSize, formatBytes, imageMemory } from '../core/estimates.js';
 import { withUpdateDates } from '../core/metadata.js';
 import {
@@ -49,6 +49,7 @@ import {
   boundaryOutline,
   drawMapLayer,
   drawWmsLayer,
+  legendImageEntry,
   vectorOverlays,
   drawOverlays,
   layerOverlays,
@@ -230,6 +231,9 @@ async function generate(input, options) {
       }
       const missingBlocks = await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
       if (missingBlocks > 0) console.log(`  ${missingBlocks} image(s) indisponible(s) : le fond reste visible.`);
+      // The service styles its own zoning: its legend is the only one that tells the truth about it.
+      const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+      if (legend) legendExtra.push(await legendImageEntry(legend));
       continue;
     }
 

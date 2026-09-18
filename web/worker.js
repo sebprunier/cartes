@@ -12,7 +12,7 @@ import {
   mapLayerLegendEntries,
   vectorStyleOf,
 } from './core/maplayers.js';
-import { wmsRequests } from './core/wms.js';
+import { wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
@@ -27,6 +27,7 @@ import {
   drawLegend,
   drawTile,
   drawWmsBlock,
+  legendImageEntry,
   toBlob,
 } from './render.js';
 
@@ -130,6 +131,9 @@ async function generate({
         if (content) await drawWmsBlock(context, block, content, { opacity: layer.opacity });
         postMessage({ progress: { sourceId: layer.id, done: index + 1, total: blocks.length } });
       }
+      // The service styles its own zoning: its legend is the only one that tells the truth about it.
+      const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+      if (legend) legendExtra.push(await legendImageEntry(legend));
       continue;
     }
 

@@ -11,7 +11,7 @@ import {
   mapLayerLegendEntries,
   vectorStyleOf,
 } from './core/maplayers.js';
-import { wmsRequests } from './core/wms.js';
+import { wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { withUpdateDates } from './core/metadata.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
@@ -27,6 +27,7 @@ import {
   drawPaths,
   drawTile,
   drawWmsBlock,
+  legendImageEntry,
 } from './render.js';
 
 // Sizes in pixels of the two views, chosen to stay readable on a page without downloading many tiles.
@@ -137,6 +138,8 @@ async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, bound
       const content = await load(block.url, { basemapId: layer.id, zoom: area.zoom, x: block.x, y: block.y });
       if (content) await drawWmsBlock(context, block, content, { opacity: layer.opacity });
     }
+    const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+    if (legend) legendExtra.push(await legendImageEntry(legend));
   }
 
   context.save();

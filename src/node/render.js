@@ -15,6 +15,7 @@ import {
   boundaryPath,
   box,
   boxesOverlap,
+  legendBoxLayout,
   legendLayout,
   mergeBoxes,
   outlineStrokeWidth,
@@ -78,6 +79,14 @@ export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) 
     }
   }
   return missing;
+}
+
+/** A legend published by a map service, as an entry the legend can draw: its bytes and its natural size. */
+export async function legendImageEntry(bytes) {
+  // A Buffer, and not any bytes: the image is written into the SVG as base64.
+  const image = Buffer.from(bytes);
+  const { width, height } = await sharp(image).metadata();
+  return { image, width, height };
 }
 
 /**
@@ -209,23 +218,39 @@ export async function legendOverlay(layers, extent, extra = []) {
   const entries = legendEntries(layers, extent, extra);
   if (entries.length === 0) return undefined;
 
-  const { fontSize, padding, symbolSize, lineHeight } = legendLayout(extent);
+  const layout = legendLayout(extent);
+  const { fontSize, padding, symbolSize, lineHeight } = layout;
   const title = await textImage(legendTitle(layers, extra), fontSize, undefined, { bold: true });
-  const labels = await Promise.all(entries.map(({ label }) => textImage(label, fontSize)));
-  const labelsWidth = 2 * padding + symbolSize + Math.max(...labels.map(({ info }) => info.width));
-  const boxWidth = padding + Math.max(labelsWidth, title.info.width + padding);
-  const boxHeight = 2 * padding + (entries.length + 1) * lineHeight;
+  const labels = await Promise.all(entries.map((entry) => (entry.image ? undefined : textImage(entry.label, fontSize))));
+  const { rows, boxWidth, boxHeight } = legendBoxLayout({
+    entries,
+    titleWidth: title.info.width,
+    labelWidths: labels.map((label) => label?.info.width ?? 0),
+    layout,
+    extent,
+  });
+
   const x = padding;
   const y = extent.height - boxHeight - padding;
-
   const elements = [
     `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" fill="white" fill-opacity="0.85"/>`,
     image(title, x + padding, y + padding + lineHeight / 2),
   ];
-  entries.forEach((entry, index) => {
-    const middle = y + padding + (index + 1) * lineHeight + lineHeight / 2;
-    elements.push(legendSymbol(entry, x + padding, middle, symbolSize));
-    elements.push(image(labels[index], x + 2 * padding + symbolSize, middle));
+
+  let top = y + padding + lineHeight;
+  rows.forEach(({ entry, height, scale }, index) => {
+    if (entry.image) {
+      elements.push(
+        `<image x="${x + padding}" y="${top.toFixed(1)}" width="${(entry.width * scale).toFixed(1)}" ` +
+          `height="${(entry.height * scale).toFixed(1)}" ` +
+          `href="data:image/png;base64,${entry.image.toString('base64')}"/>`,
+      );
+    } else {
+      const middle = top + height / 2;
+      elements.push(legendSymbol(entry, x + padding, middle, symbolSize));
+      elements.push(image(labels[index], x + 2 * padding + symbolSize, middle));
+    }
+    top += height;
   });
   return { svg: elements.join(''), box: box(x, y, boxWidth, boxHeight) };
 }

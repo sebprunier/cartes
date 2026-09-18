@@ -14,7 +14,7 @@ import {
   mapLayerLegendEntries,
   vectorStyleOf,
 } from '../src/core/maplayers.js';
-import { wmsRequests } from '../src/core/wms.js';
+import { wmsLegendUrl, wmsRequests } from '../src/core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../src/core/vectortiles.js';
 import { estimateFileSize } from '../src/core/estimates.js';
 import { withUpdateDates } from '../src/core/metadata.js';
@@ -29,6 +29,7 @@ import {
   boundaryOutline,
   drawMapLayer,
   drawWmsLayer,
+  legendImageEntry,
   vectorOverlays,
   drawOverlays,
   layerOverlays,
@@ -147,6 +148,8 @@ ipcMain.handle('generate', async (event, request) => {
           event.sender.send('progress', { sourceId: layer.id, done: index + 1, total: blocks.length });
         }
         await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
+        const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+        if (legend) legendExtra.push(await legendImageEntry(legend));
         continue;
       }
 

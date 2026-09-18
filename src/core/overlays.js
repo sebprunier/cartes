@@ -49,6 +49,42 @@ export function boundaryPath(boundary, extent) {
   return { path, box: expandBox(box ?? box0(), outlineStrokeWidth(extent)) };
 }
 
+// Text size, in pixels, of a legend image drawn by a map service: scaling by this keeps its words the size
+// of ours. The scale is then held back so that a legend of many classes does not eat the map.
+const SERVICE_LEGEND_FONT = 12;
+const LEGEND_IMAGE_SHARE = { width: 0.3, height: 0.35 };
+
+/**
+ * Where each line of the legend goes, and how big the box must be. A line is either a symbol with its label,
+ * whose width is measured by the platform, or an image published by a map service, drawn at its own scale.
+ */
+export function legendBoxLayout({ entries, titleWidth, labelWidths, layout, extent }) {
+  const { fontSize, padding, symbolSize, lineHeight } = layout;
+  const rows = entries.map((entry, index) => {
+    if (!entry.image) {
+      return { entry, height: lineHeight, width: symbolSize + padding + labelWidths[index] };
+    }
+    const scale = legendImageScale(entry, fontSize, extent);
+    return { entry, scale, height: entry.height * scale + padding, width: entry.width * scale };
+  });
+
+  const contentWidth = Math.max(titleWidth, ...rows.map(({ width }) => width));
+  return {
+    rows,
+    boxWidth: contentWidth + 2 * padding,
+    boxHeight: 2 * padding + lineHeight + rows.reduce((total, { height }) => total + height, 0),
+  };
+}
+
+function legendImageScale({ width, height }, fontSize, extent) {
+  const wanted = fontSize / SERVICE_LEGEND_FONT;
+  const fits = Math.min(
+    (extent.width * LEGEND_IMAGE_SHARE.width) / width,
+    (extent.height * LEGEND_IMAGE_SHARE.height) / height,
+  );
+  return Math.max(0.5, Math.min(wanted, fits));
+}
+
 /** SVG path data of rings of pixels, usable by an SVG overlay as well as by a canvas (Path2D). */
 export function pathData(rings, closed) {
   return rings

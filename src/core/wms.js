@@ -41,6 +41,23 @@ export function wmsRequests(layer, extent, { maxSide = MAX_SIDE } = {}) {
   return requests;
 }
 
+/**
+ * Address of the legend the service draws for its layer: its classes with their colors, as it styles them.
+ * Copying those colors into our own catalog would go wrong the day the service restyles its map.
+ */
+export function wmsLegendUrl(layer) {
+  const parameters = new URLSearchParams({
+    SERVICE: 'WMS',
+    VERSION: '1.3.0',
+    REQUEST: 'GetLegendGraphic',
+    SLD_VERSION: '1.1.0',
+    LAYER: layer.wmsLayers,
+    FORMAT: 'image/png',
+    ...(layer.wmsStyle ? { STYLE: layer.wmsStyle } : {}),
+  });
+  return `${layer.url}${layer.url.includes('?') ? '&' : '?'}${parameters}`;
+}
+
 /** A GetMap request for a part of the image, in Web Mercator, on a transparent background. */
 function getMapUrl(layer, extent, { left, top, width, height, scale }) {
   const metresPerPixel = (2 * WORLD_LIMIT) / (TILE_SIZE * 2 ** extent.zoom);
