@@ -1,7 +1,7 @@
 // Interface of the web page: choice of the municipality, settings, estimates and generation.
 
 import { BASEMAPS } from './core/basemaps.js';
-import { MAP_LAYERS, mapLayerZoomWarning } from './core/maplayers.js';
+import { MAP_LAYERS, MapLayerError, customMapLayer, mapLayerZoomWarning } from './core/maplayers.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
 import { LayerError, applyProperties, layerWarning, readLayer } from './core/layers.js';
 import {
@@ -54,6 +54,15 @@ const layerChooser = element('layer-chooser');
 const layerChoices = element('layer-choices');
 const layerSearch = element('layer-search');
 const closeLayerChooser = element('close-layer-chooser');
+const openCustomLayer = element('open-custom-layer');
+const customLayerForm = element('custom-layer-form');
+const customLayerUrl = element('custom-layer-url');
+const customLayerName = element('custom-layer-name');
+const customLayerSource = element('custom-layer-source');
+const customLayerPrivacy = element('custom-layer-privacy');
+const customLayerError = element('custom-layer-error');
+const checkCustomLayer = element('check-custom-layer');
+const closeCustomLayer = element('close-custom-layer');
 const estimatesTable = element('estimates');
 const estimateResult = element('estimate-result');
 const generateButton = element('generate');
@@ -81,20 +90,71 @@ const layers = [];
 for (const basemap of Object.values(BASEMAPS)) {
   basemapChoice.append(new Option(basemap.name, basemap.id));
 }
-// The layers laid over the basemap, in the order of the catalog, with the opacity chosen for each.
+// The layers laid over the basemap: those of the catalog first, in its order, then those added by address.
+// A layer of the catalog is kept as { id, opacity }; a layer added by address carries its whole description,
+// which is what the generation needs to fetch it.
 const mapLayers = [];
+
+// Layers added by address are remembered between two maps: retyping an address every time would be tedious.
+// They stay in this browser — the page keeps its promise that nothing about the map leaves it.
+const REMEMBERED_LAYERS = 'cartes.couches-perso';
+let remembered = readRemembered();
 showMapLayers();
+
+function readRemembered() {
+  try {
+    const written = JSON.parse(localStorage.getItem(REMEMBERED_LAYERS) ?? '[]');
+    // What was written may be from an older version, or edited by hand: only what still builds is kept.
+    return written.map((definition) => tryCustomLayer(definition)).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function tryCustomLayer(definition) {
+  try {
+    return customMapLayer(definition);
+  } catch {
+    return undefined;
+  }
+}
+
+function rememberLayer(layer) {
+  remembered = [...remembered.filter(({ id }) => id !== layer.id), layer];
+  writeRemembered();
+}
+
+function forgetLayer(layer) {
+  remembered = remembered.filter(({ id }) => id !== layer.id);
+  writeRemembered();
+}
+
+function writeRemembered() {
+  try {
+    const kept = remembered.map(({ id, url, name, attribution }) => ({ id, url, name, attribution }));
+    localStorage.setItem(REMEMBERED_LAYERS, JSON.stringify(kept));
+  } catch {
+    // A browser that refuses to store anything is not a reason to refuse the layer for this map.
+  }
+}
+
+/** The description of a chosen layer: the catalog entry, or the layer added by address, which carries its own. */
+function layerOf(chosen) {
+  return MAP_LAYERS[chosen.id] ?? chosen;
+}
 
 /** The layers chosen, and what to do with each: change its opacity, or take it off the map. */
 function showMapLayers() {
   mapLayerList.replaceChildren(...mapLayers.map(mapLayerItem));
   mapLayersEmpty.hidden = mapLayers.length > 0;
-  addMapLayerButton.disabled = mapLayers.length === Object.keys(MAP_LAYERS).length;
-  addMapLayerButton.textContent = addMapLayerButton.disabled ? 'Toutes les couches sont ajoutées' : 'Ajouter une couche';
+  const catalogAdded = mapLayers.filter(({ id }) => MAP_LAYERS[id]).length;
+  addMapLayerButton.disabled = false;
+  addMapLayerButton.textContent =
+    catalogAdded === Object.keys(MAP_LAYERS).length ? 'Ajouter une couche par son adresse' : 'Ajouter une couche';
 }
 
 function mapLayerItem(chosen) {
-  const layer = MAP_LAYERS[chosen.id];
+  const layer = layerOf(chosen);
   const item = document.createElement('li');
 
   const header = document.createElement('p');
@@ -152,10 +212,10 @@ function opacityChoice(chosen, layer) {
   return line;
 }
 
-/** The catalog, limited to what is not already on the map, and to what the search matches. */
+/** The catalog and the layers remembered, limited to what is not already on the map and to what matches. */
 function showLayerChoices() {
   const wanted = layerSearch.value.trim().toLowerCase();
-  const available = Object.values(MAP_LAYERS)
+  const available = [...Object.values(MAP_LAYERS), ...remembered]
     .filter((layer) => !mapLayers.some(({ id }) => id === layer.id))
     .filter((layer) => `${layer.name} ${layer.description} ${layer.attribution}`.toLowerCase().includes(wanted));
 
@@ -166,16 +226,26 @@ function showLayerChoices() {
       add.type = 'button';
       add.textContent = layer.name;
       add.addEventListener('click', () => {
-        mapLayers.push({ id: layer.id, opacity: layer.opacity });
-        mapLayers.sort((one, other) => Object.keys(MAP_LAYERS).indexOf(one.id) - Object.keys(MAP_LAYERS).indexOf(other.id));
+        addMapLayer(layer);
         layerChooser.close();
-        showMapLayers();
-        clearPreview();
       });
       const description = document.createElement('p');
       description.className = 'map-layer-description';
       description.textContent = `${layer.description} ${layer.attribution}`;
       item.append(add, description);
+
+      // A layer added by address is remembered until it is told to be forgotten.
+      if (!MAP_LAYERS[layer.id]) {
+        const forget = document.createElement('button');
+        forget.type = 'button';
+        forget.className = 'forget-layer';
+        forget.textContent = 'Oublier';
+        forget.addEventListener('click', () => {
+          forgetLayer(layer);
+          showLayerChoices();
+        });
+        description.append(' ', forget);
+      }
       return item;
     }),
   );
@@ -187,9 +257,23 @@ function showLayerChoices() {
   }
 }
 
+/** Lays a layer over the map: those of the catalog in its order, then those added by address. */
+function addMapLayer(layer) {
+  const order = Object.keys(MAP_LAYERS);
+  mapLayers.push(MAP_LAYERS[layer.id] ? { id: layer.id, opacity: layer.opacity } : { ...layer });
+  mapLayers.sort((one, other) => rank(one, order) - rank(other, order));
+  showMapLayers();
+  clearPreview();
+}
+
+function rank(chosen, order) {
+  const place = order.indexOf(chosen.id);
+  return place === -1 ? order.length : place;
+}
+
 /** The layers to lay over the basemap, with the opacity chosen for each. */
 function chosenMapLayers() {
-  return mapLayers.map(({ id, opacity }) => ({ id, opacity }));
+  return mapLayers.map((chosen) => (MAP_LAYERS[chosen.id] ? { id: chosen.id, opacity: chosen.opacity } : { ...chosen }));
 }
 
 addMapLayerButton.addEventListener('click', () => {
@@ -198,6 +282,108 @@ addMapLayerButton.addEventListener('click', () => {
   layerChooser.showModal();
 });
 closeLayerChooser.addEventListener('click', () => layerChooser.close());
+
+// The page promises that nothing about the map is sent anywhere. A layer added by address is the one thing
+// that breaks that promise, so it is said here rather than buried in the documentation.
+customLayerPrivacy.textContent = engine.customLayerNote;
+
+openCustomLayer.addEventListener('click', () => {
+  layerChooser.close();
+  showCustomLayerForm();
+});
+
+closeCustomLayer.addEventListener('click', () => customLayerForm.close());
+
+// A layer the check found nothing in is not refused: it may simply not cover this municipality. It is not
+// added silently either — the same silence would hide a mistyped address. So it is said, and asked again.
+let doubtful;
+
+function showCustomLayerForm() {
+  hideError(customLayerError);
+  forgetDoubt();
+  customLayerForm.showModal();
+  customLayerUrl.focus();
+}
+
+function forgetDoubt() {
+  doubtful = undefined;
+  checkCustomLayer.textContent = 'Vérifier et ajouter';
+}
+
+for (const field of [customLayerUrl, customLayerName, customLayerSource]) {
+  field.addEventListener('input', forgetDoubt);
+}
+
+/**
+ * Adds a layer from what was typed: what it says is checked first, then the address is tried on one tile over
+ * the municipality. A mistyped address, or a service closed to the browser, says so here — not after the
+ * download of a map.
+ */
+checkCustomLayer.addEventListener('click', async () => {
+  if (doubtful) {
+    acceptCustomLayer(doubtful);
+    return;
+  }
+  hideError(customLayerError);
+  let layer;
+  try {
+    layer = customMapLayer({
+      url: customLayerUrl.value,
+      name: customLayerName.value,
+      attribution: customLayerSource.value,
+    });
+  } catch (error) {
+    showError(error instanceof MapLayerError ? error.message : `Couche refusée : ${error.message}`, customLayerError);
+    return;
+  }
+  if (mapLayers.some(({ id }) => id === layer.id)) {
+    showError(`« ${layer.name} » est déjà sur la carte.`, customLayerError);
+    return;
+  }
+
+  checkCustomLayer.disabled = true;
+  const said = checkCustomLayer.textContent;
+  checkCustomLayer.textContent = 'Vérification…';
+  try {
+    const [lon, lat] = municipality
+      ? [(municipality.bbox[0] + municipality.bbox[2]) / 2, (municipality.bbox[1] + municipality.bbox[3]) / 2]
+      : [];
+    const checked = await engine.checkLayer({ ...layer }, { lon, lat, zoom: Number(zoomChoice.value) });
+    // The desktop application answers from its main process, where an error crosses as a message.
+    if (checked.error) throw new MapLayerError(checked.error);
+    if (!checked.empty) {
+      acceptCustomLayer(layer);
+      return;
+    }
+    // The two silences are not worth the same warning: a service that knows none of the addresses tried has
+    // almost certainly been given the wrong one.
+    doubtful = layer;
+    checkCustomLayer.textContent = 'Ajouter quand même';
+    showError(
+      checked.missing
+        ? `Le service ne connaît aucune des tuiles demandées pour « ${layer.name} » : l’adresse est sans doute ` +
+            'inexacte. Vérifiez-la, ou ajoutez la couche quand même si vous savez ce que vous faites.'
+        : `« ${layer.name} » répond, mais n’a aucune donnée sur cette commune : beaucoup de couches ne couvrent ` +
+            'qu’une partie du territoire. Ajoutez-la quand même si c’est attendu.',
+      customLayerError,
+    );
+  } catch (error) {
+    showError(
+      error instanceof MapLayerError ? error.message : `Vérification impossible : ${error.message}`,
+      customLayerError,
+    );
+  } finally {
+    checkCustomLayer.disabled = false;
+    if (!doubtful) checkCustomLayer.textContent = said;
+  }
+});
+
+function acceptCustomLayer(layer) {
+  rememberLayer(layer);
+  addMapLayer(layer);
+  customLayerForm.close();
+  forgetDoubt();
+}
 layerSearch.addEventListener('input', showLayerChoices);
 
 // Each field can explain itself, on demand: a hint shown by a button, rather than on hover, which neither a
@@ -562,7 +748,7 @@ async function estimateWeight() {
       grayscale: grayscaleBox.checked,
       mapLayers: layers,
     });
-    const names = layers.map(({ id }) => MAP_LAYERS[id].name);
+    const names = layers.map((chosen) => layerOf(chosen).name);
     estimateResult.textContent =
       size === undefined
         ? 'Estimation indisponible : réessayez plus tard.'
@@ -615,7 +801,7 @@ async function generate() {
  * Each keeps its own count, rather than a single total where nothing says what is being downloaded.
  */
 function showProgressSources() {
-  const sources = [BASEMAPS[basemapChoice.value], ...chosenMapLayers().map(({ id }) => MAP_LAYERS[id])];
+  const sources = [BASEMAPS[basemapChoice.value], ...chosenMapLayers().map(layerOf)];
   progressLine.replaceChildren(
     ...sources.map((source) => {
       const item = document.createElement('li');
@@ -692,10 +878,12 @@ function showError(message, line = errorLine) {
 }
 
 function clearErrors() {
-  for (const line of [errorLine, searchError, dataError, previewError]) {
-    line.textContent = '';
-    line.hidden = true;
-  }
+  for (const line of [errorLine, searchError, dataError, previewError, customLayerError]) hideError(line);
+}
+
+function hideError(line) {
+  line.textContent = '';
+  line.hidden = true;
 }
 
 function debounce(action, delay) {

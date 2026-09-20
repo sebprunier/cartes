@@ -26,15 +26,17 @@ export async function requestRange(url, start, length) {
 }
 
 /**
- * Bytes of a whole file, for the services that serve one address per tile. A tile that does not exist is not
- * a failure: a service answers 404, or 200 with an empty body, where its data does not reach.
+ * Bytes of a whole file, for the services that serve one address per tile. A tile that holds nothing is not a
+ * failure, and the two ways of saying so are told apart: `null` for a tile the service does not know (404),
+ * an empty result for a tile it knows and has nothing to put in. A wrong address answers 404 everywhere,
+ * which is worth saying, where a layer that simply stops short answers with emptiness.
  */
 export async function requestBytes(url) {
   const response = await request(url);
   if (response.status === 404) return null;
   if (!response.ok) throw new HttpError(url, response.status);
   const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.length === 0) return null;
+  if (bytes.length === 0) return bytes;
   // Some services serve gzipped tiles without announcing it, which fetch then cannot undo by itself.
   return bytes[0] === 0x1f && bytes[1] === 0x8b ? gunzip(bytes) : bytes;
 }

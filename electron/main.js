@@ -7,7 +7,9 @@ import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
 import {
+  checkMapLayer,
   chooseMapLayers,
+  customMapLayer,
   isTileLayer,
   isVectorLayer,
   isWmsLayer,
@@ -75,6 +77,17 @@ ipcMain.handle('tile', async (event, url, { basemapId, zoom, x, y }) => {
   const load = cachedTileLoader({ cacheDir: cacheDir(), basemapId, zoom });
   const tilePath = await load(url, { x, y });
   return tilePath ? await readFile(tilePath) : null;
+});
+
+// A layer added by its address is tried on one tile here, not in the interface: a page is bound by the rules
+// a service sets for other sites, and the application is not. The error crosses as a message, a class not
+// surviving the trip between the two processes.
+ipcMain.handle('check-layer', async (event, definition, place) => {
+  try {
+    return await checkMapLayer(customMapLayer(definition), place);
+  } catch (error) {
+    return { error: error.message };
+  }
 });
 
 ipcMain.handle('estimate', async (event, request) => {

@@ -310,23 +310,61 @@ button:disabled {
   font-size: 0.85rem;
 }
 
-#layer-chooser {
+#layer-chooser,
+#custom-layer-form {
   width: min(32rem, 90vw);
   padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
 }
 
-#layer-chooser::backdrop {
+#layer-chooser::backdrop,
+#custom-layer-form::backdrop {
   background: rgba(0, 0, 0, 0.35);
 }
 
-#layer-chooser h3 {
+#layer-chooser h3,
+#custom-layer-form h3 {
   margin-top: 0;
 }
 
-#layer-chooser input[type='search'] {
+#layer-chooser input[type='search'],
+#custom-layer-form input[type='text'],
+#custom-layer-form input[type='url'] {
   width: 100%;
+}
+
+/* The address is long and has no spaces: it is read more easily in a monospaced font. */
+#custom-layer-url {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+}
+
+#custom-layer-form .note {
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+.dialog-actions button:last-child {
+  border-color: var(--border);
+  background: #fff;
+  color: var(--grey);
+}
+
+#layer-choices .forget-layer {
+  padding: 0 0.35rem;
+  border-color: var(--border);
+  background: #fff;
+  color: var(--grey);
+  font-size: 0.8rem;
+  font-weight: normal;
 }
 
 #layer-choices {

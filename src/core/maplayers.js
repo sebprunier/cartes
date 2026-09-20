@@ -264,6 +264,7 @@ const LOWEST_PROBE_ZOOM = 8;
  */
 export async function checkMapLayer(layer, { lon, lat, zoom }, { fetchBytes = requestBytes } = {}) {
   const lowest = Math.min(zoom, LOWEST_PROBE_ZOOM);
+  let answered = false;
   for (let probe = zoom; probe >= lowest; probe--) {
     const [x, y] = lonLatToPixel(lon, lat, probe);
     const url = tileUrl(layer, probe, Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
@@ -276,9 +277,12 @@ export async function checkMapLayer(layer, { lon, lat, zoom }, { fetchBytes = re
           'est bien ouvert à tous.',
       );
     }
-    if (bytes) return { empty: false };
+    if (bytes?.length) return { empty: false, missing: false };
+    // `null` is a service that does not know this tile at all, where an empty answer is one that knows it and
+    // has nothing to put in it.
+    if (bytes !== null) answered = true;
   }
-  return { empty: true };
+  return { empty: true, missing: !answered };
 }
 
 /** An opacity is a share of 1: 1 hides the basemap, and 0 would draw nothing at all. */

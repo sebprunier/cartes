@@ -205,7 +205,7 @@ describe('checkMapLayer', () => {
   it('stops at the first tile that answers, rather than downloading to find out', async () => {
     const answers = [];
     const fetchBytes = async (url) => (answers.push(url), new Uint8Array([1]));
-    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes }), { empty: false });
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes }), { empty: false, missing: false });
     assert.equal(answers.length, 1);
   });
 
@@ -213,11 +213,20 @@ describe('checkMapLayer', () => {
   // territory: neither means the address is wrong.
   it('walks down a few levels before concluding anything', async () => {
     const fetchBytes = async (url) => (Number(url.split('/').at(-3)) <= 13 ? new Uint8Array([1]) : null);
-    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes }), { empty: false });
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes }), { empty: false, missing: false });
   });
 
-  it('says a layer covers nothing here, rather than pretending it failed', async () => {
-    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes: async () => null }), { empty: true });
+  // A service that knows the tile and leaves it empty is a layer that stops short; one that knows none of the
+  // addresses tried is, almost always, an address that was mistyped. Only the second is worth doubting.
+  it('tells a layer that has nothing here from an address the service does not know', async () => {
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes: async () => new Uint8Array() }), {
+      empty: true,
+      missing: false,
+    });
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes: async () => null }), {
+      empty: true,
+      missing: true,
+    });
   });
 
   it('turns a service that refuses into something the user can act on', async () => {

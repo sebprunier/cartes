@@ -8,6 +8,7 @@ ipcRenderer.on('progress', (event, progress) => onProgress?.(progress));
 
 contextBridge.exposeInMainWorld('cartes', {
   tile: (url, tile) => ipcRenderer.invoke('tile', url, tile),
+  checkLayer: (layer, place) => ipcRenderer.invoke('check-layer', layer, place),
   estimate: (request) => ipcRenderer.invoke('estimate', request),
   generate: (request, progressCallback) => {
     onProgress = progressCallback;

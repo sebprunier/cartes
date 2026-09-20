@@ -76,7 +76,7 @@ async function readTiles(layer, source, tiles) {
       const tile = tiles[next++];
       try {
         const bytes = await source.tile(tile.zoom, tile.x, tile.y);
-        if (bytes) decoded.push({ ...tile, layers: readVectorTile(bytes) });
+        if (bytes?.length) decoded.push({ ...tile, layers: readVectorTile(bytes) });
         consecutiveFailures = 0;
       } catch (error) {
         lastError = error;

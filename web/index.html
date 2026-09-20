@@ -147,7 +147,47 @@
             <input id="layer-search" type="search" placeholder="Rechercher une couche…" />
           </p>
           <ul id="layer-choices"></ul>
-          <p><button id="close-layer-chooser" type="button">Fermer</button></p>
+          <p class="dialog-actions">
+            <button id="open-custom-layer" type="button">Ajouter une couche par son adresse</button>
+            <button id="close-layer-chooser" type="button">Fermer</button>
+          </p>
+        </dialog>
+
+        <dialog id="custom-layer-form">
+          <h3>Ajouter une couche par son adresse</h3>
+          <p class="note">
+            Pour afficher les tuiles que publie une intercommunalité, un département ou un syndicat. L'adresse
+            est un gabarit qui désigne une tuile, avec <code>{z}</code>, <code>{x}</code> et <code>{y}</code> à la
+            place du zoom et des coordonnées : des images, ou des tuiles vectorielles (<code>.pbf</code>) que
+            l'outil dessine lui-même.
+          </p>
+          <p>
+            <label for="custom-layer-url">Adresse des tuiles</label>
+            <input
+              id="custom-layer-url"
+              type="url"
+              placeholder="https://exemple.fr/tuiles/{z}/{x}/{y}.pbf"
+              spellcheck="false"
+            />
+          </p>
+          <p>
+            <label for="custom-layer-name">Nom de la couche</label>
+            <input id="custom-layer-name" type="text" placeholder="Zones humides" />
+          </p>
+          <p>
+            <label for="custom-layer-source">Source à citer sur la carte</label>
+            <input id="custom-layer-source" type="text" placeholder="© Syndicat mixte du bassin" />
+            <span class="note">
+              Écrite sur la carte à côté de celles de l'IGN. La plupart des licences l'imposent, et une carte
+              qui circule sans ses sources ne vaut rien.
+            </span>
+          </p>
+          <p class="note" id="custom-layer-privacy"></p>
+          <p id="custom-layer-error" class="error" hidden></p>
+          <p class="dialog-actions">
+            <button id="check-custom-layer" type="button">Vérifier et ajouter</button>
+            <button id="close-custom-layer" type="button">Annuler</button>
+          </p>
         </dialog>
 
         <h3>Vos fichiers</h3>

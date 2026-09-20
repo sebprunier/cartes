@@ -5,6 +5,7 @@ import { estimateFileSize } from './core/estimates.js';
 import { withUpdateDates } from './core/metadata.js';
 import { layersSource } from './core/layers.js';
 import {
+  checkMapLayer,
   chooseMapLayers,
   isTileLayer,
   isVectorLayer,
@@ -38,9 +39,16 @@ const CONCURRENCY = 6;
 // In a browser, a tile is held as its bytes: the browser HTTP cache avoids downloading it again.
 const loadTile = (url) => fetchTile(url);
 
+const TASKS = {
+  estimate,
+  generate,
+  // The address of a layer is tried here rather than in the page: the fetch belongs where the tiles are read.
+  'check-layer': ({ layer, place }) => checkMapLayer(layer, place),
+};
+
 onmessage = async ({ data: message }) => {
   try {
-    const result = message.task === 'estimate' ? await estimate(message) : await generate(message);
+    const result = await TASKS[message.task](message);
     postMessage({ done: true, ...result });
   } catch (error) {
     postMessage({ error: error.message });

@@ -15,8 +15,14 @@ export const engine = {
     'dessiner : cela dépend de la taille de la commune et de la machine. La ligne de commande et ' +
     "l'application de bureau n'ont pas cette limite.",
 
+  customLayerNote:
+    'Les tuiles seront demandées directement à ce service, qui apprendra donc quelle commune vous ' +
+    'cartographiez. L’adresse est retenue dans ce navigateur pour vos prochaines cartes, et nulle part ailleurs. ' +
+    'Un service qui n’autorise pas les autres sites à le lire (CORS) restera inaccessible depuis cette page.',
+
   // No loadTile: the preview is drawn in the page, which downloads its tiles itself and lets the browser
   // cache them. The desktop application needs one, its interface having no network role.
+  checkLayer: (layer, place) => askWorker({ task: 'check-layer', layer, place }),
   estimate: (request) => askWorker({ task: 'estimate', ...request }),
   generate: (request, onProgress) => askWorker({ task: 'generate', ...request }, onProgress),
   cancel: () => stopWorker(),
