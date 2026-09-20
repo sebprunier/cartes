@@ -4,6 +4,12 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      linux-image:
+        description: >-
+          Image Linux de construction, pour éprouver une nouvelle version avant qu'elle ne devienne
+          « ubuntu-latest » : ubuntu-latest, ubuntu-24.04, ubuntu-26.04…
+        default: ubuntu-latest
 
 permissions:
   contents: write
@@ -22,7 +28,8 @@ jobs:
             label: macOS Apple Silicon
           - os: windows-latest
             label: Windows
-          - os: ubuntu-latest
+          # Le tag construit sur l'image courante ; un lancement à la demande peut en choisir une autre.
+          - os: ${{ inputs.linux-image || 'ubuntu-latest' }}
             label: Linux
     steps:
       - uses: actions/checkout@v7
