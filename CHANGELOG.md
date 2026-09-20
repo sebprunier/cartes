@@ -8,7 +8,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
-- Ajouter sa propre couche, par l'adresse de ses tuiles : un gabarit en `{z}/{x}/{y}` servant des images ou des tuiles vectorielles, que l'outil dessine alors lui-même, avec les couleurs et les libellés que les tuiles portent. En ligne de commande, `--couche-perso`, `--couche-perso-nom` et `--couche-perso-source`. La source est obligatoire : elle est écrite sur la carte, comme celles de l'IGN.
+- Ajouter sa propre couche, par l'adresse de ses tuiles, dans les trois outils : un gabarit en `{z}/{x}/{y}` servant des images ou des tuiles vectorielles, que l'outil dessine alors lui-même avec les couleurs et les libellés que les tuiles portent. La source est obligatoire, puisqu'elle est écrite sur la carte à côté de celles de l'IGN. L'adresse est essayée sur une tuile avant d'être acceptée, et l'outil distingue une adresse inexacte d'une couche qui ne couvre pas la commune. En ligne de commande : `--couche-perso`, `--couche-perso-nom`, `--couche-perso-source` et `--couche-perso-opacite`.
+- Les couches ajoutées par leur adresse sont retenues d'une carte à l'autre, dans le navigateur ou sur l'ordinateur, et proposées dans le catalogue à côté des couches connues.
 
 ### Corrigé
 

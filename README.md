@@ -39,7 +39,7 @@ Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient s
 4. **Fait** : ajouter les données de la commune sur les cartes (points, zones, tracés), avec leurs catégories, leur légende et un aperçu avant génération.
 5. **Fait** : un catalogue de couches ouvertes à superposer — cadastre, PPR inondation et mouvements de terrain, cavités souterraines, canalisations de matières dangereuses, aléa retrait-gonflement des argiles.
 6. **Fait** : une documentation utilisateur en ligne, et une aide dans les outils eux-mêmes.
-7. **Prochaine étape** : ouvrir le catalogue aux couches que la commune fournit elle-même.
+7. **Fait** : ouvrir le catalogue aux couches que la commune fournit elle-même, par l'adresse de leurs tuiles.
 
 ## Documentation
 

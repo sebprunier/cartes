@@ -41,6 +41,10 @@ cartes generer 86081 -z 16 --couches cadastre --couches argiles
 # Avec ses propres données, et un nom de légende choisi
 cartes generer 86081 --donnees points.geojson --donnees-titre "Points d'apport volontaire"
 
+# Avec une couche qui n'est pas au catalogue, par l'adresse de ses tuiles
+cartes generer 86081 --couche-perso "https://exemple.fr/tuiles/{z}/{x}/{y}.pbf" \
+  --couche-perso-nom "Zones humides" --couche-perso-source "© Syndicat de bassin"
+
 # Estimer avant de générer : dimensions, mémoire et poids par niveau de zoom
 cartes generer 86081 --estimer
 ```

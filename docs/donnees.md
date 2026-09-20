@@ -21,6 +21,27 @@ Chaque couche a une **opacité** réglable, pour laisser lire le fond de carte e
 
 Une couche vide n'est pas une panne : beaucoup de communes ne sont traversées par aucune canalisation, et n'ont ni cavité recensée ni plan de prévention.
 
+### Ajouter sa propre couche
+
+Le catalogue ne couvre pas tout. Une communauté de communes, un département, un syndicat d'eau publient souvent leurs propres tuiles : le bouton « Ajouter une couche par son adresse », dans le catalogue, permet de les afficher. En ligne de commande, c'est `--couche-perso`.
+
+Trois choses sont demandées :
+
+- **l'adresse des tuiles**, sous forme de gabarit : `https://exemple.fr/tuiles/{z}/{x}/{y}.png`, où `{z}`, `{x}` et `{y}` sont remplacés par le zoom et les coordonnées de chaque tuile. Des images (`.png`, `.jpg`) ou des tuiles vectorielles (`.pbf`), que l'outil dessine alors lui-même à partir des couleurs et des libellés que les tuiles portent ;
+- **le nom** de la couche, tel qu'il apparaîtra dans l'interface et dans la légende ;
+- **la source à citer**, obligatoire : elle est écrite sur la carte à côté de celles de l'IGN. La plupart des licences l'imposent, et vous restez responsable des droits sur ce que vous affichez.
+
+L'adresse est essayée sur une tuile avant d'être acceptée. Si le service ne connaît aucune des tuiles demandées, c'est presque toujours que l'adresse est inexacte ; s'il répond sans rien donner, la couche ne couvre peut-être simplement pas votre commune. Dans les deux cas l'outil le dit, et vous laisse ajouter la couche quand même.
+
+Les adresses saisies sont retenues pour vos prochaines cartes — dans votre navigateur, ou sur votre ordinateur pour l'application — et le catalogue les propose ensuite à côté des couches connues, avec de quoi les oublier.
+
+#### Ce qu'il faut savoir
+
+- **Le service voit passer vos requêtes** et apprend quelle commune vous cartographiez. C'est la seule chose qui sort de votre navigateur.
+- **Depuis la page web**, un service qui n'autorise pas les autres sites à le lire (ce qu'on appelle CORS) reste inaccessible. La ligne de commande et l'application de bureau n'ont pas cette limite.
+- **Ménagez les services que vous ne payez pas** : un zoom élevé, c'est des milliers de tuiles. Certains limitent le nombre de requêtes et l'outil s'arrête alors en vous conseillant de baisser le zoom.
+- **Une couche vectorielle ne dit pas où s'arrête sa donnée.** L'outil cherche le niveau de détail qu'elle contient vraiment ; au-delà, les mêmes contours sont dessinés en plus grand, nets mais pas plus précis.
+
 ## Vos fichiers
 
 Glissez un fichier dans la zone prévue, ou utilisez `--donnees` en ligne de commande.
