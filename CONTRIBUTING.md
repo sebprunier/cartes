@@ -97,7 +97,7 @@ Le projet suit le [versionnage sémantique](https://semver.org/lang/fr/). Pour p
 3. Poussez le commit et le tag : `git push --follow-tags`. Le workflow « Installeurs » construit alors les applications de bureau pour macOS, Windows et Linux, et les joint à la release.
 4. Créez la release GitHub à partir du tag, avec la section du journal comme notes de version : `gh release create vx.y.z --title "x.y.z" --notes-file <notes>`. Si le workflow arrive avant, il crée une release provisoire : modifiez alors ses notes au lieu d'en créer une.
 
-Le workflow « Installeurs » se lance aussi à la demande, depuis l'onglet Actions, pour vérifier que l'empaquetage fonctionne sans publier de version.
+Le workflow « Installeurs » se lance aussi à la demande, depuis l'onglet Actions, pour vérifier que l'empaquetage fonctionne sans publier de version. Il accepte alors le nom de l'image Linux de construction (`ubuntu-24.04`, `ubuntu-26.04`…), ce qui permet d'éprouver la prochaine avant que `ubuntu-latest` n'y passe de lui-même.
 
 ## Licence
 
