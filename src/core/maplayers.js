@@ -1,7 +1,9 @@
 // Catalog of layers that can be laid over a basemap: parcels, risk zones… A layer says where to find the
 // image of a tile, so that the download, the cache and the retries written for the basemaps serve it too.
 
-import { geoplateformeWmts } from './basemaps.js';
+import { geoplateformeWmts, tileUrl } from './basemaps.js';
+import { requestBytes } from './http.js';
+import { TILE_SIZE, lonLatToPixel } from './tiles.js';
 
 // A layer is downloaded like a basemap: `tileUrl` builds the address of each of its tiles, and is the place
 // to extend when a service needs something else than a template, a WMS asking for the bounds of each tile.
@@ -122,22 +124,161 @@ const MAP_LAYER_LIST = [
 
 export const MAP_LAYERS = Object.fromEntries(MAP_LAYER_LIST.map((layer) => [layer.id, layer]));
 
+// Properties holding, in the tiles of a layer added by the user, the label of a feature and its color. The
+// names are those of the data files the tool already reads, a service that publishes tiles and a municipality
+// that exports a GeoJSON naming the same things the same way.
+const CUSTOM_CATEGORY_KEYS = ['label', 'libelle', 'libellé', 'categorie', 'catégorie', 'category', 'classe', 'niveau'];
+const CUSTOM_COLOR_KEYS = ['color', 'couleur', 'fill'];
+// The tiles of a vector layer, which we draw ourselves, rather than images laid down as they come.
+const VECTOR_TILE_PATH = /\.(pbf|mvt)$/i;
+const DEFAULT_CUSTOM_COLOR = '#0e4777';
+
 /**
  * The layers chosen, in the order of the catalog, rejecting the unknown ones. A choice is an identifier, or
- * an object `{ id, opacity }` when the opacity of the catalog is not the one wanted.
+ * an object `{ id, opacity }` when the opacity of the catalog is not the one wanted. A choice carrying a
+ * `url` describes a layer of its own, added by whoever generates the map, and comes after those of the catalog.
  */
 export function chooseMapLayers(selection = []) {
   const chosen = selection.map((entry) => (typeof entry === 'string' ? { id: entry } : entry));
-  const unknown = chosen.filter(({ id }) => !MAP_LAYERS[id]).map(({ id }) => id);
+  const [custom, fromCatalog] = partition(chosen, (entry) => Boolean(entry.url));
+
+  const unknown = fromCatalog.filter(({ id }) => !MAP_LAYERS[id]).map(({ id }) => id);
   if (unknown.length > 0) {
     throw new MapLayerError(
       `Couche inconnue : ${unknown.join(', ')}. Couches disponibles : ${Object.keys(MAP_LAYERS).join(', ')}.`,
     );
   }
-  return MAP_LAYER_LIST.filter((layer) => chosen.some(({ id }) => id === layer.id)).map((layer) => {
-    const { opacity } = chosen.find(({ id }) => id === layer.id);
+  const catalog = MAP_LAYER_LIST.filter((layer) => fromCatalog.some(({ id }) => id === layer.id)).map((layer) => {
+    const { opacity } = fromCatalog.find(({ id }) => id === layer.id);
     return opacity === undefined ? layer : { ...layer, opacity: checkOpacity(opacity, layer) };
   });
+  return [...catalog, ...custom.map(customMapLayer)];
+}
+
+function partition(items, matches) {
+  return [items.filter(matches), items.filter((item) => !matches(item))];
+}
+
+/**
+ * A layer described by whoever generates the map, from the address of its tiles, rather than taken from the
+ * catalog. The catalog describes layers we have checked one by one; here everything is claimed by the person
+ * adding it, so everything is verified before a single tile travels.
+ *
+ * `url` is a template in {z}/{x}/{y}, serving either images or vector tiles — which the tool draws itself,
+ * from the colors the tiles carry. `name` is what the interface shows, and `attribution` what the map credits:
+ * it is required, because a layer whose source is not cited has no place on a map that is handed around.
+ */
+export function customMapLayer(definition = {}) {
+  const url = String(definition.url ?? '').trim();
+  const name = String(definition.name ?? '').trim();
+  const attribution = String(definition.attribution ?? '').trim();
+
+  const missing = ['{z}', '{x}', '{y}'].filter((placeholder) => !url.includes(placeholder));
+  if (missing.length > 0) {
+    throw new MapLayerError(
+      `Adresse de couche incomplète : il y manque ${missing.join(', ')}. Attendu un gabarit qui désigne une ` +
+        'tuile, par exemple https://exemple.fr/tuiles/{z}/{x}/{y}.png.',
+    );
+  }
+  const address = parseTemplate(url);
+  if (!name) throw new MapLayerError(`Nom de couche manquant pour ${url} : c’est ce que l’interface affichera.`);
+  if (!attribution) {
+    throw new MapLayerError(
+      `Source manquante pour la couche « ${name} » : elle est écrite sur la carte, à côté de celles de l’IGN. ` +
+        'La plupart des licences l’imposent, et une carte qui circule sans ses sources ne vaut rien.',
+    );
+  }
+
+  return {
+    id: definition.id || customId(name),
+    name,
+    description: definition.description?.trim() || `Couche ajoutée, servie par ${address.host}.`,
+    kind: VECTOR_TILE_PATH.test(address.pathname) ? 'vector' : 'tiles',
+    url,
+    custom: true,
+    opacity: checkOpacity(definition.opacity ?? 0.6, { id: definition.id || name }),
+    attribution,
+    color: definition.color || DEFAULT_CUSTOM_COLOR,
+    categoryProperty: definition.categoryProperty,
+    colorProperty: definition.colorProperty,
+    // Nothing tells where the data of a template stops: a service answers an empty tile past its own detail.
+    // The check made when the layer is added finds it, and it can also be given outright.
+    dataMaxZoom: numberOrUndefined(definition.dataMaxZoom, 'zoom maximal', name),
+    maxZoom: 19,
+    // The map credits the day the layer was read: a service reachable by its address alone says no more.
+    datedByConsultation: true,
+  };
+}
+
+/** The address of a tile of the template, checked as a whole rather than trusted placeholder by placeholder. */
+function parseTemplate(url) {
+  let address;
+  try {
+    address = new URL(tileUrl({ url }, 0, 0, 0));
+  } catch {
+    throw new MapLayerError(`Adresse de couche invalide : ${url}.`);
+  }
+  if (address.protocol !== 'https:' && address.protocol !== 'http:') {
+    throw new MapLayerError(`Adresse de couche invalide : ${url}. Attendu une adresse en https.`);
+  }
+  return address;
+}
+
+function numberOrUndefined(value, what, name) {
+  if (value === undefined || value === null || value === '') return undefined;
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < 0 || number > 24) {
+    throw new MapLayerError(`${what} invalide pour la couche « ${name} » : ${value}. Attendu un zoom de 0 à 24.`);
+  }
+  return number;
+}
+
+/** An identifier drawn from the name, so that the same layer added twice stays the same layer. */
+function customId(name) {
+  const slug = name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `perso-${slug || 'couche'}`;
+}
+
+/** Whether a layer was added by whoever generates the map, rather than taken from the catalog. */
+export function isCustomLayer(layer) {
+  return Boolean(layer?.custom);
+}
+
+// How far down the probe goes looking for data: below this, a tile covers a whole region and a layer that
+// still says nothing says nothing at all.
+const LOWEST_PROBE_ZOOM = 8;
+
+/**
+ * Tries the address of a layer on a single tile, over the municipality being mapped, before three hundred of
+ * them are asked for: a mistyped address, or a service closed to us, must say so at once rather than after a
+ * long download.
+ *
+ * An answer that holds nothing is not a failure — a layer is legitimately empty over part of a territory, and
+ * a service answers an empty tile past its own detail. So the check walks down a few levels before saying the
+ * layer shows nothing here, and it never concludes anything about where the data stops: one tile cannot.
+ */
+export async function checkMapLayer(layer, { lon, lat, zoom }, { fetchBytes = requestBytes } = {}) {
+  const lowest = Math.min(zoom, LOWEST_PROBE_ZOOM);
+  for (let probe = zoom; probe >= lowest; probe--) {
+    const [x, y] = lonLatToPixel(lon, lat, probe);
+    const url = tileUrl(layer, probe, Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
+    let bytes;
+    try {
+      bytes = await fetchBytes(url);
+    } catch (error) {
+      throw new MapLayerError(
+        `La couche « ${layer.name} » n’a pas répondu : ${error.message}. Vérifiez l’adresse, et que le service ` +
+          'est bien ouvert à tous.',
+      );
+    }
+    if (bytes) return { empty: false };
+  }
+  return { empty: true };
 }
 
 /** An opacity is a share of 1: 1 hides the basemap, and 0 would draw nothing at all. */
@@ -172,10 +313,36 @@ export function isTileLayer(layer) {
  * the layer: a hazard drawn over a map must not hide it.
  */
 export function vectorStyleOf(layer) {
-  return (properties) => {
-    const style = layer.styles[properties[layer.categoryProperty]];
-    return style && { ...style, fillOpacity: layer.opacity };
-  };
+  if (layer.styles) {
+    return (properties) => {
+      const style = layer.styles[properties[layer.categoryProperty]];
+      return style && { ...style, fillOpacity: layer.opacity };
+    };
+  }
+  // A layer added by the user comes with no style table: its tiles say, feature by feature, what to draw. A
+  // service that publishes its own colors has already made them readable together, which we cannot guess.
+  return (properties) => ({
+    fill: text(propertyOf(properties, layer.colorProperty, CUSTOM_COLOR_KEYS)) ?? layer.color,
+    fillOpacity: layer.opacity,
+  });
+}
+
+/** The category of a feature of a vector layer, which gives it its line in the legend. */
+export function vectorCategoryOf(layer) {
+  if (layer.styles) return (properties) => properties[layer.categoryProperty];
+  return (properties) => text(propertyOf(properties, layer.categoryProperty, CUSTOM_CATEGORY_KEYS));
+}
+
+/** The property asked for, if the tiles carry it, else the first usual name found among the properties. */
+function propertyOf(properties, asked, usualNames) {
+  if (asked) return properties[asked];
+  const found = Object.keys(properties).find((name) => usualNames.includes(name.toLowerCase()));
+  return found === undefined ? undefined : properties[found];
+}
+
+function text(value) {
+  const written = value === undefined || value === null ? '' : String(value).trim();
+  return written === '' ? undefined : written;
 }
 
 /**
@@ -183,9 +350,16 @@ export function vectorStyleOf(layer) {
  * on the map, a legend naming a level that is nowhere to be seen being misleading.
  */
 export function mapLayerLegendEntries(layer, drawn) {
-  return Object.entries(layer.styles ?? {})
-    .filter(([name]) => !drawn || drawn.has(name))
-    .map(([, style]) => ({ label: style.label, color: style.fill, shape: 'polygon' }));
+  if (layer.styles) {
+    return Object.entries(layer.styles)
+      .filter(([name]) => !drawn || drawn.has(name))
+      .map(([, style]) => ({ label: style.label, color: style.fill, shape: 'polygon' }));
+  }
+  // A layer added by the user has no list of levels to draw from: its legend is what its tiles hold. When they
+  // name nothing, the layer gets a single line under its own name, which is still better than no legend.
+  const named = [...(drawn ?? [])].filter(([label]) => label !== undefined);
+  if (named.length === 0) return [{ label: layer.name, color: layer.color, shape: 'polygon' }];
+  return named.map(([label, color]) => ({ label, color: color ?? layer.color, shape: 'polygon' }));
 }
 
 /** What the layer does not show at this zoom level, or undefined when it shows everything. */

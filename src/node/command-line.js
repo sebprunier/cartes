@@ -18,6 +18,17 @@ Options de « generer » :
       --couches <id>        couches à superposer au fond de carte, répétable ; liste : cartes couches
       --couches-opacite <n> opacité d'une couche, entre 0 et 1 ; répétable, dans l'ordre des couches ;
                             par défaut, celle du catalogue (0.6 pour le cadastre)
+      --couche-perso <adresse>
+                            couche à superposer, par l'adresse de ses tuiles : un gabarit contenant {z}, {x}
+                            et {y}, servant des images ou des tuiles vectorielles (.pbf) ; répétable
+      --couche-perso-nom <nom>
+                            nom de la couche ajoutée, tel qu'il apparaîtra ; répétable, dans l'ordre des
+                            couches ajoutées
+      --couche-perso-source <mention>
+                            source à citer sur la carte pour la couche ajoutée : obligatoire, la plupart des
+                            licences l'imposent ; répétable, dans l'ordre des couches ajoutées
+      --couche-perso-opacite <n>
+                            opacité d'une couche ajoutée, entre 0 et 1 ; défaut : 0.6 ; répétable
       --donnees <fichier>   données à ajouter sur la carte (.geojson ou .csv), répétable
       --donnees-titre <titre>   nom du jeu de données, pour la légende et la mention des sources ; par défaut,
                             le nom du fichier ; répétable, dans l'ordre des fichiers
@@ -49,6 +60,8 @@ Exemples :
   cartes generer 86081 -f ortho-ign -z 16               sur les photographies aériennes
   cartes generer 86081 --couches cadastre --couches argiles   avec deux couches superposées
   cartes generer 86081 --donnees points.geojson         avec ses propres données
+  cartes generer 86081 --couche-perso "https://exemple.fr/tuiles/{z}/{x}/{y}.pbf" \\
+    --couche-perso-nom "Zones humides" --couche-perso-source "© Syndicat de bassin"   avec sa propre couche
   cartes generer 86081 --estimer                        avant de se lancer : dimensions et poids par zoom
 
 Le niveau de zoom décide de la taille de l'image, donc du format papier : le choisir d'après le format visé
@@ -56,7 +69,8 @@ plutôt que d'après le détail souhaité. La documentation l'explique :
 https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html
 
 Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, --department,
---basemap, --maplayers, --maplayers-opacity, --data, --data-title, --data-category, --data-color, --output,
+--basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name, --custom-layer-source,
+--custom-layer-opacity, --data, --data-title, --data-category, --data-color, --output,
 --margin, --grayscale, --no-outline, --no-legend, --estimate, --max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
@@ -75,6 +89,10 @@ export const OPTIONS = {
   zoom: { type: 'string', short: 'z', default: '17' },
   maplayers: { type: 'string', french: 'couches', multiple: true, default: [] },
   'maplayers-opacity': { type: 'string', french: 'couches-opacite', multiple: true, default: [] },
+  'custom-layer': { type: 'string', french: 'couche-perso', multiple: true, default: [] },
+  'custom-layer-name': { type: 'string', french: 'couche-perso-nom', multiple: true, default: [] },
+  'custom-layer-source': { type: 'string', french: 'couche-perso-source', multiple: true, default: [] },
+  'custom-layer-opacity': { type: 'string', french: 'couche-perso-opacite', multiple: true, default: [] },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
   'data-title': { type: 'string', french: 'donnees-titre', multiple: true, default: [] },
   'data-category': { type: 'string', french: 'donnees-categorie' },

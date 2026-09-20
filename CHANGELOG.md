@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Ajouté
+
+- Ajouter sa propre couche, par l'adresse de ses tuiles : un gabarit en `{z}/{x}/{y}` servant des images ou des tuiles vectorielles, que l'outil dessine alors lui-même, avec les couleurs et les libellés que les tuiles portent. En ligne de commande, `--couche-perso`, `--couche-perso-nom` et `--couche-perso-source`. La source est obligatoire : elle est écrite sur la carte, comme celles de l'IGN.
+
 ### Corrigé
 
 - La page « Ligne de commande » de la documentation annonçait « les trois commandes » et en listait quatre depuis l'arrivée de `cartes couches`. Le titre ne compte plus, et un test vérifie que chaque commande de l'outil figure bien sur cette page.

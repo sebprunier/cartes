@@ -8,7 +8,9 @@ import { BASEMAPS, canUsePalette } from '../core/basemaps.js';
 import {
   MAP_LAYERS,
   MapLayerError,
+  checkMapLayer,
   chooseMapLayers,
+  isCustomLayer,
   isTileLayer,
   isVectorLayer,
   isWmsLayer,
@@ -139,9 +141,15 @@ async function generate(input, options) {
 
   let mapLayers;
   try {
-    mapLayers = chooseMapLayers(
-      options.maplayers.map((id, index) => ({ id, opacity: options['maplayers-opacity'][index] })),
-    );
+    mapLayers = chooseMapLayers([
+      ...options.maplayers.map((id, index) => ({ id, opacity: options['maplayers-opacity'][index] })),
+      ...options['custom-layer'].map((url, index) => ({
+        url,
+        name: options['custom-layer-name'][index],
+        attribution: options['custom-layer-source'][index],
+        opacity: options['custom-layer-opacity'][index],
+      })),
+    ]);
   } catch (error) {
     throw error instanceof MapLayerError ? new UsageError(error.message) : error;
   }
@@ -164,6 +172,20 @@ async function generate(input, options) {
     console.log(`Couche        : ${layer.name} (opacité ${layer.opacity}) — ${layer.attribution}`);
   }
   console.log();
+  // A layer given by its address is tried on one tile before hundreds are asked for: a mistyped address says
+  // so here, not after a long download.
+  for (const layer of mapLayers.filter(isCustomLayer)) {
+    const [lon, lat] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
+    let checked;
+    try {
+      checked = await checkMapLayer(layer, { lon, lat, zoom });
+    } catch (error) {
+      throw error instanceof MapLayerError ? new UsageError(error.message) : error;
+    }
+    if (checked.empty) {
+      console.log(`Attention : « ${layer.name} » répond, mais n’a aucune donnée sur cette commune.\n`);
+    }
+  }
   for (const layer of mapLayers) {
     const warning = mapLayerZoomWarning(layer, zoom);
     if (warning) console.log(`Attention : ${warning}\n`);
@@ -216,7 +238,9 @@ async function generate(input, options) {
       console.log(`Lecture des tuiles vectorielles de « ${layer.name} »…`);
       const tiles = await readVectorLayer(layer, extent);
       const shapes = vectorTileShapes(tiles, extent, { styleOf: vectorStyleOf(layer) });
-      console.log(`  ${shapes.length} forme(s) dessinée(s) depuis ${tiles.length} tuile(s).`);
+      const readAt = tiles[0]?.zoom;
+      const coarser = readAt !== undefined && readAt < zoom ? `, lues au zoom ${readAt} et dessinées en plus grand` : '';
+      console.log(`  ${shapes.length} forme(s) dessinée(s) depuis ${tiles.length} tuile(s)${coarser}.`);
       vectorShapes.push(...shapes);
       legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, tiles)));
       continue;

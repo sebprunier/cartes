@@ -2,6 +2,8 @@
 // says where each tile sits. Only the few kilobytes needed are downloaded, through byte range requests, which
 // avoids pulling a file of more than a hundred megabytes to draw one municipality.
 
+import { gunzip } from './http.js';
+
 const HEADER_LENGTH = 127;
 const MAGIC = 'PMTiles';
 const GZIP = 2;
@@ -147,10 +149,4 @@ function find(entries, id) {
   if (!found) return undefined;
   if (found.runLength === 0) return found; // A leaf directory to read in turn.
   return id < found.tileId + found.runLength ? found : undefined;
-}
-
-/** Decompression is a web standard, available both in a browser and under Node. */
-async function gunzip(bytes) {
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
 }

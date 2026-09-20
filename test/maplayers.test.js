@@ -5,12 +5,16 @@ import { tileUrl } from '../src/core/basemaps.js';
 import {
   MAP_LAYERS,
   MapLayerError,
+  checkMapLayer,
   chooseMapLayers,
+  customMapLayer,
+  isCustomLayer,
   isTileLayer,
   isVectorLayer,
   isWmsLayer,
   mapLayerLegendEntries,
   mapLayerZoomWarning,
+  vectorStyleOf,
 } from '../src/core/maplayers.js';
 
 describe('MAP_LAYERS', () => {
@@ -117,5 +121,113 @@ describe('mapLayerZoomWarning', () => {
     const { cadastre } = MAP_LAYERS;
     assert.match(mapLayerZoomWarning(cadastre, cadastre.minZoom - 1), /sections/);
     assert.equal(mapLayerZoomWarning(cadastre, cadastre.minZoom), undefined);
+  });
+});
+
+const TEMPLATE = 'https://exemple.fr/tuiles/{z}/{x}/{y}.pbf';
+const CUSTOM = { url: TEMPLATE, name: 'Zones humides', attribution: '© Syndicat de bassin' };
+
+describe('customMapLayer', () => {
+  it('builds a layer the rest of the tool handles like any other', () => {
+    const layer = customMapLayer(CUSTOM);
+    assert.equal(layer.name, 'Zones humides');
+    assert.equal(layer.attribution, '© Syndicat de bassin');
+    assert.equal(layer.opacity, 0.6);
+    assert.ok(isCustomLayer(layer));
+    assert.equal(tileUrl(layer, 14, 8210, 5780), 'https://exemple.fr/tuiles/14/8210/5780.pbf');
+  });
+
+  // The two are drawn by different code: images are laid down as they come, vector tiles are ours to draw.
+  it('tells vector tiles from images by the address, so that nothing has to be declared', () => {
+    assert.ok(isVectorLayer(customMapLayer(CUSTOM)));
+    assert.ok(isTileLayer(customMapLayer({ ...CUSTOM, url: 'https://exemple.fr/{z}/{x}/{y}.png' })));
+    assert.ok(isTileLayer(customMapLayer({ ...CUSTOM, url: 'https://exemple.fr/{z}/{x}/{y}?format=png' })));
+  });
+
+  it('gives the same address the same identifier, so that a layer added twice stays one layer', () => {
+    assert.equal(customMapLayer(CUSTOM).id, customMapLayer({ ...CUSTOM, opacity: 0.2 }).id);
+    assert.equal(customMapLayer({ ...CUSTOM, name: 'Zones humides' }).id, 'perso-zones-humides');
+  });
+
+  it('says which part of the address is missing, rather than failing later on a tile', () => {
+    assert.throws(() => customMapLayer({ ...CUSTOM, url: 'https://exemple.fr/{z}/{x}.pbf' }), (error) => {
+      assert.ok(error instanceof MapLayerError);
+      assert.match(error.message, /\{y\}/);
+      return true;
+    });
+    assert.throws(() => customMapLayer({ ...CUSTOM, url: 'pas une adresse/{z}/{x}/{y}' }), /invalide/);
+  });
+
+  it('refuses a layer with no name, and one with no source', () => {
+    assert.throws(() => customMapLayer({ ...CUSTOM, name: '  ' }), /Nom de couche manquant/);
+    // Citing the source is a licence obligation, not an ornament: it cannot be skipped.
+    assert.throws(() => customMapLayer({ ...CUSTOM, attribution: '' }), /Source manquante/);
+  });
+
+  it('refuses a zoom that is not one', () => {
+    assert.throws(() => customMapLayer({ ...CUSTOM, dataMaxZoom: 'profond' }), /zoom maximal invalide/i);
+    assert.equal(customMapLayer({ ...CUSTOM, dataMaxZoom: '16' }).dataMaxZoom, 16);
+    assert.equal(customMapLayer({ ...CUSTOM, dataMaxZoom: '' }).dataMaxZoom, undefined);
+  });
+
+  it('takes the colors of a layer from its tiles, which carry them, and falls back on one color', () => {
+    const style = vectorStyleOf(customMapLayer(CUSTOM));
+    assert.deepEqual(style({ label: 'Fort', color: '#e9352e' }), { fill: '#e9352e', fillOpacity: 0.6 });
+    assert.equal(style({ label: 'Fort' }).fill, customMapLayer(CUSTOM).color);
+  });
+
+  it('names its legend after what its tiles hold, and after the layer when they name nothing', () => {
+    const layer = customMapLayer(CUSTOM);
+    assert.deepEqual(mapLayerLegendEntries(layer, new Map([['Fort', '#e9352e']])), [
+      { label: 'Fort', color: '#e9352e', shape: 'polygon' },
+    ]);
+    assert.deepEqual(mapLayerLegendEntries(layer, new Map()), [
+      { label: 'Zones humides', color: layer.color, shape: 'polygon' },
+    ]);
+  });
+});
+
+describe('chooseMapLayers, with a layer of its own', () => {
+  it('keeps the layers of the catalog first, then those added', () => {
+    const chosen = chooseMapLayers([CUSTOM, 'cadastre']);
+    assert.deepEqual(chosen.map(({ id }) => id), ['cadastre', 'perso-zones-humides']);
+  });
+
+  it('does not take an address for an unknown identifier', () => {
+    assert.throws(() => chooseMapLayers(['parcelles', CUSTOM]), /Couche inconnue : parcelles/);
+  });
+});
+
+describe('checkMapLayer', () => {
+  const layer = customMapLayer(CUSTOM);
+  const place = { lon: 0.4076, lat: 46.7397, zoom: 16 };
+
+  it('stops at the first tile that answers, rather than downloading to find out', async () => {
+    const answers = [];
+    const fetchBytes = async (url) => (answers.push(url), new Uint8Array([1]));
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes }), { empty: false });
+    assert.equal(answers.length, 1);
+  });
+
+  // A service answers an empty tile past its own detail, and a layer is legitimately empty over part of a
+  // territory: neither means the address is wrong.
+  it('walks down a few levels before concluding anything', async () => {
+    const fetchBytes = async (url) => (Number(url.split('/').at(-3)) <= 13 ? new Uint8Array([1]) : null);
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes }), { empty: false });
+  });
+
+  it('says a layer covers nothing here, rather than pretending it failed', async () => {
+    assert.deepEqual(await checkMapLayer(layer, place, { fetchBytes: async () => null }), { empty: true });
+  });
+
+  it('turns a service that refuses into something the user can act on', async () => {
+    const fetchBytes = async () => {
+      throw new Error('HTTP 403 pour https://exemple.fr/tuiles/16/0/0.pbf');
+    };
+    await assert.rejects(() => checkMapLayer(layer, place, { fetchBytes }), (error) => {
+      assert.ok(error instanceof MapLayerError);
+      assert.match(error.message, /Zones humides.*403/s);
+      return true;
+    });
   });
 });
