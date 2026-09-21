@@ -424,6 +424,17 @@ dropZone.addEventListener('drop', (event) => {
   dropZone.classList.remove('over');
   addFiles(event.dataTransfer.files);
 });
+
+// A file dropped anywhere else is opened by the window, which replaces the page by it. In a browser the back
+// button undoes that; the application has neither back button nor address bar, and would have to be quit and
+// restarted, losing every setting. Landing beside the drop zone is a slip, not a request to open the file.
+for (const name of ['dragover', 'drop']) {
+  window.addEventListener(name, (event) => {
+    if (dropZone.contains(event.target)) return;
+    event.preventDefault();
+    if (name === 'drop') dropZone.classList.remove('over');
+  });
+}
 previewButton.addEventListener('click', showPreview);
 generateButton.addEventListener('click', generate);
 cancelButton.addEventListener('click', cancel);

@@ -9,10 +9,12 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 ### Ajouté
 
 - Ajouter sa propre couche, par l'adresse de ses tuiles, dans les trois outils : un gabarit en `{z}/{x}/{y}` servant des images ou des tuiles vectorielles, que l'outil dessine alors lui-même avec les couleurs et les libellés que les tuiles portent. La source est obligatoire, puisqu'elle est écrite sur la carte à côté de celles de l'IGN. L'adresse est essayée sur une tuile avant d'être acceptée, et l'outil distingue une adresse inexacte d'une couche qui ne couvre pas la commune. En ligne de commande : `--couche-perso`, `--couche-perso-nom`, `--couche-perso-source` et `--couche-perso-opacite`.
+- L'application de bureau a un menu en français, avec un « À propos » qui donne la version et des liens vers la documentation et le code source. L'entrée de menu Linux porte désormais une description.
 - Les couches ajoutées par leur adresse sont retenues d'une carte à l'autre, dans le navigateur ou sur l'ordinateur, et proposées dans le catalogue à côté des couches connues.
 
 ### Corrigé
 
+- Un fichier de données lâché à côté de la zone prévue ouvrait le fichier à la place de l'interface. Dans l'application, sans bouton Retour ni barre d'adresse, il fallait quitter et relancer en perdant tous ses réglages : le dépôt est maintenant ignoré partout ailleurs que sur la zone.
 - La page « Ligne de commande » de la documentation annonçait « les trois commandes » et en listait quatre depuis l'arrivée de `cartes couches`. Le titre ne compte plus, et un test vérifie que chaque commande de l'outil figure bien sur cette page.
 
 ## [0.3.0] – 2026-09-19

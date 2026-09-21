@@ -74,7 +74,15 @@
     },
     "linux": {
       "target": "AppImage",
-      "category": "Science"
+      "category": "Science",
+      "synopsis": "Cartes détaillées des communes de France",
+      "description": "Génère la carte détaillée d'une commune française à partir des fonds de carte ouverts de l'IGN, avec son contour, les couches de risques et les données de la commune, prête à imprimer en grand format.",
+      "desktop": {
+        "entry": {
+          "Keywords": "carte;commune;IGN;cadastre;impression;",
+          "Comment": "Cartes détaillées des communes de France"
+        }
+      }
     }
   }
 }

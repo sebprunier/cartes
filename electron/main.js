@@ -3,7 +3,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
+import { BrowserWindow, Menu, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
 import {
@@ -46,10 +46,93 @@ const MARGIN_DEFAULT = 0.03;
 const cacheDir = () => path.join(app.getPath('userData'), 'tuiles');
 let generation;
 
+const DOCUMENTATION = 'https://sebprunier.github.io/cartes/documentation/';
+const SOURCE_CODE = 'https://github.com/sebprunier/cartes';
+
 app.whenReady().then(() => {
+  // macOS fills its own panel from the bundle; Windows and Linux show only what is given here.
+  app.setAboutPanelOptions({
+    applicationName: app.getName(),
+    applicationVersion: app.getVersion(),
+    version: app.getVersion(),
+    copyright: 'Publié sous licence MIT. Cartes © IGN et © BRGM, sous licence ouverte Etalab.',
+    website: SOURCE_CODE,
+  });
+  Menu.setApplicationMenu(applicationMenu());
   createWindow();
   app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow());
 });
+
+/**
+ * The menu of the application, in French like the rest of it. The default menu of Electron is in English and
+ * offers nothing of the tool: here the documentation is one click away, which is where someone stuck looks
+ * first. The editing entries are kept — the interface has fields to copy and paste into.
+ */
+function applicationMenu() {
+  const about = {
+    label: `À propos de ${app.getName()}`,
+    click: () => app.showAboutPanel(),
+  };
+  const help = {
+    role: 'help',
+    label: 'Aide',
+    submenu: [
+      { label: 'Documentation en ligne', click: () => shell.openExternal(DOCUMENTATION) },
+      { label: 'Code source et signalement de bugs', click: () => shell.openExternal(SOURCE_CODE) },
+      ...(process.platform === 'darwin' ? [] : [{ type: 'separator' }, about]),
+    ],
+  };
+
+  // On macOS the first menu carries the name of the application, and the about panel belongs in it.
+  const appMenu = {
+    label: app.getName(),
+    submenu: [
+      about,
+      { type: 'separator' },
+      { role: 'services', label: 'Services' },
+      { type: 'separator' },
+      { role: 'hide', label: `Masquer ${app.getName()}` },
+      { role: 'hideOthers', label: 'Masquer les autres' },
+      { role: 'unhide', label: 'Tout afficher' },
+      { type: 'separator' },
+      { role: 'quit', label: `Quitter ${app.getName()}` },
+    ],
+  };
+  const fileMenu = {
+    label: 'Fichier',
+    submenu: [{ role: process.platform === 'darwin' ? 'close' : 'quit', label: 'Quitter' }],
+  };
+  const editMenu = {
+    label: 'Édition',
+    submenu: [
+      { role: 'undo', label: 'Annuler' },
+      { role: 'redo', label: 'Rétablir' },
+      { type: 'separator' },
+      { role: 'cut', label: 'Couper' },
+      { role: 'copy', label: 'Copier' },
+      { role: 'paste', label: 'Coller' },
+      { role: 'selectAll', label: 'Tout sélectionner' },
+    ],
+  };
+  const viewMenu = {
+    label: 'Affichage',
+    submenu: [
+      { role: 'resetZoom', label: 'Taille normale' },
+      { role: 'zoomIn', label: 'Agrandir' },
+      { role: 'zoomOut', label: 'Réduire' },
+      { type: 'separator' },
+      { role: 'togglefullscreen', label: 'Plein écran' },
+    ],
+  };
+
+  return Menu.buildFromTemplate([
+    ...(process.platform === 'darwin' ? [appMenu] : []),
+    fileMenu,
+    editMenu,
+    viewMenu,
+    help,
+  ]);
+}
 
 app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit());
 
@@ -68,6 +151,14 @@ function createWindow() {
   window.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
+  });
+  // The window shows the interface and nothing else. Without this, a file dropped beside the drop zone, or a
+  // link that got through, would replace it: there is no back button here to undo that, and the settings of
+  // the map in progress would be lost.
+  window.webContents.on('will-navigate', (event, url) => {
+    if (url === window.webContents.getURL()) return;
+    event.preventDefault();
+    if (url.startsWith('https:')) shell.openExternal(url);
   });
   window.loadFile(path.join(import.meta.dirname, '..', 'dist-electron', 'renderer', 'index.html'));
 }
