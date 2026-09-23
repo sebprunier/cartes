@@ -152,7 +152,8 @@ describe('geocoded CSV', () => {
   });
 
   it('credits the Base Adresse Nationale, and the day of the geocoding, for the positions', () => {
-    const layer = read(geocoded, 'lieux.csv');
+    const layer = read(geocoded, 'lieux-geocode.csv');
+    assert.equal(layer.name, 'Lieux', 'le suffixe du fichier géocodé ne fait pas partie du nom des données');
     assert.equal(layer.geocodedOn, '2026-09-23');
     assert.equal(
       layersSource([layer, read(geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] })]), 'autres.geojson')]).attribution,

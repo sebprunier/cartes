@@ -10,6 +10,8 @@ Usage :
   cartes fonds                               lister les fonds de carte disponibles
   cartes couches                             lister les couches superposables
   cartes generer <commune> [options]         générer la carte d'une commune, par nom ou code INSEE
+  cartes geocoder <fichier.csv> --commune <commune>
+                                             placer les adresses d'un fichier CSV, pour l'ajouter à une carte
   cartes serveur [--port <n>]                servir l'API HTTP, pour intégrer cartes à d'autres logiciels
 
 Options de « generer » :
@@ -46,6 +48,7 @@ Options de « generer » :
       --gris                fond de carte en niveaux de gris
       --sans-contour        ne pas tracer le contour de la commune
       --sans-legende        ne pas afficher la légende des données ajoutées
+      --donnees-a-verifier  dessiner aussi les adresses géocodées « à vérifier », et non les seules trouvées
       --estimer             afficher un tableau des niveaux de zoom — dimensions de l'image, format papier,
                             mémoire nécessaire et poids estimé du fichier — puis s'arrêter sans générer la carte.
                             Un échantillon de 36 tuiles par niveau est téléchargé, puis gardé en cache.
@@ -54,6 +57,12 @@ Options de « generer » :
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   -h, --aide                afficher cette aide
   -v, --version             afficher la version de cartes
+
+Options de « geocoder » :
+      --commune <commune>   commune des adresses, par nom ou code INSEE : la recherche y est restreinte
+  -d, --departement <code>  département, pour lever une homonymie de la commune
+  -o, --sortie <fichier>    fichier géocodé, défaut : <fichier>-geocode.csv, à côté du fichier donné
+  Les adresses sont envoyées au service de géocodage de la Géoplateforme (IGN).
 
 Options de « serveur » :
       --port <n>            port d'écoute ; défaut : la variable PORT, sinon 8080
@@ -71,15 +80,17 @@ Exemples :
   cartes generer 86081 --couche-perso "https://exemple.fr/tuiles/{z}/{x}/{y}.pbf" \\
     --couche-perso-nom "Zones humides" --couche-perso-source "© Syndicat de bassin"   avec sa propre couche
   cartes generer 86081 --estimer                        avant de se lancer : dimensions et poids par zoom
+  cartes geocoder defibrillateurs.csv --commune 86081   placer des adresses, puis les ajouter avec --donnees
 
 Le niveau de zoom décide de la taille de l'image, donc du format papier : le choisir d'après le format visé
 plutôt que d'après le détail souhaité. La documentation l'explique :
 https://sebprunier.github.io/cartes/zoom-et-impression.html
 
-Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, serve, --department,
---basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name, --custom-layer-source,
---custom-layer-opacity, --data, --data-title, --data-category, --data-color, --output,
---margin, --grayscale, --no-outline, --no-legend, --estimate, --max-tiles, --concurrency, --help.`;
+Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, geocode, serve,
+--department, --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name,
+--custom-layer-source, --custom-layer-opacity, --data, --data-title, --data-category, --data-color,
+--data-unverified, --municipality, --output, --margin, --grayscale, --no-outline, --no-legend, --estimate,
+--max-tiles, --concurrency, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = {
@@ -89,6 +100,8 @@ export const FRENCH_COMMANDS = {
   generer: 'generate',
   générer: 'generate',
   serveur: 'serve',
+  geocoder: 'geocode',
+  géocoder: 'geocode',
 };
 
 // Options are keyed by their English name (used in code), with their French name shown to users.
@@ -113,6 +126,8 @@ export const OPTIONS = {
   grayscale: { type: 'boolean', french: 'gris', default: false },
   'no-outline': { type: 'boolean', french: 'sans-contour', default: false },
   'no-legend': { type: 'boolean', french: 'sans-legende', default: false },
+  'data-unverified': { type: 'boolean', french: 'donnees-a-verifier', default: false },
+  municipality: { type: 'string', french: 'commune' },
   estimate: { type: 'boolean', french: 'estimer', default: false },
   'max-tiles': { type: 'string', french: 'max-tuiles', default: '5000' },
   concurrency: { type: 'string', french: 'paralleles', default: '6' },

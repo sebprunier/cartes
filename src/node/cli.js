@@ -1,15 +1,22 @@
 #!/usr/bin/env node
 // Command line interface.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path, { basename } from 'node:path';
 
 import { BASEMAPS } from '../core/basemaps.js';
 import { MAP_LAYERS, MapLayerError, chooseMapLayers } from '../core/maplayers.js';
 import { formatBytes, imageMemory } from '../core/estimates.js';
-import { MunicipalityNotFound, describeMunicipality, searchMunicipalities } from '../core/municipalities.js';
-import { LayerError, readLayer } from '../core/layers.js';
+import {
+  MunicipalityNotFound,
+  describeMunicipality,
+  fetchBoundary,
+  resolveMunicipality,
+  searchMunicipalities,
+} from '../core/municipalities.js';
+import { GEOCODING_STATUS, GeocodingNeeded, LayerError, addressColumns, decodeText, parseCsv, readLayer } from '../core/layers.js';
+import { GeocodingError, geocodeCsv } from '../core/geocoding.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
@@ -38,6 +45,8 @@ async function main() {
     await generate(argument, options);
   } else if (command === 'serve') {
     await serve(options);
+  } else if (command === 'geocode' && argument) {
+    await geocode(argument, options);
   } else {
     throw new UsageError(`Commande invalide.\n\n${HELP}`);
   }
@@ -82,6 +91,91 @@ async function serve(options) {
   });
 }
 
+/** Text of a data file, in UTF-8 or in the Windows-1252 of many spreadsheets. */
+function readDataFile(file) {
+  try {
+    return decodeText(readFileSync(file));
+  } catch (error) {
+    if (error.code === 'ENOENT') throw new UsageError(`Fichier de données introuvable : ${file}`);
+    throw error;
+  }
+}
+
+// Rows of the report listed in the terminal, by status: beyond, the file itself says it for each row.
+const LISTED_ROWS = 20;
+
+/**
+ * Geocodes the addresses of a CSV file, within its municipality, and writes the file completed with their
+ * coordinates: to fix in a spreadsheet and geocode again, or to add as it is to a map with --donnees.
+ */
+async function geocode(file, options) {
+  if (!options.municipality) {
+    throw new UsageError(
+      'Précisez la commune des adresses : --commune <nom ou code INSEE>. La recherche y est restreinte, pour ' +
+        'qu’une adresse ne tombe pas sur une voie du même nom dans une autre commune.',
+    );
+  }
+  const text = readDataFile(file);
+  // A file without addresses is said at once, before anything is asked of the network.
+  const [header = []] = parseCsv(text);
+  if (!addressColumns(header.map((name) => name.trim().toLowerCase()))) {
+    throw new UsageError(
+      `${file} : aucune colonne d’adresse. Une colonne « adresse », ou des colonnes « numéro », « voie », ` +
+        '« code postal » et « commune », sont attendues.',
+    );
+  }
+  const inseeCode = await resolveMunicipality(options.municipality, options.department);
+  const boundary = await fetchBoundary(inseeCode);
+  const output = options.output ?? path.join(path.dirname(file), `${path.basename(file, path.extname(file))}-geocode.csv`);
+
+  console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
+  console.log(
+    'Les adresses sont envoyées au service de géocodage de la Géoplateforme (IGN), qui les place d’après la ' +
+      'Base Adresse Nationale.\n',
+  );
+  let result;
+  try {
+    result = await geocodeCsv(text, {
+      inseeCode: boundary.inseeCode,
+      onProgress: ({ done, total }) => printProgress(done, total, 'adresses'),
+    });
+  } catch (error) {
+    throw error instanceof GeocodingError ? new UsageError(`${file} : ${error.message}`) : error;
+  }
+  writeFileSync(output, result.csv);
+
+  const { summary, rows } = result;
+  const score = (value) => (value === undefined ? '' : `, score ${value.toFixed(2).replace('.', ',')}`);
+  console.log(`\n${summary.total} adresse(s) :`);
+  console.log(`  trouvées      ${String(summary.found).padStart(5)} — dessinées sur la carte`);
+  console.log(`  à vérifier    ${String(summary.check).padStart(5)} — dessinées seulement avec --donnees-a-verifier`);
+  console.log(`  introuvables  ${String(summary.missing).padStart(5)}`);
+  for (const [status, title] of [
+    [GEOCODING_STATUS.check, 'À vérifier'],
+    [GEOCODING_STATUS.missing, 'Introuvables'],
+  ]) {
+    const listed = rows.filter((row) => row.status === status);
+    if (listed.length === 0) continue;
+    console.log(`\n${title} :`);
+    for (const row of listed.slice(0, LISTED_ROWS)) {
+      // What the service answered to an address not found helps to fix it: it is said, as a best guess.
+      const guess = status === GEOCODING_STATUS.missing ? 'au mieux ' : '';
+      const found = row.found ? `${guess}${row.found}${score(row.score)}` : 'aucune réponse';
+      console.log(`  ligne ${row.line} — ${row.address || '(adresse vide)'} → ${found}`);
+    }
+    if (listed.length > LISTED_ROWS) {
+      console.log(`  … et ${listed.length - LISTED_ROWS} autre(s) : la colonne geocodage_statut du fichier les signale.`);
+    }
+  }
+  console.log(`\nFichier géocodé : ${output}`);
+  if (summary.check + summary.missing > 0) {
+    console.log('Corrigez les adresses signalées dans votre tableur, puis géocodez-le de nouveau ; ou ajoutez-le tel quel :');
+  } else {
+    console.log('Pour l’ajouter à une carte :');
+  }
+  console.log(`  cartes generer ${boundary.inseeCode} --donnees ${output}`);
+}
+
 async function search(name, options) {
   const municipalities = await searchMunicipalities(name, options.department);
   if (municipalities.length === 0) throw new MunicipalityNotFound(`Aucune commune trouvée pour « ${name} ».`);
@@ -119,16 +213,19 @@ async function generate(input, options) {
 
   const layers = options.data.map((file, index) => {
     try {
-      return readLayer(readFileSync(file, 'utf8'), {
+      return readLayer(readDataFile(file), {
         fileName: basename(file),
         name: options['data-title'][index],
         index,
         categoryProperty: options['data-category'],
         colorProperty: options['data-color'],
+        unverified: options['data-unverified'],
       });
     } catch (error) {
+      if (error instanceof GeocodingNeeded) {
+        throw new UsageError(`${file} : ${error.message}\nPour le géocoder : cartes geocoder ${file} --commune ${input}`);
+      }
       if (error instanceof LayerError) throw new UsageError(`${file} : ${error.message}`);
-      if (error.code === 'ENOENT') throw new UsageError(`Fichier de données introuvable : ${file}`);
       throw error;
     }
   });
@@ -254,9 +351,9 @@ async function estimatedFileSize(basemap, extent, { format, grayscale, cacheDir,
   }
 }
 
-function printProgress(done, total) {
+function printProgress(done, total, unit = 'tuiles') {
   if (!process.stdout.isTTY) return;
-  process.stdout.write(`\r  ${done}/${total} tuiles (${Math.floor((done * 100) / total)} %)`);
+  process.stdout.write(`\r  ${done}/${total} ${unit} (${Math.floor((done * 100) / total)} %)`);
   progressLineOpen = done < total;
   if (!progressLineOpen) process.stdout.write('\n');
 }

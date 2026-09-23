@@ -53,8 +53,11 @@ describe('parseCommandLine', () => {
     for (const [name, { french }] of Object.entries(OPTIONS)) {
       assert.ok(HELP.includes(`--${french ?? name}`), `option ${name}`);
     }
+    // A name with an accent is the variant of the same one without: the help shows the one to type.
+    const plain = (name) => name.normalize('NFKD').replace(/\p{Diacritic}/gu, '');
     for (const command of Object.keys(FRENCH_COMMANDS)) {
-      assert.ok(HELP.includes(`cartes ${command}`) || command.startsWith('gén'), `commande ${command}`);
+      const variant = command !== plain(command) && plain(command) in FRENCH_COMMANDS;
+      assert.ok(HELP.includes(`cartes ${command}`) || variant, `commande ${command}`);
     }
   });
 

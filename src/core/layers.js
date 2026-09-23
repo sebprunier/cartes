@@ -110,9 +110,16 @@ function text(value) {
   return value === undefined || value === null || value === '' ? undefined : String(value).trim() || undefined;
 }
 
-/** Readable name of a layer, from its file name: « points-de-collecte.geojson » becomes « Points de collecte ». */
+/**
+ * Readable name of a layer, from its file name: « points-de-collecte.geojson » becomes « Points de collecte ». The
+ * suffix that the geocoding gives to the file it writes is left out: it is not part of the name of the data.
+ */
 function layerName(fileName) {
-  const withoutExtension = fileName.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim();
+  const withoutExtension = fileName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]geocode$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .trim();
   return withoutExtension.charAt(0).toUpperCase() + withoutExtension.slice(1);
 }
 

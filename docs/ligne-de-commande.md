@@ -22,6 +22,7 @@ cartes chercher Colombiers        # retrouver une commune et son code INSEE
 cartes fonds                      # lister les fonds de carte
 cartes couches                    # lister les couches superposables
 cartes generer 86081              # générer la carte d'une commune
+cartes geocoder lieux.csv --commune 86081   # placer les adresses d'un fichier CSV
 cartes serveur                    # servir l'API HTTP, pour d'autres logiciels
 ```
 
@@ -52,7 +53,29 @@ cartes generer 86081 --couche-perso "https://exemple.fr/tuiles/{z}/{x}/{y}.pbf" 
 cartes generer 86081 --estimer
 ```
 
-Toutes les options sont décrites par `cartes --aide`. Elles existent aussi en anglais : `generate`, `--basemap`, `--data`…
+Toutes les options sont décrites par `cartes --aide`. Elles existent aussi en anglais : `generate`, `geocode`, `--basemap`, `--data`…
+
+## Géocoder un fichier d'adresses
+
+Un CSV avec des adresses mais sans coordonnées — une colonne `adresse`, ou des colonnes `numéro`, `voie`, `code postal` et `commune` — se géocode avant d'être ajouté à une carte :
+
+```sh
+cartes geocoder defibrillateurs.csv --commune 86081
+```
+
+La commande envoie les adresses au service de géocodage de la Géoplateforme (IGN), en restreignant la recherche à la commune donnée. Elle écrit à côté du fichier un `defibrillateurs-geocode.csv` : le même fichier, dans le même séparateur, complété de la latitude, de la longitude et du résultat du géocodage de chaque ligne. Puis elle dresse le bilan :
+
+- **trouvées** : placées avec assurance, et dessinées sur la carte ;
+- **à vérifier** : le service a hésité, ou n'a trouvé que la voie d'un numéro qu'il ne connaît pas — le point est au milieu de la rue. Elles ne sont dessinées qu'avec `--donnees-a-verifier` ;
+- **introuvables** : rien de sûr, et donc rien de dessiné.
+
+Chaque adresse à vérifier ou introuvable est listée avec son numéro de ligne et ce que le service a trouvé. Corrigez-les dans votre tableur, puis géocodez de nouveau le fichier corrigé ; ou ajoutez-le tel quel :
+
+```sh
+cartes generer 86081 --donnees defibrillateurs-geocode.csv
+```
+
+La carte cite alors la Base Adresse Nationale, d'où viennent les positions, dans sa mention des sources.
 
 ## Ce qu'il faut savoir
 
