@@ -5,6 +5,7 @@
 
 import { requestForm } from './http.js';
 import { GEOCODING_COLUMNS, GEOCODING_STATUS, addressColumns, csvSeparator, parseCsv } from './layers.js';
+import { normalizeName } from './municipalities.js';
 
 const GEOCODING_CSV_URL = 'https://data.geopf.fr/geocodage/search/csv';
 
@@ -34,6 +35,16 @@ const ABBREVIATIONS = [
 
 export class GeocodingError extends Error {}
 
+/**
+ * An address with the name of its municipality, when it does not carry it already. The search is kept to the
+ * municipality either way, but the name in the text helps the service forgive a typo: of 60 misspelt addresses
+ * written without it, 15 were not found, where all were placed once it was added — and none wrongly (#10).
+ */
+export function withMunicipality(address, municipalityName) {
+  if (!municipalityName || normalizeName(address).includes(normalizeName(municipalityName))) return address;
+  return `${address} ${municipalityName}`;
+}
+
 /** An address with its usual abbreviations of street types spelled out. */
 export function expandAbbreviations(address) {
   return ABBREVIATIONS.reduce(
@@ -53,13 +64,14 @@ export function classify({ address, type, score }) {
 }
 
 /**
- * Geocodes the addresses of a CSV file, within the municipality `inseeCode`. Returns the file with its columns,
+ * Geocodes the addresses of a CSV file, within the municipality `inseeCode`, whose name `municipalityName` is added
+ * to the addresses that do not carry it. Returns the file with its columns,
  * in the same separator, plus the coordinates and the geocoding of each row — ready to be drawn, and to be kept
  * so as not to geocode again — and a report: the counts, and each row with what was found for it.
  */
 export async function geocodeCsv(
   text,
-  { inseeCode, onProgress = () => {}, send = sendBatch, batchSize = BATCH_SIZE, date = new Date() },
+  { inseeCode, municipalityName, onProgress = () => {}, send = sendBatch, batchSize = BATCH_SIZE, date = new Date() },
 ) {
   const separator = csvSeparator(text);
   const [header, ...lines] = parseCsv(text);
@@ -90,7 +102,7 @@ export async function geocodeCsv(
     const batch = toSend.slice(start, start + batchSize);
     const request = toCsv([
       ['id', 'adresse', 'code_insee'],
-      ...batch.map((row) => [String(row.line), expandAbbreviations(row.address), inseeCode]),
+      ...batch.map((row) => [String(row.line), withMunicipality(expandAbbreviations(row.address), municipalityName), inseeCode]),
     ]);
     const [answerHeader, ...answerRows] = parseCsv(await send(request));
     const at = (name) => answerHeader.indexOf(name);

@@ -622,6 +622,7 @@ function offerGeocoding() {
     try {
       const result = await geocodeCsv(next.text, {
         inseeCode: municipality.boundary.inseeCode,
+        municipalityName: municipality.boundary.name,
         onProgress: ({ done, total }) =>
           progress.replaceChildren(spinner(), ` Géocodage : ${done.toLocaleString('fr-FR')} / ${total.toLocaleString('fr-FR')} adresses…`),
       });

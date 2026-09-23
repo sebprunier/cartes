@@ -26,6 +26,21 @@ Trois causes possibles, dans l'ordre de fréquence :
 - **« Colonnes de coordonnées introuvables »** : votre CSV n'a pas de colonne reconnue comme latitude ou longitude. Renommez-les `latitude` et `longitude`.
 - **« Fichier GeoJSON illisible »** : le fichier n'est pas du JSON valide, souvent parce qu'il a été tronqué à l'export.
 
+## Des adresses sont « à vérifier » ou « introuvables »
+
+Le géocodage classe ainsi les adresses qu'il ne place pas avec assurance. Les causes les plus fréquentes :
+
+- **Un nom de lieu, pas une adresse** : « Mairie », « École », « Salle des fêtes ». Écrivez l'adresse du lieu : « Place de Manderen » plutôt que « Place de la Mairie ».
+- **Un numéro que la Base Adresse Nationale ne connaît pas** : le point est placé au milieu de la voie, et l'adresse est à vérifier. Les numéros des constructions récentes manquent parfois.
+- **Une faute de frappe** dans le nom de la voie : souvent trouvée malgré tout, mais à vérifier.
+- **Une adresse d'une autre commune** : la recherche est restreinte à la commune de la carte, pour ne jamais tomber sur une voie du même nom ailleurs. Une adresse hors de la commune est donc introuvable.
+
+Corrigez les adresses dans votre tableur, avec le numéro de ligne que donne le bilan, puis déposez de nouveau le fichier.
+
+## Le géocodage échoue
+
+Le service de géocodage de l'IGN est momentanément indisponible, ou a refusé la demande : rien n'a été placé, réessayez un peu plus tard. Si le fichier est très long, plusieurs milliers d'adresses, il est envoyé par tranches de 2 000 : le géocodage prend alors quelques secondes par tranche.
+
 ## Des étiquettes manquent sur la carte
 
 C'est voulu. Quand deux étiquettes se recouvrent, l'outil en déplace une, et l'abandonne s'il n'y a vraiment pas la place : deux textes l'un sur l'autre sont illisibles tous les deux. Le point, lui, reste dessiné.

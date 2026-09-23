@@ -18,8 +18,8 @@ Toutes produisent exactement la même carte : elles partagent le même code de g
 - **Lisible une fois imprimée** — Le zoom se choisit d'après le format papier, et l'aperçu montre les étiquettes à l'échelle réelle avant de lancer la génération.
 - **Des données publiques** — Plan IGN, photographies aériennes, cadastre, risques naturels et technologiques : IGN, Géorisques et BRGM, sous licence ouverte.
 - **Les licences respectées** — La mention des sources et la date de mise à jour de chaque donnée sont écrites sur la carte, comme la licence l'exige.
-- **Vos propres données** — Un fichier GeoJSON ou CSV, avec ses catégories, ses couleurs, ses étiquettes et une légende.
-- **Rien ne sort de chez vous** — Aucun compte, aucun envoi : la carte est dessinée sur votre ordinateur, à partir des services publics de données.
+- **Vos propres données** — Un fichier GeoJSON ou CSV, avec ses catégories, ses couleurs, ses étiquettes et une légende. Une simple liste d'adresses suffit : l'outil la géocode.
+- **Vos fichiers restent chez vous** — Aucun compte : la carte est dessinée sur votre ordinateur, à partir des services publics de données. Seules les adresses que vous choisissez de géocoder sont envoyées, au service de l'IGN.
 - **Libre** — Le code est ouvert, sous licence MIT, et chacun peut le relire, l'améliorer ou l'héberger.
 
 ## Par où commencer

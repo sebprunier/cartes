@@ -137,6 +137,7 @@ async function geocode(file, options) {
   try {
     result = await geocodeCsv(text, {
       inseeCode: boundary.inseeCode,
+      municipalityName: boundary.name,
       onProgress: ({ done, total }) => printProgress(done, total, 'adresses'),
     });
   } catch (error) {

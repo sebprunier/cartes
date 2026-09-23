@@ -55,9 +55,36 @@ Glissez un fichier dans la zone prévue, ou utilisez `--donnees` en ligne de com
 ### Formats acceptés
 
 - **GeoJSON**, tel qu'exporté par uMap, QGIS ou geojson.io : points, lignes, polygones.
-- **CSV** avec une colonne de latitude et une de longitude. Les noms usuels sont reconnus (`latitude`, `lat`, `y` ; `longitude`, `lon`, `lng`, `x`), le point-virgule comme séparateur et la virgule décimale aussi — donc ce que produit un tableur français.
+- **CSV** avec une colonne de latitude et une de longitude. Les noms usuels sont reconnus (`latitude`, `lat`, `y` ; `longitude`, `lon`, `lng`, `x`), le point-virgule comme séparateur et la virgule décimale aussi — donc ce que produit un tableur français, y compris dans l'encodage Windows d'Excel.
+- **CSV d'adresses**, sans coordonnées : l'outil propose alors de les géocoder, comme l'explique la section suivante.
 
 Les coordonnées doivent être en longitude/latitude (WGS 84). Un fichier projeté, par exemple en Lambert 93, est refusé avec un message qui l'explique plutôt que d'être dessiné n'importe où.
+
+### Un fichier d'adresses
+
+C'est souvent ce qu'une mairie a sous la main : une liste de défibrillateurs, de commerces ou de logements communaux, avec leur adresse, mais pas leurs coordonnées. L'outil sait les placer, en les **géocodant**.
+
+Il reconnaît une colonne `adresse`, ou des colonnes séparées `numéro`, `voie`, `code postal` et `commune`, qu'il assemble. Au dépôt d'un tel fichier, il dit combien d'adresses il contient, et demande la permission avant d'envoyer quoi que ce soit.
+
+![L'encart qui propose le géocodage : le nombre d'adresses du fichier, ce qui sera envoyé et où, et les boutons « Géocoder » et « Ne pas géocoder »](images/captures/donnees-geocodage-offre.png)
+
+Les adresses — et elles seules, le reste du fichier ne quitte pas votre ordinateur — sont envoyées au service de géocodage de l'IGN, qui les cherche dans la **Base Adresse Nationale**, en restreignant la recherche à la commune de la carte. Sans cette restriction, une adresse écrite sans sa commune tombait près d'une fois sur deux sur une voie du même nom ailleurs en France.
+
+Chaque adresse est ensuite classée :
+
+- **trouvée** : placée avec assurance, et dessinée sur la carte ;
+- **à vérifier** : le service a hésité, ou ne connaît pas le numéro — il place alors le point au milieu de la voie. Ces adresses ne sont dessinées que si vous cochez « Dessiner aussi les adresses à vérifier » ;
+- **introuvable** : rien de sûr, rien de dessiné. Un nom de lieu seul, comme « Mairie » ou « Salle des fêtes », n'est pas une adresse : le service ne le trouve pas.
+
+Ce classement n'est pas un détail. Le service répond toujours quelque chose, même quand il se trompe, et une adresse placée au mauvais endroit a l'air juste : c'est pire qu'une adresse absente. Les seuils qui séparent les trois classements ont été mesurés sur 430 adresses de Colombiers, écrites comme une mairie les écrirait — fautes de frappe et abréviations comprises : aucune adresse mal placée n'y était classée trouvée.
+
+![Un fichier géocodé dans la liste des données : le bilan en trois nombres, le tableau des adresses à vérifier ou introuvables avec ce que le service a trouvé, la case pour dessiner les adresses à vérifier, et le bouton pour enregistrer le fichier géocodé](images/captures/donnees-geocodage-bilan.png)
+
+Le tableau donne, pour chaque adresse à regarder, son numéro de ligne dans le fichier et ce que le service a trouvé. **Corrigez-les dans votre tableur**, puis déposez de nouveau le fichier : la correction servira à toutes vos cartes suivantes.
+
+« Enregistrer le fichier géocodé » donne le même fichier, dans le même séparateur, complété de la latitude, de la longitude et du résultat de chaque ligne. Déposé plus tard, il est ajouté aussitôt, sans rien envoyer de nouveau. En ligne de commande, c'est [`cartes geocoder`](ligne-de-commande.md) qui fait ce travail.
+
+Une carte qui dessine des adresses géocodées cite la Base Adresse Nationale, et la date du géocodage, dans sa mention des sources : sa licence le demande.
 
 ### Étiquettes, catégories et couleurs
 

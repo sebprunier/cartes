@@ -88,7 +88,7 @@ Ce sont les options de `cartes generer`, en JSON. Chacun accepte aussi un nom an
 | `zoom` | niveau de zoom, qui décide de la taille de l'image | 17 |
 | `couches` | couches à superposer : `["cadastre"]`, ou `[{ "id": "cadastre", "opacite": 0.4 }]` | aucune |
 | `couchesPerso` | couches ajoutées par leur adresse : `[{ "adresse": "https://…/{z}/{x}/{y}.pbf", "nom": "…", "source": "…" }]` | aucune |
-| `donnees` | fichiers de données, en texte : `[{ "fichier": "points.geojson", "contenu": "…" }]`, avec un `titre` facultatif | aucun |
+| `donnees` | fichiers de données, en texte : `[{ "fichier": "points.geojson", "contenu": "…" }]`, avec un `titre` facultatif. Un CSV d'adresses se géocode d'abord, avec `cartes geocoder` | aucun |
 | `donneesCategorie`, `donneesCouleur` | propriétés qui portent la catégorie et la couleur des objets | |
 | `format` | `png`, `jpg` ou `tif` | celui du fond de carte |
 | `marge` | marge autour de la commune | 0.03 |

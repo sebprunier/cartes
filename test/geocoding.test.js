@@ -8,6 +8,7 @@ import {
   classify,
   expandAbbreviations,
   geocodeCsv,
+  withMunicipality,
   sendBatch,
 } from '../src/core/geocoding.js';
 import { requestForm } from '../src/core/http.js';
@@ -80,6 +81,15 @@ describe('expandAbbreviations', () => {
   });
 });
 
+describe('withMunicipality', () => {
+  it('adds the name of the municipality to an address that lacks it, and only then', () => {
+    assert.equal(withMunicipality('10 Rue de la Grnade Vallée', 'Colombiers'), '10 Rue de la Grnade Vallée Colombiers');
+    assert.equal(withMunicipality('10 Rue de la Grande Vallée 86490 COLOMBIERS', 'Colombiers'), '10 Rue de la Grande Vallée 86490 COLOMBIERS');
+    assert.equal(withMunicipality('3 Mavault saint martin la pallu', 'Saint-Martin-la-Pallu'), '3 Mavault saint martin la pallu');
+    assert.equal(withMunicipality('Place de Manderen', undefined), 'Place de Manderen');
+  });
+});
+
 describe('geocodeCsv', () => {
   // A file as a French spreadsheet writes it: semicolons, a quoted field, an abbreviation, a blank line.
   const file =
@@ -118,7 +128,7 @@ describe('geocodeCsv', () => {
 
   it('writes the file back the way it was written, with the coordinates and the geocoding of each row', async () => {
     const { csv } = await geocodeCsv(file, { inseeCode: '86081', send: recordedService(), date });
-    assert.ok(csv.startsWith('﻿'), 'marque UTF-8, pour les tableurs');
+    assert.ok(csv.startsWith('\uFEFF'), 'marque UTF-8, pour les tableurs');
     const lines = csv.slice(1).trim().split('\n');
     assert.equal(
       lines[0],
@@ -148,6 +158,17 @@ describe('geocodeCsv', () => {
     const header = again.csv.slice(1).split('\n')[0].split(';');
     assert.equal(header.filter((name) => name === 'latitude').length, 1);
     assert.deepEqual(again.summary, first.summary);
+  });
+
+  it('gives the service the name of the municipality with the addresses written without it', async () => {
+    const calls = [];
+    await geocodeCsv('nom;adresse\nLieu;10 Rue de la Grnade Vallée\n', {
+      inseeCode: '86081',
+      municipalityName: 'Colombiers',
+      send: recordedService(calls),
+      date,
+    });
+    assert.equal(calls[0][0][1], '10 Rue de la Grnade Vallée Colombiers');
   });
 
   it('assembles an address written in several columns', async () => {
