@@ -67,7 +67,9 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "target": "dmg"
+      "target": "dmg",
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "win": {
       "target": "nsis"

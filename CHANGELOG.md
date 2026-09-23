@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Corrigé
+
+- Sur macOS, l'application téléchargée était déclarée « endommagée » et ne pouvait pas être ouverte, sans autre choix que de la mettre à la corbeille. Elle est désormais signée pour elle-même, sans certificat : macOS affiche l'avertissement habituel d'une application non vérifiée, que l'on peut passer depuis les réglages.
+
 ## [0.4.0] – 2026-09-23
 
 Chacun peut ajouter sa propre couche par son adresse, et l'application de bureau gagne un menu en français et un glisser-déposer plus sûr.
