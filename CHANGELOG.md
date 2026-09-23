@@ -6,9 +6,16 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [0.5.0] – 2026-09-23
+
+cartes s'intègre désormais à d'autres logiciels : une API HTTP, que chacun héberge où il veut, rend les services de la ligne de commande.
+
 ### Ajouté
 
-- Une API HTTP, pour intégrer cartes à d'autres logiciels : `cartes serveur` (ou `npm start`) rend les services de la ligne de commande — chercher une commune, lister les fonds et les couches, estimer, générer. Une carte se demande, se suit puis se télécharge. Rien n'est bridé par défaut ; une clé d'API, un zoom maximal, le nombre de générations simultanées et la durée de conservation des cartes se règlent par des variables d'environnement. La documentation décrit l'API et son déploiement sur Clever Cloud, seule ou derrière une passerelle d'API comme Otoroshi.
+- Une API HTTP, pour intégrer cartes à d'autres logiciels : `cartes serveur` (ou `npm start`) rend les services de la ligne de commande — chercher une commune, lister les fonds et les couches, estimer, générer. Une carte se demande, se suit puis se télécharge. Rien n'est bridé par défaut ; une clé d'API, un zoom maximal, le nombre de générations simultanées et la durée de conservation des cartes se règlent par des variables d'environnement. La documentation décrit l'API et son déploiement sur Clever Cloud, seule ou derrière une passerelle d'API comme Otoroshi, avec les tailles d'instance mesurées pour chaque zoom. L'API se décrit elle-même en OpenAPI 3.1, sur `/openapi.json`.
+
+### Modifié
+
 - Annuler une génération l'arrête à l'étape suivante, et non plus seulement pendant le téléchargement des tuiles : dans l'application de bureau, une carte annulée une fois ses tuiles téléchargées n'est plus dessinée jusqu'au bout pour rien.
 
 ### Corrigé
@@ -106,7 +113,8 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v0.4.1...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/sebprunier/cartes/releases/tag/v0.5.0
 [0.4.1]: https://github.com/sebprunier/cartes/releases/tag/v0.4.1
 [0.4.0]: https://github.com/sebprunier/cartes/releases/tag/v0.4.0
 [0.3.0]: https://github.com/sebprunier/cartes/releases/tag/v0.3.0
