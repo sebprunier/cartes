@@ -67,7 +67,7 @@ node src/node/cli.js --aide
 - **Ligne de commande** : chaque commande et chaque option a un nom français, affiché dans l'aide, et un alias anglais.
 - **Style** : modules ES, indentation de 2 espaces, guillemets simples, points-virgules, lignes de 120 caractères au plus. En cas de doute, suivez le style du code existant.
 - **Cœur partagé** : `src/core/` ne doit importer ni module `node:`, ni sharp. Ce code sert aussi à la page web et à l'application Electron ; un test le vérifie.
-- **Dépendances** : le moins possible. Discutez-en dans une issue avant d'en ajouter une.
+- **Dépendances** : le moins possible. sharp est la seule dépendance d'exécution : discutez-en dans une issue avant d'en ajouter une. Les outils de construction et de test (`devDependencies`) ne partent ni dans l'application ni sur un serveur, et demandent moins de précautions — tant que les tests tournent sans réseau.
 - **Documentation** : les pages du site sont écrites en Markdown dans `docs/`, et déclarées dans `scripts/build-docs.js`. Elles doivent rester lisibles telles quelles sur GitHub ; un test vérifie que chaque page est publiée et que ses liens aboutissent.
 - **Données** : avant d'ajouter une source de données, vérifiez que sa licence et ses conditions d'utilisation le permettent, puis complétez [Données utilisées et licences](docs/donnees-et-licences.md).
 - **Assistants de code** : si vous travaillez avec un assistant, [CLAUDE.md](CLAUDE.md) rassemble les consignes du projet et les pièges déjà rencontrés.

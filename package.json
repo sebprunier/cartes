@@ -43,6 +43,7 @@
     "sharp": "^0.35.4"
   },
   "devDependencies": {
+    "@seriousme/openapi-schema-validator": "^2.10.0",
     "electron": "^44.4.1",
     "electron-builder": "^26.15.3",
     "marked": "^18.0.13"

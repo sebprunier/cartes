@@ -3,6 +3,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 
+import { Validator } from '@seriousme/openapi-schema-validator';
+
 import { REQUEST_FIELDS } from '../src/node/api-fields.js';
 import { openApi } from '../src/node/openapi.js';
 import { createApiServer } from '../src/node/server.js';
@@ -48,7 +50,14 @@ describe('OpenAPI description', () => {
     assert.equal(document.info.version, '9.9.9');
   });
 
-  // OpenAPI 3.1 schemas are JSON Schema 2020-12: the keywords of 3.0 that it dropped would be read by nothing.
+  it('is valid against the official schema of OpenAPI 3.1', async () => {
+    const result = await new Validator().validate(document);
+    assert.ok(result.valid, JSON.stringify(result.errors, null, 2));
+  });
+
+  // The official schema checks the structure of the document, not what its schemas hold: a type 'entier'
+  // passes it. OpenAPI 3.1 schemas are JSON Schema 2020-12, and the keywords of 3.0 that it dropped would
+  // be read by nothing.
   it('writes its schemas in JSON Schema, without the keywords of OpenAPI 3.0', () => {
     let count = 0;
     for (const [schema, where] of schemas(document)) {
