@@ -117,3 +117,17 @@ Quelques particularités à connaître :
 - **Taille de l'instance** : choisissez-la (`clever scale --flavor …`) d'après le zoom le plus élevé que vous accepterez, avec le tableau de la mémoire ci-dessus.
 - **Disque éphémère** : il est effacé à chaque déploiement. Le cache des tuiles se reconstitue au fil des demandes, et les cartes en cours ou non téléchargées sont perdues.
 - **Dépendances** : seules celles de l'exécution sont installées ; l'application de bureau et ses outils de construction ne partent pas sur le serveur.
+
+## Aller plus loin : une passerelle d'API
+
+`CARTES_CLE_API` protège une instance d'une seule clé, partagée par tous ceux qui l'appellent. Dès que plusieurs logiciels s'en servent, une passerelle d'API fait mieux : une clé par logiciel, que l'on peut retirer sans toucher aux autres, des quotas et une limite de débit pour chacun, des statistiques d'usage. L'instance n'a pas à le faire elle-même.
+
+[Otoroshi](https://www.otoroshi.io), la passerelle libre développée par la MAIF, s'y prête bien, et Clever Cloud la propose toute prête :
+
+```sh
+clever addon create otoroshi cartes-passerelle
+```
+
+Dans Otoroshi, une route renvoie alors vers l'adresse de l'instance, et chaque logiciel reçoit sa propre clé.
+
+Gardez tout de même `CARTES_CLE_API` sur l'instance : sur Clever Cloud, elle reste joignable à son adresse `cleverapps.io`, et sans clé on pourrait contourner la passerelle en l'appelant directement. La clé de l'instance devient un secret que seule la passerelle connaît. Configurez la route pour qu'elle ajoute l'en-tête `Authorization: Bearer <clé>` à chaque requête transmise, à la place de celui du logiciel client.
