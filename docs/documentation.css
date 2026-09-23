@@ -143,3 +143,9 @@ footer {
     margin-bottom: 1rem;
   }
 }
+
+/* Les captures d'écran gardent leur taille, sauf quand la colonne de texte est plus étroite. */
+.documentation main img {
+  max-width: 100%;
+  height: auto;
+}

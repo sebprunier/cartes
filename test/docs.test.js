@@ -3,7 +3,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 
-import { DOCUMENTATION_PAGES } from '../scripts/build-docs.js';
+import { DOCUMENTATION_PAGES, imagesOf } from '../scripts/build-docs.js';
 import { FRENCH_COMMANDS } from '../src/node/command-line.js';
 
 const SOURCE = 'docs';
@@ -28,6 +28,20 @@ describe('documentation', () => {
         assert.ok(available.has(path.basename(target)), `${file} → ${target}`);
       }
     }
+  });
+
+  it('shows only images that exist, which the build copies next to the pages', async () => {
+    for (const { file } of DOCUMENTATION_PAGES) {
+      const markdown = await readFile(path.join(SOURCE, file), 'utf8');
+      for (const image of imagesOf(markdown)) {
+        await assert.doesNotReject(readFile(path.join(SOURCE, image)), `${file} → ${image}`);
+      }
+    }
+  });
+
+  it('finds the images of a page, and not its links', () => {
+    const markdown = 'Voir [la page](donnees.md).\n\n![Le dialogue](images/dialogue.png)\n';
+    assert.deepEqual(imagesOf(markdown), ['images/dialogue.png']);
   });
 
   // A command added to the tool and forgotten in its page is a command nobody discovers.

@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Corrigé
+
+- La documentation de l'application de bureau décrivait, pour ouvrir l'application sur macOS, un clic droit puis « Ouvrir » qui n'a plus d'effet depuis macOS Sequoia. Elle détaille maintenant le passage par Confidentialité et sécurité, étape par étape et avec les captures d'écran des dialogues.
+
 ## [0.4.1] – 2026-09-23
 
 L'application macOS téléchargée s'ouvre de nouveau.

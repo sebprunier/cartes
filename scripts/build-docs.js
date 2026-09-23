@@ -2,7 +2,7 @@
 // Builds the user documentation into dist/documentation/: one HTML page per Markdown file of docs/, with the
 // look of the web page. The Markdown stays readable on GitHub, and is the only place the text is written.
 
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { marked } from 'marked';
@@ -32,8 +32,17 @@ export async function buildDocs(output, { version, date = new Date() }) {
     const markdown = await readFile(path.join(SOURCE, page.file), 'utf8');
     const html = template({ page, pages, content: marked.parse(withoutTitle(markdown)), version, date });
     await writeFile(path.join(output, page.page), html);
+    for (const image of imagesOf(markdown)) {
+      await mkdir(path.dirname(path.join(output, image)), { recursive: true });
+      await cp(path.join(SOURCE, image), path.join(output, image));
+    }
   }
   return pages.length;
+}
+
+/** Images a page shows, as paths relative to docs/: only those are published, not the whole folder. */
+export function imagesOf(markdown) {
+  return [...markdown.matchAll(/!\[[^\]]*\]\(([^)\s]+)\)/g)].map(([, target]) => target);
 }
 
 // The title of the page is written by the template, from the menu: the Markdown keeps its own for GitHub.

@@ -18,7 +18,32 @@ Les installeurs pour **macOS (Apple Silicon)**, **Windows** et **Linux** sont jo
 
 Les applications ne sont pas signées, faute de certificat : signer coûte environ 99 $ par an chez Apple, et un certificat payant chez Windows. Votre système affiche donc un avertissement, et il a raison de le faire — voici comment passer outre en connaissance de cause.
 
-- **macOS** : faites un clic droit sur l'application, puis « Ouvrir », et confirmez. Si le système refuse toujours, ouvrez le Terminal et lancez `xattr -dr com.apple.quarantine /Applications/cartes.app`.
+### macOS
+
+Ouvrez le fichier `.dmg` téléchargé, et glissez l'application dans le dossier Applications. Puis :
+
+1. **Double-cliquez sur l'application.** macOS refuse de l'ouvrir : cliquez sur « Terminé », surtout pas sur « Placer dans la corbeille ».
+
+   ![Élément « cartes.app » non ouvert : Apple n'a pas pu confirmer que « cartes.app » ne contenait pas de logiciel malveillant](images/macos-1-non-ouvert.png)
+
+2. **Ouvrez Réglages système, puis Confidentialité et sécurité**, et descendez jusqu'à la section Sécurité. Une ligne y annonce que « cartes.app » a été bloqué : cliquez sur « Ouvrir quand même ». Cette ligne n'apparaît qu'après la tentative d'ouverture de l'étape 1, et disparaît au bout d'une heure environ : si vous ne la voyez pas, recommencez l'étape 1.
+
+   ![La section Sécurité de Confidentialité et sécurité, avec le bouton « Ouvrir quand même » en face de « cartes.app » a été bloqué pour protéger votre Mac](images/macos-2-reglages.png)
+
+3. **Confirmez** en cliquant sur « Ouvrir quand même » dans le dialogue qui suit.
+
+   ![Ouvrir « cartes.app » ? avec les boutons Placer dans la corbeille, Ouvrir quand même et Terminé](images/macos-3-ouvrir-quand-meme.png)
+
+4. **Autorisez** avec Touch ID ou le mot de passe de votre session.
+
+   ![Confidentialité et sécurité : autoriser l'opération avec Touch ID ou le mot de passe d'un administrateur](images/macos-4-autoriser.png)
+
+L'application s'ouvre, et s'ouvrira désormais d'un simple double-clic. Sur les versions de macOS antérieures à Sequoia (macOS 15), un clic droit sur l'application, puis « Ouvrir », suffit.
+
+Si vous êtes à l'aise avec le Terminal, une commande remplace ces quatre étapes : `xattr -dr com.apple.quarantine /Applications/cartes.app`.
+
+### Windows et Linux
+
 - **Windows** : SmartScreen affiche « Windows a protégé votre ordinateur ». Cliquez sur « Informations complémentaires », puis « Exécuter quand même ».
 - **Linux** : rendez le fichier exécutable avec `chmod +x cartes-*.AppImage`, puis lancez-le.
 
