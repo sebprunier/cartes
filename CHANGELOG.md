@@ -6,10 +6,14 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [0.6.0] – 2026-09-23
+
+Une présentation neuve pour la documentation, qui a désormais son propre site, et pour la page de génération comme pour l'application de bureau qui la partage.
+
 ### Modifié
 
-- La documentation a son propre site, à l'adresse de l'outil (<https://sebprunier.github.io/cartes/>) : une page d'accueil, un menu par thème, un sommaire pour chaque page, des blocs de code à copier, et des illustrations tirées de vraies cartes. La page qui génère les cartes passe à <https://sebprunier.github.io/cartes/generer/>, aussi joignable par `/try-it/`. Les anciennes adresses de la documentation mènent à leur nouvelle page.
-- La page de génération, et l'application de bureau qui la partage, adoptent la présentation du site : des étapes numérotées, des champs, des boutons et un tableau des dimensions plus lisibles, l'aperçu en deux vues côte à côte, et la carte terminée offerte par un vrai bouton de téléchargement. Les aides des réglages s'ouvrent dans une bulle, sous leur point d'interrogation, et se ferment d'un clic ailleurs ou avec Échap.
+- La documentation a son propre site, à l'adresse de l'outil (<https://sebprunier.github.io/cartes/>) : une page d'accueil, un menu par thème, un sommaire pour chaque page, des blocs de code à copier, des illustrations tirées de vraies cartes, et des captures d'écran de chaque étape de l'outil. La page qui génère les cartes passe à <https://sebprunier.github.io/cartes/generer/>, aussi joignable par `/try-it/`. Les anciennes adresses de la documentation mènent à leur nouvelle page.
+- La page de génération, et l'application de bureau qui la partage, adoptent la présentation du site : des étapes numérotées, des champs, des boutons et un tableau des dimensions plus lisibles, l'aperçu en deux vues côte à côte, et la carte terminée offerte par un vrai bouton de téléchargement. Les aides des réglages s'ouvrent dans une bulle, sous leur point d'interrogation, et se ferment d'un clic ailleurs ou avec Échap. La liste des communes trouvées défile au-delà d'une dizaine de lignes, au lieu de repousser toute la page.
 
 ## [0.5.0] – 2026-09-23
 
@@ -118,7 +122,8 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v0.5.0...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sebprunier/cartes/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sebprunier/cartes/releases/tag/v0.5.0
 [0.4.1]: https://github.com/sebprunier/cartes/releases/tag/v0.4.1
 [0.4.0]: https://github.com/sebprunier/cartes/releases/tag/v0.4.0
