@@ -356,8 +356,11 @@ button:disabled:hover {
 
 /* Étape 1 : la commune */
 
+/* A common name matches dozens of municipalities: the list scrolls rather than pushing the page down. */
 #results {
+  max-height: 20rem;
   margin: 0.5rem 0 0;
+  overflow-y: auto;
   padding: 0.35rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);

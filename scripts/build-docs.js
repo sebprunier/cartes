@@ -187,7 +187,10 @@ function figure({ href, title, text }) {
   const caption = title ? `<figcaption>${escapeHtml(title)}</figcaption>` : '';
   if (/^https?:/.test(href) || existsSync(path.join(SOURCE, href))) {
     const size = /^https?:/.test(href) ? undefined : imageSize(href);
-    const dimensions = size ? ` width="${size.width}" height="${size.height}"` : '';
+    // Screenshots are taken at twice the resolution of the screen, to stay sharp on a dense one: they are shown at
+    // the size the interface has on the screen, not at their size in pixels.
+    const scale = href.startsWith('images/captures/') ? 2 : 1;
+    const dimensions = size ? ` width="${size.width / scale}" height="${size.height / scale}"` : '';
     return `<figure><img src="${href}" alt="${alt}"${dimensions} loading="lazy" />${caption}</figure>\n`;
   }
   return (

@@ -2,7 +2,7 @@
 
 L'application reprend l'interface de la page web, mais génère les cartes avec le même moteur que la ligne de commande. Elle sert quand le navigateur ne suffit plus.
 
-![La fenêtre de l'application de bureau sur macOS, à sa première étape : le choix de la commune](images/bureau-fenetre.png)
+![La fenêtre de l'application de bureau sur macOS : la commune choisie, puis le fond de carte, le niveau de zoom et le format du fichier](images/captures/bureau-fenetre.png)
 
 ## Ce qu'elle apporte
 
