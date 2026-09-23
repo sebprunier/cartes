@@ -53,13 +53,20 @@ export function expandAbbreviations(address) {
   );
 }
 
+// Ways that stretch: without a number, the service places the point in their middle, which may be far from the
+// place meant — 1,083 m for « Route de Marigny », among the points of apport volontaire of Colombiers (#10). A
+// hamlet, a square or a dead end, that the Base Adresse Nationale files as streets too, are compact: 67 to 220 m.
+const LONG_WAY = /^(route|rue|chemin|avenue|boulevard|allée|allee|voie|ruelle|traverse|sentier|quai)\b/i;
+
 /**
  * Status of an answer of the service to an address: found, to check, or not found. The centre of the
- * municipality is never an answer, and a number asked for but a point in the middle of the street is to check.
+ * municipality is never an answer. A way that stretches, found without a number, is to check: the point is in its
+ * middle. So is a number asked for but not found, for the same reason.
  */
-export function classify({ address, type, score }) {
+export function classify({ address, type, score, label = '' }) {
   if (!type || type === 'municipality' || !(score >= NOT_FOUND_BELOW)) return GEOCODING_STATUS.missing;
-  if (/^\s*\d/.test(address) && type !== 'housenumber') return GEOCODING_STATUS.check;
+  if (type !== 'housenumber' && /^\s*\d/.test(address)) return GEOCODING_STATUS.check;
+  if (type === 'street' && LONG_WAY.test(label)) return GEOCODING_STATUS.check;
   return score >= FOUND_FROM ? GEOCODING_STATUS.found : GEOCODING_STATUS.check;
 }
 

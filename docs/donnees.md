@@ -73,7 +73,7 @@ Les adresses — et elles seules, le reste du fichier ne quitte pas votre ordina
 Chaque adresse est ensuite classée :
 
 - **trouvée** : placée avec assurance, et dessinée sur la carte ;
-- **à vérifier** : le service a hésité, ou ne connaît pas le numéro — il place alors le point au milieu de la voie. Ces adresses ne sont dessinées que si vous cochez « Dessiner aussi les adresses à vérifier » ;
+- **à vérifier** : le service a hésité, ou n'a trouvé qu'une route ou une rue, sans numéro — parce que l'adresse n'en a pas, ou que la Base Adresse Nationale ne le connaît pas. Le point est alors au milieu de la voie, qui peut être loin du lieu voulu : sur une route de campagne, jusqu'à un kilomètre. Un lieu-dit ou une place, plus ramassés, sont trouvés. Ces adresses ne sont dessinées que si vous cochez « Dessiner aussi les adresses à vérifier » ;
 - **introuvable** : rien de sûr, rien de dessiné. Un nom de lieu seul, comme « Mairie » ou « Salle des fêtes », n'est pas une adresse : le service ne le trouve pas.
 
 Ce classement n'est pas un détail. Le service répond toujours quelque chose, même quand il se trompe, et une adresse placée au mauvais endroit a l'air juste : c'est pire qu'une adresse absente. Les seuils qui séparent les trois classements ont été mesurés sur 430 adresses de Colombiers, écrites comme une mairie les écrirait — fautes de frappe et abréviations comprises : aucune adresse mal placée n'y était classée trouvée.
@@ -101,4 +101,4 @@ Vous êtes responsable des droits sur les fichiers que vous ajoutez. Les donnée
 
 ## Exemples
 
-Le dossier [`exemples/`](https://github.com/sebprunier/cartes/tree/main/exemples) contient les points d'apport volontaire de Colombiers, dans les deux formats acceptés. C'est un bon point de départ pour préparer son propre fichier.
+Le dossier [`exemples/`](https://github.com/sebprunier/cartes/tree/main/exemples) contient les points d'apport volontaire de Colombiers, dans les deux formats acceptés. C'est un bon point de départ pour préparer son propre fichier. `colombiers-apport-volontaire-adresses.csv` est le même fichier sans ses coordonnées, pour essayer le géocodage : ses adresses sont écrites telles que Grand Châtellerault les publie.

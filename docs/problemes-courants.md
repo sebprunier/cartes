@@ -31,7 +31,7 @@ Trois causes possibles, dans l'ordre de fréquence :
 Le géocodage classe ainsi les adresses qu'il ne place pas avec assurance. Les causes les plus fréquentes :
 
 - **Un nom de lieu, pas une adresse** : « Mairie », « École », « Salle des fêtes ». Écrivez l'adresse du lieu : « Place de Manderen » plutôt que « Place de la Mairie ».
-- **Un numéro que la Base Adresse Nationale ne connaît pas** : le point est placé au milieu de la voie, et l'adresse est à vérifier. Les numéros des constructions récentes manquent parfois.
+- **Une voie sans numéro, ou un numéro que la Base Adresse Nationale ne connaît pas** : le point est placé au milieu de la voie, qui peut être loin du lieu voulu, et l'adresse est à vérifier. Ajoutez le numéro quand il existe.
 - **Une faute de frappe** dans le nom de la voie : souvent trouvée malgré tout, mais à vérifier.
 - **Une adresse d'une autre commune** : la recherche est restreinte à la commune de la carte, pour ne jamais tomber sur une voie du même nom ailleurs. Une adresse hors de la commune est donc introuvable.
 

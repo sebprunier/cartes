@@ -42,7 +42,12 @@ function recordedService(calls = []) {
 describe('classify', () => {
   const classified = recorded.map((row) => ({
     ...row,
-    status: classify({ address: row.adresse, type: row.result_type, score: Number(row.result_score || 0) }),
+    status: classify({
+      address: row.adresse,
+      type: row.result_type,
+      score: Number(row.result_score || 0),
+      label: row.result_label,
+    }),
   }));
 
   // An address placed wrongly looks right: that is the one mistake the thresholds must never make.
@@ -63,6 +68,18 @@ describe('classify', () => {
   it('asks to check a number the base does not know, placed in the middle of its street', () => {
     const statuses = classified.filter((row) => row.categorie === 'numéro inexistant').map((row) => row.status);
     assert.ok(statuses.every((status) => status === GEOCODING_STATUS.check));
+  });
+
+  // A road is long: its middle may be a kilometre from the place meant, however sure the service is of the road.
+  it('asks to check a way that stretches, found without number, and finds a hamlet or a square', () => {
+    const street = (label) => classify({ address: label, type: 'street', score: 0.95, label });
+    assert.equal(street('Route de Marigny 86490 Colombiers'), GEOCODING_STATUS.check);
+    assert.equal(street('Rue de la Fuie 86490 Colombiers'), GEOCODING_STATUS.check);
+    assert.equal(street('La Tour Savary 86490 Colombiers'), GEOCODING_STATUS.found);
+    assert.equal(street('Place de Manderen 86490 Colombiers'), GEOCODING_STATUS.found);
+    assert.equal(street('Impasse Saint - Fleur 86490 Colombiers'), GEOCODING_STATUS.found);
+    const roads = classified.filter((row) => row.categorie === 'voie seule' && /^(Route|Rue|Chemin)/.test(row.adresse));
+    assert.ok(roads.length > 10 && roads.every((row) => row.status === GEOCODING_STATUS.check));
   });
 
   it('never takes the centre of the municipality for an address, whatever its score', () => {

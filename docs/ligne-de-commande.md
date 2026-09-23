@@ -66,7 +66,7 @@ cartes geocoder defibrillateurs.csv --commune 86081
 La commande envoie les adresses au service de géocodage de la Géoplateforme (IGN), en restreignant la recherche à la commune donnée. Elle écrit à côté du fichier un `defibrillateurs-geocode.csv` : le même fichier, dans le même séparateur, complété de la latitude, de la longitude et du résultat du géocodage de chaque ligne. Puis elle dresse le bilan :
 
 - **trouvées** : placées avec assurance, et dessinées sur la carte ;
-- **à vérifier** : le service a hésité, ou n'a trouvé que la voie d'un numéro qu'il ne connaît pas — le point est au milieu de la rue. Elles ne sont dessinées qu'avec `--donnees-a-verifier` ;
+- **à vérifier** : le service a hésité, ou n'a trouvé qu'une route ou une rue, faute de numéro — le point est au milieu de la voie, parfois loin du lieu voulu. Elles ne sont dessinées qu'avec `--donnees-a-verifier` ;
 - **introuvables** : rien de sûr, et donc rien de dessiné.
 
 Chaque adresse à vérifier ou introuvable est listée avec son numéro de ligne et ce que le service a trouvé. Corrigez-les dans votre tableur, puis géocodez de nouveau le fichier corrigé ; ou ajoutez-le tel quel :
