@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [0.4.1] – 2026-09-23
+
+L'application macOS téléchargée s'ouvre de nouveau.
+
 ### Corrigé
 
 - Sur macOS, l'application téléchargée était déclarée « endommagée » et ne pouvait pas être ouverte, sans autre choix que de la mettre à la corbeille. Elle est désormais signée pour elle-même, sans certificat : macOS affiche l'avertissement habituel d'une application non vérifiée, que l'on peut passer depuis les réglages.
@@ -93,7 +97,8 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v0.4.0...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/sebprunier/cartes/releases/tag/v0.4.1
 [0.4.0]: https://github.com/sebprunier/cartes/releases/tag/v0.4.0
 [0.3.0]: https://github.com/sebprunier/cartes/releases/tag/v0.3.0
 [0.2.0]: https://github.com/sebprunier/cartes/releases/tag/v0.2.0
