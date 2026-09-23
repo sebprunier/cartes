@@ -827,6 +827,135 @@ tr.selected td:first-child {
   background: var(--accent-soft);
 }
 
+p.privacy {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Géocodage : l'offre, avant tout envoi, puis le bilan de chaque fichier géocodé. */
+
+.geocoding {
+  margin: 0.9rem 0 0;
+  padding: 1rem 1.2rem;
+  border: 1px solid #cfe0ef;
+  border-radius: var(--radius);
+  background: var(--brand-soft);
+}
+
+.geocoding-title {
+  margin: 0 0 0.35rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.geocoding .note {
+  margin: 0;
+}
+
+.geocoding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  align-items: center;
+  margin: 0.75rem 0 0;
+}
+
+.geocoding-actions label {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+a.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a.button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.geocoding-report {
+  margin: 0.75rem 0 0 1.35rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.geocoding-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: var(--muted);
+}
+
+.geocoding-count {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.geocoding-count.found {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.geocoding-count.check {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.geocoding-count.missing {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.geocoding-report details {
+  margin-top: 0.6rem;
+}
+
+.geocoding-report summary {
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.geocoding-report .table-wrapper {
+  margin-top: 0.5rem;
+}
+
+.geocoding-report td,
+.geocoding-report th {
+  text-align: left;
+  white-space: normal;
+}
+
+.geocoding-report tr.check td:first-child {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+
+.geocoding-report tr.missing td:first-child {
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.geocoding-report .note {
+  margin: 0.5rem 0 0;
+}
+
 /* Fenêtres du catalogue et de la couche ajoutée par son adresse */
 
 dialog {

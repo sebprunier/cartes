@@ -46,10 +46,15 @@ export function readLayer(
   text,
   { fileName, name, color, index = 0, categoryProperty, colorProperty, unverified = false } = {},
 ) {
-  const { features, geocodedOn } = /\.csv$/i.test(fileName) ? readCsv(text, { unverified }) : { features: readGeoJson(text) };
+  const { features, geocodedOn, technical = [] } = /\.csv$/i.test(fileName)
+    ? readCsv(text, { unverified })
+    : { features: readGeoJson(text) };
   if (features.length === 0) throw new LayerError(`Aucune donnée trouvée dans ${fileName}.`);
 
-  const properties = [...new Set(features.flatMap((feature) => Object.keys(feature.properties)))];
+  // The coordinates and the geocoding of a CSV row are not properties to give a legend or a color by.
+  const properties = [...new Set(features.flatMap((feature) => Object.keys(feature.properties)))].filter(
+    (property) => !technical.includes(property),
+  );
   const layer = {
     name: name?.trim() || layerName(fileName),
     color: color ?? PALETTE[index % PALETTE.length],
@@ -231,7 +236,8 @@ function readCsv(text, { unverified = false } = {}) {
       },
     ];
   });
-  return { features, geocodedOn };
+  const technical = [headers[latitudeColumn], headers[longitudeColumn], ...Object.values(GEOCODING_COLUMNS)];
+  return { features, geocodedOn, technical };
 }
 
 /**

@@ -3,7 +3,17 @@
 import { BASEMAPS } from './core/basemaps.js';
 import { MAP_LAYERS, MapLayerError, customMapLayer, mapLayerZoomWarning } from './core/maplayers.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
-import { LayerError, applyProperties, layerWarning, readLayer } from './core/layers.js';
+import {
+  GEOCODING_STATUS,
+  GeocodingNeeded,
+  LayerError,
+  applyProperties,
+  decodeText,
+  layerWarning,
+  parseCsv,
+  readLayer,
+} from './core/layers.js';
+import { geocodeCsv } from './core/geocoding.js';
 import {
   boundaryBbox,
   describeMunicipality,
@@ -30,6 +40,7 @@ const dataSection = element('data');
 const dropZone = element('drop-zone');
 const fileInput = element('data-files');
 const layersList = element('layers');
+const geocodingPanel = element('geocoding');
 const legendChoice = element('legend-choice');
 const legendBox = element('legend');
 const previewSection = element('preview');
@@ -74,14 +85,12 @@ const searchError = element('search-error');
 const dataError = element('data-error');
 const previewError = element('preview-error');
 const zoomNote = element('zoom-note');
-const privacyNote = element('privacy-note');
 
 // The engine sets what the platform can do: highest zoom level and output formats.
 const MAX_ZOOM = engine.maxZoom;
 for (const [value, label] of engine.formats) formatChoice.append(new Option(label, value));
 if (engine.zoomNote) zoomNote.textContent = engine.zoomNote;
 else zoomNote.hidden = true;
-privacyNote.textContent = engine.privacyNote;
 // What only makes sense on the web page — such as a link to download the desktop application — is left out of it.
 if (engine.desktop) for (const link of document.querySelectorAll('[data-web-only]')) link.hidden = true;
 
@@ -539,20 +548,221 @@ async function select(found) {
   showEstimates();
 }
 
-/** Reads the files dropped or chosen, and adds them as layers. */
+/**
+ * Reads the files dropped or chosen, and adds them as layers. A file of addresses without coordinates is offered
+ * to geocoding instead, which sends them away: nothing leaves before the user says so.
+ */
 async function addFiles(files) {
   for (const file of files) {
+    // Many spreadsheets write their CSV in Windows-1252: read as UTF-8, its accents would be lost.
+    const text = decodeText(new Uint8Array(await file.arrayBuffer()));
     try {
-      const layer = readLayer(await file.text(), { fileName: file.name, index: layers.length });
+      const layer = readLayer(text, { fileName: file.name, index: layers.length });
       // The name titles the legend and appears in the sources mention: the file name is only a first guess.
       layers.push({ ...layer, defaultName: layer.name });
     } catch (error) {
-      showError(error instanceof LayerError ? `${file.name} : ${error.message}` : error.message, dataError);
+      if (error instanceof GeocodingNeeded) geocodingQueue.push({ fileName: file.name, text });
+      else showError(error instanceof LayerError ? `${file.name} : ${error.message}` : error.message, dataError);
     }
   }
   fileInput.value = '';
   showLayers();
   clearPreview();
+  offerGeocoding();
+}
+
+// Files of addresses waiting for the user to accept, or not, that they be geocoded: one offer at a time.
+const geocodingQueue = [];
+
+/** Offers to geocode the next file of addresses, saying what is sent, and where, before anything is. */
+function offerGeocoding() {
+  const next = geocodingQueue[0];
+  if (!next || !geocodingPanel.hidden) return;
+  const [, ...rows] = parseCsv(next.text);
+  const count = rows.filter((row) => row.some((value) => value.trim() !== '')).length;
+  const addresses = `${count.toLocaleString('fr-FR')} adresse${count > 1 ? 's' : ''}`;
+
+  const title = document.createElement('p');
+  title.className = 'geocoding-title';
+  title.textContent = `${next.fileName} contient ${addresses}, mais pas de coordonnées.`;
+  const explanation = document.createElement('p');
+  explanation.className = 'note';
+  explanation.textContent =
+    `Pour les placer sur la carte, elles seront envoyées au service de géocodage de l'IGN, qui les cherche dans ` +
+    `la Base Adresse Nationale, à ${municipality.boundary.name}. Seules les adresses partent : le reste du fichier ` +
+    'ne quitte pas votre ordinateur.';
+  const accept = document.createElement('button');
+  accept.type = 'button';
+  accept.className = 'primary';
+  accept.textContent = `Géocoder ${count > 1 ? 'les ' : "l'"}${addresses}`;
+  const decline = document.createElement('button');
+  decline.type = 'button';
+  decline.textContent = 'Ne pas géocoder';
+  const actions = document.createElement('p');
+  actions.className = 'geocoding-actions';
+  actions.append(accept, decline);
+  const progress = document.createElement('p');
+  progress.className = 'note';
+  progress.hidden = true;
+
+  geocodingPanel.replaceChildren(title, explanation, actions, progress);
+  geocodingPanel.hidden = false;
+
+  const close = () => {
+    geocodingQueue.shift();
+    geocodingPanel.hidden = true;
+    geocodingPanel.replaceChildren();
+    offerGeocoding();
+  };
+  decline.addEventListener('click', close);
+  accept.addEventListener('click', async () => {
+    actions.hidden = true;
+    progress.hidden = false;
+    progress.replaceChildren(spinner(), ` Géocodage de ${addresses}…`);
+    try {
+      const result = await geocodeCsv(next.text, {
+        inseeCode: municipality.boundary.inseeCode,
+        onProgress: ({ done, total }) =>
+          progress.replaceChildren(spinner(), ` Géocodage : ${done.toLocaleString('fr-FR')} / ${total.toLocaleString('fr-FR')} adresses…`),
+      });
+      addGeocodedLayer(next.fileName, result);
+      close();
+    } catch (error) {
+      actions.hidden = false;
+      progress.hidden = true;
+      showError(`${next.fileName} : géocodage impossible (${error.message}). Réessayez plus tard.`, dataError);
+    }
+  });
+}
+
+function spinner() {
+  const element = document.createElement('span');
+  element.className = 'spinner';
+  element.setAttribute('aria-hidden', 'true');
+  return element;
+}
+
+/**
+ * Adds a geocoded file as a layer, with its report. Only the addresses found are drawn at first: those to check
+ * are drawn on demand, and those not found never are. A file with none to draw is still reported, and can be saved.
+ */
+function addGeocodedLayer(fileName, result) {
+  const geocoding = { ...result, fileName, unverified: false };
+  try {
+    const layer = readLayer(result.csv, { fileName, index: layers.length });
+    layers.push({ ...layer, defaultName: layer.name, geocoding });
+  } catch (error) {
+    if (!(error instanceof LayerError)) throw error;
+    // Nothing found for sure: the addresses to check may still be drawn, if there are some.
+    if (result.summary.check > 0) {
+      const layer = readLayer(result.csv, { fileName, index: layers.length, unverified: true });
+      layers.push({ ...layer, defaultName: layer.name, geocoding: { ...geocoding, unverified: true } });
+    } else {
+      showError(
+        `${fileName} : aucune des ${result.summary.total} adresses n'a pu être placée. Vérifiez qu'elles sont bien ` +
+          `à ${municipality.boundary.name}, et que la colonne d'adresse est la bonne.`,
+        dataError,
+      );
+      return;
+    }
+  }
+  showLayers();
+  clearPreview();
+}
+
+/** Draws the addresses to check of a geocoded layer, or stops drawing them: the file is read again. */
+function drawUnverified(index, unverified) {
+  const layer = layers[index];
+  const { geocoding } = layer;
+  const read = readLayer(geocoding.csv, {
+    fileName: geocoding.fileName,
+    name: layer.name,
+    color: layer.color,
+    index,
+    categoryProperty: layer.categoryProperty,
+    colorProperty: layer.colorProperty,
+    unverified,
+  });
+  layers[index] = { ...read, defaultName: layer.defaultName, geocoding: { ...geocoding, unverified } };
+  showLayers();
+  clearPreview();
+}
+
+/** The report of a geocoded layer: its counts, the addresses to look at, and what can be done with them. */
+function geocodingReport(layer, index) {
+  const { summary, rows, unverified, csv, fileName } = layer.geocoding;
+  const report = document.createElement('div');
+  report.className = 'geocoding-report';
+
+  const counts = document.createElement('p');
+  counts.className = 'geocoding-summary';
+  const count = (value, label) => {
+    const part = document.createElement('span');
+    part.className = `geocoding-count ${label.key}`;
+    part.textContent = `${value.toLocaleString('fr-FR')} ${label.text}`;
+    return part;
+  };
+  counts.append(
+    'Géocodage : ',
+    count(summary.found, { key: 'found', text: summary.found > 1 ? 'trouvées' : 'trouvée' }),
+    count(summary.check, { key: 'check', text: 'à vérifier' }),
+    count(summary.missing, { key: 'missing', text: summary.missing > 1 ? 'introuvables' : 'introuvable' }),
+  );
+  report.append(counts);
+
+  const doubtful = rows.filter((row) => row.status !== GEOCODING_STATUS.found);
+  if (doubtful.length > 0) {
+    const details = document.createElement('details');
+    const summaryLine = document.createElement('summary');
+    summaryLine.textContent = `Voir les ${doubtful.length} adresse${doubtful.length > 1 ? 's' : ''} à vérifier ou introuvable${doubtful.length > 1 ? 's' : ''}`;
+    const table = document.createElement('table');
+    const head = table.createTHead().insertRow();
+    for (const title of ['Ligne', 'Adresse du fichier', 'Trouvée par le service', 'Score']) {
+      const cell = document.createElement('th');
+      cell.textContent = title;
+      head.append(cell);
+    }
+    const body = table.createTBody();
+    for (const row of doubtful) {
+      const line = body.insertRow();
+      line.className = row.status === GEOCODING_STATUS.check ? 'check' : 'missing';
+      line.insertCell().textContent = row.line;
+      line.insertCell().textContent = row.address || '(vide)';
+      line.insertCell().textContent = row.found ?? '—';
+      line.insertCell().textContent = row.score === undefined ? '—' : row.score.toFixed(2).replace('.', ',');
+    }
+    const advice = document.createElement('p');
+    advice.className = 'note';
+    advice.textContent =
+      'Corrigez ces adresses dans votre tableur, puis déposez de nouveau le fichier : le numéro de ligne est ' +
+      'celui du fichier.';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-wrapper';
+    wrapper.append(table);
+    details.append(summaryLine, wrapper, advice);
+    report.append(details);
+  }
+
+  const actions = document.createElement('p');
+  actions.className = 'geocoding-actions';
+  if (summary.check > 0) {
+    const label = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = unverified;
+    box.addEventListener('change', () => drawUnverified(index, box.checked));
+    label.append(box, ` Dessiner aussi ${summary.check > 1 ? `les ${summary.check} adresses` : "l'adresse"} à vérifier`);
+    actions.append(label);
+  }
+  const save = document.createElement('a');
+  save.className = 'button';
+  save.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  save.download = `${fileName.replace(/\.[^.]+$/, '').replace(/[-_]geocode$/i, '')}-geocode.csv`;
+  save.textContent = 'Enregistrer le fichier géocodé';
+  save.title = 'Pour ne pas géocoder de nouveau : le même fichier, avec les coordonnées de chaque adresse';
+  actions.append(save);
+  report.append(actions);
+  return report;
 }
 
 /**
@@ -705,6 +915,8 @@ function layerItem(layer, index) {
     );
     item.append(choices);
   }
+
+  if (layer.geocoding) item.append(geocodingReport(layer, index));
 
   const warning = layerWarning(layer);
   if (warning) {

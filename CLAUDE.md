@@ -26,7 +26,7 @@ Ce fichier s'adresse à Claude Code et aux autres assistants qui travaillent sur
 - **`web/core/` n'existe pas dans les sources** : les scripts de construction y recopient `src/core/`. Un module de `web/` qui importe `./core/…` ne peut donc pas être chargé par un test unitaire — c'est la raison pour laquelle `web/engine.js` n'importe rien du cœur.
 - **Les services publics renvoient des erreurs passagères** : la Géoplateforme répond parfois 400 ou 404 sur une tuile qui existe. Le téléchargement réessaie et isole la tuile fautive ; ne « simplifiez » pas ce mécanisme. Pour les essais manuels, restez à de petits niveaux de zoom et laissez jouer le cache `.cache/tiles/`.
 - **librsvg refuse les images de plus de 32 767 px** : les surcouches SVG sont dessinées par blocs de 4 096 px dans `src/node/render.js`. Une carte au zoom 19 dépasse largement cette limite.
-- **Le texte de l'interface est partagé** entre la page web et l'application : une phrase qui parle de « navigateur » serait fausse dans l'application. Ce qui diffère passe par `engine.privacyNote` et `engine.zoomNote`.
+- **Le texte de l'interface est partagé** entre la page web et l'application : une phrase qui parle de « navigateur » serait fausse dans l'application. Ce qui diffère passe par `engine.zoomNote` et `engine.customLayerNote`.
 - **Les formulations du cœur sont vues par l'utilisateur** : les messages d'erreur de `src/core/` s'affichent tels quels dans les trois outils, et l'API les renvoie aux logiciels qui l'appellent.
 
 ## Mesurer plutôt que supposer

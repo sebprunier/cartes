@@ -6,6 +6,15 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Ajouté
+
+- Géocoder un fichier d'adresses : un CSV avec une colonne d'adresse — ou des colonnes de numéro, de voie, de code postal et de commune — mais sans coordonnées est placé par le service de géocodage de l'IGN, la recherche restreinte à la commune de la carte. Chaque adresse est classée trouvée, à vérifier ou introuvable, d'après des seuils mesurés sur 430 adresses : seules les trouvées sont dessinées, les secondes sur demande, et le bilan dit quelles lignes corriger. Le fichier géocodé s'enregistre, pour ne pas recommencer. En ligne de commande : `cartes geocoder lieux.csv --commune 86081`, puis `--donnees` et `--donnees-a-verifier`. La carte cite alors la Base Adresse Nationale, d'où viennent les positions.
+
+### Modifié
+
+- Sur la page de génération et dans l'application, la promesse « aucune donnée n'est envoyée ailleurs » quitte l'en-tête pour la zone de dépôt des fichiers, où elle compte, et devient exacte : vos fichiers ne quittent pas votre ordinateur, seules les adresses que vous choisissez de géocoder sont envoyées. Rien ne part sans confirmation.
+- Les fichiers CSV sont lus en UTF-8, ou à défaut en Windows-1252, celui de bien des tableurs : leurs accents ne se perdent plus.
+
 ### Corrigé
 
 - Sur une page courte — la page de génération à son ouverture, dans l'application comme dans le navigateur — le pied de page reste en bas de la fenêtre, au lieu de laisser une bande vide sous lui.

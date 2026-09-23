@@ -10,7 +10,6 @@ export const engine = {
     ['jpg', 'JPEG'],
     ['tif', 'TIFF'],
   ],
-  privacyNote: "Tout se passe sur votre ordinateur : aucune donnée n'est envoyée ailleurs.",
   zoomNote:
     'Les zooms les plus élevés demandent beaucoup de mémoire : environ 1 Go au zoom 18 et 4 Go au zoom 19 pour ' +
     'une commune de taille moyenne. La colonne « Mémoire » indique la valeur exacte.',

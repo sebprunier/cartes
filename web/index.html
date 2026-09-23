@@ -30,7 +30,6 @@
       <div class="intro">
         <h1>Générer une carte</h1>
         <p>La carte détaillée d'une commune française, prête à imprimer en grand format, en cinq étapes.</p>
-        <p id="privacy-note" class="privacy"></p>
       </div>
 
       <section>
@@ -218,6 +217,11 @@
           <strong>Glissez vos fichiers ici, ou cliquez pour les choisir</strong>
           <span>GeoJSON ou CSV, un ou plusieurs à la fois</span>
         </label>
+        <p class="privacy">
+          Vos fichiers ne quittent pas votre ordinateur : seules les adresses que vous choisissez de géocoder sont
+          envoyées, au service de l'IGN.
+        </p>
+        <div id="geocoding" class="geocoding" hidden></div>
         <input id="data-files" type="file" accept=".geojson,.json,.csv" multiple hidden />
         <ul id="layers"></ul>
         <p class="checkboxes" id="legend-choice" hidden>

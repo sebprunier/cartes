@@ -10,7 +10,6 @@ export const engine = {
     ['png', 'PNG'],
     ['jpg', 'JPEG'],
   ],
-  privacyNote: "Tout se passe dans votre navigateur : aucune donnée n'est envoyée ailleurs.",
   zoomNote:
     'Les zooms les plus élevés produisent de très grandes images, qu’un navigateur finit par refuser de ' +
     'dessiner : cela dépend de la taille de la commune et de la machine. La ligne de commande et ' +

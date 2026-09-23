@@ -145,6 +145,10 @@ describe('geocoded CSV', () => {
     'École;12 route de Châtellerault;46,77;0,43;à vérifier;0,88;Route de Châtellerault 86490 Colombiers;2026-09-23\n' +
     'Stade;Stade;;;introuvable;0,68;Colombiers;2026-09-23\n';
 
+  it('offers neither the coordinates nor the geocoding as properties to give a legend or a color by', () => {
+    assert.deepEqual(read(geocoded, 'lieux.csv').properties, ['nom', 'adresse']);
+  });
+
   it('draws the addresses found, and those to check only when asked to', () => {
     assert.deepEqual(read(geocoded, 'lieux.csv').features.map((f) => f.label), ['Mairie']);
     const all = readLayer(geocoded, { fileName: 'lieux.csv', unverified: true });
