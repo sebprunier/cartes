@@ -13,8 +13,28 @@ const CATEGORY_KEYS = ['categorie', 'catégorie', 'category', 'type', 'groupe', 
 const COLOR_KEYS = ['couleur', 'color'];
 const LATITUDE_KEYS = ['latitude', 'lat', 'y'];
 const LONGITUDE_KEYS = ['longitude', 'lon', 'lng', 'long', 'x'];
+// Columns holding a whole address, else its parts, in the order they are written: number, street, postcode, town.
+const ADDRESS_KEYS = ['adresse', 'address', 'adresse complète', 'adresse complete', 'adresse_complete', 'adresse postale', 'adresse_postale'];
+const ADDRESS_PART_KEYS = [
+  ['numéro', 'numero', 'num', 'n°', 'no', 'number', 'housenumber'],
+  ['voie', 'rue', 'nom de la voie', 'nom_voie', 'nom voie', 'libellé de la voie', 'libelle_voie', 'street'],
+  ['code postal', 'code_postal', 'cp', 'postcode'],
+  ['commune', 'ville', 'nom_commune', 'city'],
+];
+
+// Columns a geocoded file carries, besides its coordinates, and the statuses of its rows (see geocoding.js).
+export const GEOCODING_COLUMNS = {
+  status: 'geocodage_statut',
+  score: 'geocodage_score',
+  found: 'geocodage_adresse_trouvee',
+  date: 'geocodage_date',
+};
+export const GEOCODING_STATUS = { found: 'trouvée', check: 'à vérifier', missing: 'introuvable' };
 
 export class LayerError extends Error {}
+
+/** A CSV file of addresses without coordinates: it can be drawn once geocoded. */
+export class GeocodingNeeded extends LayerError {}
 
 /**
  * Reads a layer from the content of a file. The format comes from the file name (.geojson, .json, .csv), and
@@ -22,8 +42,11 @@ export class LayerError extends Error {}
  * Features are grouped by their category property, which gives one legend entry and one color per category;
  * `categoryProperty` and `colorProperty` choose these properties, otherwise the usual names are looked up.
  */
-export function readLayer(text, { fileName, name, color, index = 0, categoryProperty, colorProperty } = {}) {
-  const features = /\.csv$/i.test(fileName) ? readCsv(text) : readGeoJson(text);
+export function readLayer(
+  text,
+  { fileName, name, color, index = 0, categoryProperty, colorProperty, unverified = false } = {},
+) {
+  const { features, geocodedOn } = /\.csv$/i.test(fileName) ? readCsv(text, { unverified }) : { features: readGeoJson(text) };
   if (features.length === 0) throw new LayerError(`Aucune donnée trouvée dans ${fileName}.`);
 
   const properties = [...new Set(features.flatMap((feature) => Object.keys(feature.properties)))];
@@ -34,6 +57,7 @@ export function readLayer(text, { fileName, name, color, index = 0, categoryProp
     properties,
     categoryProperty: choose(categoryProperty, properties, CATEGORY_KEYS, 'de catégorie'),
     colorProperty: choose(colorProperty, properties, COLOR_KEYS, 'de couleur'),
+    geocodedOn,
   };
   return applyProperties(layer, index);
 }
@@ -154,8 +178,11 @@ function position(coordinates) {
   return [lon, lat];
 }
 
-/** Points of a CSV file, from its latitude and longitude columns. */
-function readCsv(text) {
+/**
+ * Points of a CSV file, from its latitude and longitude columns. A geocoded file only gives the addresses found,
+ * and those to check when `unverified` is set: an address placed wrongly looks right, which is worse than none.
+ */
+function readCsv(text, { unverified = false } = {}) {
   const rows = parseCsv(text);
   if (rows.length < 2) throw new LayerError('Fichier CSV vide ou sans ligne de données.');
 
@@ -163,15 +190,26 @@ function readCsv(text) {
   const latitudeColumn = headers.findIndex((header) => LATITUDE_KEYS.includes(header));
   const longitudeColumn = headers.findIndex((header) => LONGITUDE_KEYS.includes(header));
   if (latitudeColumn === -1 || longitudeColumn === -1) {
+    if (addressColumns(headers)) {
+      throw new GeocodingNeeded(
+        'Ce fichier contient des adresses, mais pas de coordonnées : il faut d’abord le géocoder, pour placer ' +
+          'chaque adresse sur la carte.',
+      );
+    }
     throw new LayerError(
       `Colonnes de coordonnées introuvables dans le CSV : une colonne ${LATITUDE_KEYS.join(', ')} ` +
-        `et une colonne ${LONGITUDE_KEYS.join(', ')} sont attendues.`,
+        `et une colonne ${LONGITUDE_KEYS.join(', ')} sont attendues, ou une colonne d’adresse à géocoder.`,
     );
   }
   const labelColumn = headers.findIndex((header) => LABEL_KEYS.includes(header));
+  const statusColumn = headers.indexOf(GEOCODING_COLUMNS.status);
+  const dateColumn = headers.indexOf(GEOCODING_COLUMNS.date);
+  const drawn = [GEOCODING_STATUS.found, ...(unverified ? [GEOCODING_STATUS.check] : [])];
+  const geocodedOn = dateColumn === -1 ? undefined : rows.slice(1).map((row) => row[dateColumn]?.trim()).find(Boolean);
 
-  return rows.slice(1).flatMap((row) => {
+  const features = rows.slice(1).flatMap((row) => {
     if (row.every((value) => value.trim() === '')) return [];
+    if (statusColumn !== -1 && !drawn.includes(row[statusColumn]?.trim())) return [];
     const lon = decimal(row[longitudeColumn]);
     const lat = decimal(row[latitudeColumn]);
     if (!Number.isFinite(lon) || !Number.isFinite(lat)) return [];
@@ -186,13 +224,43 @@ function readCsv(text) {
       },
     ];
   });
+  return { features, geocodedOn };
+}
+
+/**
+ * Columns holding the address of a CSV row, as indices into its lowercased headers: a single address column,
+ * else its parts — at least the street — in the order an address is written. Undefined when there is none.
+ */
+export function addressColumns(headers) {
+  const whole = headers.findIndex((header) => ADDRESS_KEYS.includes(header));
+  if (whole !== -1) return [whole];
+  const parts = ADDRESS_PART_KEYS.map((keys) => headers.findIndex((header) => keys.includes(header)));
+  return parts[1] === -1 ? undefined : parts.filter((column) => column !== -1);
+}
+
+/** Separator of a CSV file, guessed from its first line: a semicolon for a French spreadsheet, else a comma. */
+export function csvSeparator(text) {
+  const content = text.replace(/^\uFEFF/, '');
+  const firstLine = content.slice(0, content.indexOf('\n') + 1 || undefined);
+  return [';', '\t', ','].find((candidate) => firstLine.includes(candidate)) ?? ',';
+}
+
+/**
+ * Text of a file, in UTF-8 or else in Windows-1252 — the encoding of the CSV files many spreadsheets write,
+ * where an accented letter is not valid UTF-8.
+ */
+export function decodeText(bytes) {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder('windows-1252').decode(bytes);
+  }
 }
 
 /** Rows of a CSV file, with the separator guessed from its first line, and quoted fields supported. */
-function parseCsv(text) {
-  const content = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
-  const firstLine = content.slice(0, content.indexOf('\n') + 1 || undefined);
-  const separator = [';', '\t', ','].find((candidate) => firstLine.includes(candidate)) ?? ',';
+export function parseCsv(text) {
+  const content = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+  const separator = csvSeparator(content);
 
   const rows = [[]];
   let value = '';
@@ -257,10 +325,18 @@ export function layerWarning(layer) {
   );
 }
 
-/** Data source describing the layers added by the user, for the attribution of the map. */
+/**
+ * Data source describing the layers added by the user, for the attribution of the map. A geocoded layer owes its
+ * positions to the Base Adresse Nationale, whose licence asks for its name and the date of the data.
+ */
 export function layersSource(layers) {
   if (layers.length === 0) return undefined;
-  return { attribution: `Données ajoutées : ${layers.map((layer) => layer.name).join(', ')}` };
+  const names = layers.map(({ name, geocodedOn }) => {
+    if (!geocodedOn) return name;
+    const [year, month, day] = geocodedOn.split('-');
+    return `${name} (géocodage : Base Adresse Nationale, ${day}/${month}/${year})`;
+  });
+  return { attribution: `Données ajoutées : ${names.join(', ')}` };
 }
 
 /**

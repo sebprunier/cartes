@@ -1,0 +1,433 @@
+# Réponses du service de géocodage de la Géoplateforme à 430 adresses de Colombiers (86081), recherche
+# restreinte à la commune, le 23 septembre 2026 (#10). « verdict » : juste ou faux, contre la Base Adresse Nationale.
+categorie,adresse,verdict,longitude,latitude,result_score,result_type,result_label
+exacte,10 Rue de la Grande Vallée 86490 Colombiers,juste,0.418589,46.767271,0.9499299999999999,housenumber,10 Rue de la Grande Vallée 86490 Colombiers
+sans commune,10 Rue de la Grande Vallée,juste,0.418589,46.767271,0.9499299999999999,housenumber,10 Rue de la Grande Vallée 86490 Colombiers
+minuscules sans accents,10 rue de la grande vallee colombiers,juste,0.418589,46.767271,0.9499299999999999,housenumber,10 Rue de la Grande Vallée 86490 Colombiers
+faute de frappe,10 Rue de la Grnade Vallée 86490 Colombiers,juste,0.418589,46.767271,0.8287178787878788,housenumber,10 Rue de la Grande Vallée 86490 Colombiers
+exacte,21 Route de Marigny 86490 Colombiers,juste,0.410685,46.764293,0.9525118181818181,housenumber,21 Route de Marigny 86490 Colombiers
+sans commune,21 Route de Marigny,juste,0.410685,46.764293,0.9525118181818181,housenumber,21 Route de Marigny 86490 Colombiers
+minuscules sans accents,21 route de marigny colombiers,juste,0.410685,46.764293,0.9525118181818181,housenumber,21 Route de Marigny 86490 Colombiers
+faute de frappe,21 Route de Maringy 86490 Colombiers,juste,0.410685,46.764293,0.8089711483253588,housenumber,21 Route de Marigny 86490 Colombiers
+exacte,20 Route de la Bougrière 86490 Colombiers,juste,0.451792,46.793953,0.9550118181818181,housenumber,20 Route de la Bougrière 86490 Colombiers
+sans commune,20 Route de la Bougrière,juste,0.451792,46.793953,0.9550118181818181,housenumber,20 Route de la Bougrière 86490 Colombiers
+minuscules sans accents,20 route de la bougriere colombiers,juste,0.451792,46.793953,0.9550118181818181,housenumber,20 Route de la Bougrière 86490 Colombiers
+faute de frappe,20 Route de la Bougirère 86490 Colombiers,juste,0.451792,46.793953,0.8281619238900634,housenumber,20 Route de la Bougrière 86490 Colombiers
+exacte,1 La Jarrie 86490 Colombiers,juste,0.476199,46.785648,0.9433527272727271,housenumber,1 La Jarrie 86490 Colombiers
+sans commune,1 La Jarrie,juste,0.476199,46.785648,0.9433527272727271,housenumber,1 La Jarrie 86490 Colombiers
+minuscules sans accents,1 la jarrie colombiers,juste,0.476199,46.785648,0.9433527272727271,housenumber,1 La Jarrie 86490 Colombiers
+faute de frappe,1 La Jrarie 86490 Colombiers,juste,0.476199,46.785648,0.8179608777429466,housenumber,1 La Jarrie 86490 Colombiers
+exacte,8 Le Clos Boutet 86490 Colombiers,juste,0.462102,46.779241,0.9443672727272727,housenumber,8 Le Clos Boutet 86490 Colombiers
+sans commune,8 Le Clos Boutet,juste,0.462102,46.779241,0.9443672727272727,housenumber,8 Le Clos Boutet 86490 Colombiers
+minuscules sans accents,8 le clos boutet colombiers,juste,0.462102,46.779241,0.9443672727272727,housenumber,8 Le Clos Boutet 86490 Colombiers
+faute de frappe,8 Le Clos Boutte 86490 Colombiers,juste,0.462102,46.779241,0.8374154010695187,housenumber,8 Le Clos Boutet 86490 Colombiers
+exacte,28 Route de la Roche 86490 Colombiers,juste,0.453613,46.769584,0.947950909090909,housenumber,28 Route de la Roche 86490 Colombiers
+sans commune,28 Route de la Roche,juste,0.453613,46.769584,0.947950909090909,housenumber,28 Route de la Roche 86490 Colombiers
+minuscules sans accents,28 route de la roche colombiers,juste,0.453613,46.769584,0.947950909090909,housenumber,28 Route de la Roche 86490 Colombiers
+faute de frappe,28 Ruote de la Roche 86490 Colombiers,juste,0.453613,46.769584,0.8080907692307692,housenumber,28 Route de la Roche 86490 Colombiers
+exacte,18 Route de la Bougrière 86490 Colombiers,juste,0.451472,46.794025,0.9550118181818181,housenumber,18 Route de la Bougrière 86490 Colombiers
+sans commune,18 Route de la Bougrière,juste,0.451472,46.794025,0.9550118181818181,housenumber,18 Route de la Bougrière 86490 Colombiers
+minuscules sans accents,18 route de la bougriere colombiers,juste,0.451472,46.794025,0.9550118181818181,housenumber,18 Route de la Bougrière 86490 Colombiers
+faute de frappe,18 Route de la Bougirère 86490 Colombiers,juste,0.451472,46.794025,0.8281619238900634,housenumber,18 Route de la Bougrière 86490 Colombiers
+exacte,1 L’Ane Vert 86490 Colombiers,juste,0.396935,46.757473,0.9490472727272726,housenumber,1 L’Ane Vert 86490 Colombiers
+sans commune,1 L’Ane Vert,juste,0.396935,46.757473,0.9490472727272726,housenumber,1 L’Ane Vert 86490 Colombiers
+minuscules sans accents,1 l’ane vert colombiers,juste,0.396935,46.757473,0.9490472727272726,housenumber,1 L’Ane Vert 86490 Colombiers
+faute de frappe,1 LA’ne Vert 86490 Colombiers,juste,0.396935,46.757473,0.7730941935483869,housenumber,1 L’Ane Vert 86490 Colombiers
+exacte,18 Route de la Galochonnerie 86490 Colombiers,juste,0.478365,46.788111,0.9499299999999999,housenumber,18 Route de la Galochonnerie 86490 Colombiers
+sans commune,18 Route de la Galochonnerie,juste,0.478365,46.788111,0.9499299999999999,housenumber,18 Route de la Galochonnerie 86490 Colombiers
+minuscules sans accents,18 route de la galochonnerie colombiers,juste,0.478365,46.788111,0.9499299999999999,housenumber,18 Route de la Galochonnerie 86490 Colombiers
+faute de frappe,18 Route de la Galochonenrie 86490 Colombiers,juste,0.478365,46.788111,0.8708786166007905,housenumber,18 Route de la Galochonnerie 86490 Colombiers
+exacte,10 Rue de la Valette 86490 Colombiers,juste,0.431552,46.773224,0.9483463636363635,housenumber,10 Rue de la Valette 86490 Colombiers
+sans commune,10 Rue de la Valette,juste,0.431552,46.773224,0.9483463636363635,housenumber,10 Rue de la Valette 86490 Colombiers
+minuscules sans accents,10 rue de la valette colombiers,juste,0.431552,46.773224,0.9483463636363635,housenumber,10 Rue de la Valette 86490 Colombiers
+faute de frappe,10 Rue de la Valetet 86490 Colombiers,juste,0.431552,46.773224,0.8526525837320573,housenumber,10 Rue de la Valette 86490 Colombiers
+exacte,20 Route des Châtaigniers 86490 Colombiers,juste,0.411775,46.774496,0.9465036363636362,housenumber,20 Route des Châtaigniers 86490 Colombiers
+sans commune,20 Route des Châtaigniers,juste,0.411775,46.774496,0.9465036363636362,housenumber,20 Route des Châtaigniers 86490 Colombiers
+minuscules sans accents,20 route des chataigniers colombiers,juste,0.411775,46.774496,0.9465036363636362,housenumber,20 Route des Châtaigniers 86490 Colombiers
+faute de frappe,20 Route des Châtaiginers 86490 Colombiers,juste,0.411775,46.774496,0.822536694214876,housenumber,20 Route des Châtaigniers 86490 Colombiers
+exacte,11 Route de Beaumont 86490 Colombiers,juste,0.417123,46.765057,0.9458963636363635,housenumber,11 Route de Beaumont 86490 Colombiers
+sans commune,11 Route de Beaumont,juste,0.417123,46.765057,0.9458963636363635,housenumber,11 Route de Beaumont 86490 Colombiers
+minuscules sans accents,11 route de beaumont colombiers,juste,0.417123,46.765057,0.9458963636363635,housenumber,11 Route de Beaumont 86490 Colombiers
+faute de frappe,11 Route de Beauomnt 86490 Colombiers,juste,0.417123,46.765057,0.8060362237762237,housenumber,11 Route de Beaumont 86490 Colombiers
+exacte,65 Route de la Bougrière 86490 Colombiers,juste,0.457485,46.79204,0.9550118181818181,housenumber,65 Route de la Bougrière 86490 Colombiers
+sans commune,65 Route de la Bougrière,juste,0.457485,46.79204,0.9550118181818181,housenumber,65 Route de la Bougrière 86490 Colombiers
+minuscules sans accents,65 route de la bougriere colombiers,juste,0.457485,46.79204,0.9550118181818181,housenumber,65 Route de la Bougrière 86490 Colombiers
+faute de frappe,65 Route de la Buogrière 86490 Colombiers,juste,0.457485,46.79204,0.8281619238900634,housenumber,65 Route de la Bougrière 86490 Colombiers
+exacte,23 La Baltaudiere 86490 Colombiers,juste,0.409631,46.763523,0.94871,housenumber,23 La Baltaudiere 86490 Colombiers
+sans commune,23 La Baltaudiere,juste,0.409631,46.763523,0.94871,housenumber,23 La Baltaudiere 86490 Colombiers
+minuscules sans accents,23 la baltaudiere colombiers,juste,0.409631,46.763523,0.94871,housenumber,23 La Baltaudiere 86490 Colombiers
+faute de frappe,23 La Baltaudeire 86490 Colombiers,juste,0.409631,46.763523,0.7971948484848485,housenumber,23 La Baltaudiere 86490 Colombiers
+exacte,2 Route du Rivalin 86490 Colombiers,juste,0.42921,46.784399,0.94871,housenumber,2 Route du Rivalin 86490 Colombiers
+sans commune,2 Route du Rivalin,juste,0.42921,46.784399,0.94871,housenumber,2 Route du Rivalin 86490 Colombiers
+minuscules sans accents,2 route du rivalin colombiers,juste,0.42921,46.784399,0.94871,housenumber,2 Route du Rivalin 86490 Colombiers
+faute de frappe,2 Route du Riavlin 86490 Colombiers,juste,0.42921,46.784399,0.8012898525798525,housenumber,2 Route du Rivalin 86490 Colombiers
+exacte,26 La Davaillerie 86490 Colombiers,juste,0.447331,46.773001,0.9529445454545453,housenumber,26 La Davaillerie 86490 Colombiers
+sans commune,26 La Davaillerie,juste,0.447331,46.773001,0.9529445454545453,housenumber,26 La Davaillerie 86490 Colombiers
+minuscules sans accents,26 la davaillerie colombiers,juste,0.447331,46.773001,0.9529445454545453,housenumber,26 La Davaillerie 86490 Colombiers
+faute de frappe,26 La Davalilerie 86490 Colombiers,juste,0.447331,46.773001,0.8490484415584415,housenumber,26 La Davaillerie 86490 Colombiers
+exacte,8 Res des Jardins de Bellevue 86490 Colombiers,juste,0.450123,46.775229,0.9501890909090908,housenumber,8 Res des Jardins de Bellevue 86490 Colombiers
+sans commune,8 Res des Jardins de Bellevue,juste,0.450123,46.775229,0.9501890909090908,housenumber,8 Res des Jardins de Bellevue 86490 Colombiers
+minuscules sans accents,8 res des jardins de bellevue colombiers,juste,0.450123,46.775229,0.9501890909090908,housenumber,8 Res des Jardins de Bellevue 86490 Colombiers
+faute de frappe,8 Res des Jardins de Bellevue 86490 Colombiers,juste,0.450123,46.775229,0.9501890909090908,housenumber,8 Res des Jardins de Bellevue 86490 Colombiers
+exacte,1 Chemin des Cosses 86490 Colombiers,juste,0.484846,46.782296,0.9443672727272727,housenumber,1 Chemin des Cosses 86490 Colombiers
+sans commune,1 Chemin des Cosses,juste,0.484846,46.782296,0.9443672727272727,housenumber,1 Chemin des Cosses 86490 Colombiers
+minuscules sans accents,1 chemin des cosses colombiers,juste,0.484846,46.782296,0.9443672727272727,housenumber,1 Chemin des Cosses 86490 Colombiers
+faute de frappe,1 Chemni des Cosses 86490 Colombiers,juste,0.484846,46.782296,0.8008266028708133,housenumber,1 Chemin des Cosses 86490 Colombiers
+exacte,24 La Davaillerie 86490 Colombiers,juste,0.446964,46.772918,0.9529445454545453,housenumber,24 La Davaillerie 86490 Colombiers
+sans commune,24 La Davaillerie,juste,0.446964,46.772918,0.9529445454545453,housenumber,24 La Davaillerie 86490 Colombiers
+minuscules sans accents,24 la davaillerie colombiers,juste,0.446964,46.772918,0.9529445454545453,housenumber,24 La Davaillerie 86490 Colombiers
+faute de frappe,24 La Daviallerie 86490 Colombiers,juste,0.446964,46.772918,0.8014293939393939,housenumber,24 La Davaillerie 86490 Colombiers
+exacte,8 Impasse des Mottes 86490 Colombiers,juste,0.447151,46.79248,0.9443672727272727,housenumber,8 Impasse des Mottes 86490 Colombiers
+sans commune,8 Impasse des Mottes,juste,0.447151,46.79248,0.9443672727272727,housenumber,8 Impasse des Mottes 86490 Colombiers
+minuscules sans accents,8 impasse des mottes colombiers,juste,0.447151,46.79248,0.9443672727272727,housenumber,8 Impasse des Mottes 86490 Colombiers
+faute de frappe,8 Impasse des Mottes 86490 Colombiers,juste,0.447151,46.79248,0.9443672727272727,housenumber,8 Impasse des Mottes 86490 Colombiers
+exacte,16 Route de la Bougrière 86490 Colombiers,juste,0.450907,46.794213,0.9550118181818181,housenumber,16 Route de la Bougrière 86490 Colombiers
+sans commune,16 Route de la Bougrière,juste,0.450907,46.794213,0.9550118181818181,housenumber,16 Route de la Bougrière 86490 Colombiers
+minuscules sans accents,16 route de la bougriere colombiers,juste,0.450907,46.794213,0.9550118181818181,housenumber,16 Route de la Bougrière 86490 Colombiers
+faute de frappe,16 Route de la Bougrièer 86490 Colombiers,juste,0.450907,46.794213,0.8684317316017316,housenumber,16 Route de la Bougrière 86490 Colombiers
+exacte,6 Route de la Galochonnerie 86490 Colombiers,juste,0.479699,46.786627,0.9499299999999999,housenumber,6 Route de la Galochonnerie 86490 Colombiers
+sans commune,6 Route de la Galochonnerie,juste,0.479699,46.786627,0.9499299999999999,housenumber,6 Route de la Galochonnerie 86490 Colombiers
+minuscules sans accents,6 route de la galochonnerie colombiers,juste,0.479699,46.786627,0.9499299999999999,housenumber,6 Route de la Galochonnerie 86490 Colombiers
+faute de frappe,6 Route de la Galochnonerie 86490 Colombiers,juste,0.479699,46.786627,0.8691219191919192,housenumber,6 Route de la Galochonnerie 86490 Colombiers
+exacte,2 Chemin du Grand Terrier 86490 Colombiers,juste,0.444379,46.775684,0.9420454545454544,housenumber,2 Chemin du Grand Terrier 86490 Colombiers
+sans commune,2 Chemin du Grand Terrier,juste,0.444379,46.775684,0.9420454545454544,housenumber,2 Chemin du Grand Terrier 86490 Colombiers
+minuscules sans accents,2 chemin du grand terrier colombiers,juste,0.444379,46.775684,0.9420454545454544,housenumber,2 Chemin du Grand Terrier 86490 Colombiers
+faute de frappe,2 Chemin du Grand Terrire 86490 Colombiers,juste,0.444379,46.775684,0.8180785123966942,housenumber,2 Chemin du Grand Terrier 86490 Colombiers
+exacte,18 Route du Rivalin 86490 Colombiers,juste,0.432868,46.785092,0.94871,housenumber,18 Route du Rivalin 86490 Colombiers
+sans commune,18 Route du Rivalin,juste,0.432868,46.785092,0.94871,housenumber,18 Route du Rivalin 86490 Colombiers
+minuscules sans accents,18 route du rivalin colombiers,juste,0.432868,46.785092,0.94871,housenumber,18 Route du Rivalin 86490 Colombiers
+faute de frappe,18 Route du Rivalni 86490 Colombiers,juste,0.432868,46.785092,0.8051693301435405,housenumber,18 Route du Rivalin 86490 Colombiers
+exacte,4 Route de la Galochonnerie 86490 Colombiers,juste,0.48009,46.786093,0.9499299999999999,housenumber,4 Route de la Galochonnerie 86490 Colombiers
+sans commune,4 Route de la Galochonnerie,juste,0.48009,46.786093,0.9499299999999999,housenumber,4 Route de la Galochonnerie 86490 Colombiers
+minuscules sans accents,4 route de la galochonnerie colombiers,juste,0.48009,46.786093,0.9499299999999999,housenumber,4 Route de la Galochonnerie 86490 Colombiers
+faute de frappe,4 Route de la Galochonnreie 86490 Colombiers,juste,0.48009,46.786093,0.8313529249011857,housenumber,4 Route de la Galochonnerie 86490 Colombiers
+exacte,4 Saint Fleur 86490 Colombiers,juste,0.414255,46.765039,0.9443672727272727,housenumber,4 Saint Fleur 86490 Colombiers
+sans commune,4 Saint Fleur,juste,0.414255,46.765039,0.9443672727272727,housenumber,4 Saint Fleur 86490 Colombiers
+minuscules sans accents,4 saint fleur colombiers,juste,0.414255,46.765039,0.9443672727272727,housenumber,4 Saint Fleur 86490 Colombiers
+faute de frappe,4 Saitn Fleur 86490 Colombiers,juste,0.414255,46.765039,0.7739127272727273,housenumber,4 Saint Fleur 86490 Colombiers
+exacte,5 Rue Claveurier 86490 Colombiers,juste,0.407202,46.761444,0.9458963636363635,housenumber,5 Rue Claveurier 86490 Colombiers
+sans commune,5 Rue Claveurier,juste,0.407202,46.761444,0.9458963636363635,housenumber,5 Rue Claveurier 86490 Colombiers
+minuscules sans accents,5 rue claveurier colombiers,juste,0.407202,46.761444,0.9458963636363635,housenumber,5 Rue Claveurier 86490 Colombiers
+faute de frappe,5 Rue Claveurire 86490 Colombiers,juste,0.407202,46.761444,0.7900522077922078,housenumber,5 Rue Claveurier 86490 Colombiers
+exacte,3 La Guedonniere 86490 Colombiers,juste,0.442233,46.776119,0.951860909090909,housenumber,3 La Guedonniere 86490 Colombiers
+sans commune,3 La Guedonniere,juste,0.442233,46.776119,0.951860909090909,housenumber,3 La Guedonniere 86490 Colombiers
+minuscules sans accents,3 la guedonniere colombiers,juste,0.442233,46.776119,0.951860909090909,housenumber,3 La Guedonniere 86490 Colombiers
+faute de frappe,3 La Gudeonniere 86490 Colombiers,juste,0.442233,46.776119,0.7960167532467531,housenumber,3 La Guedonniere 86490 Colombiers
+exacte,4 Impasse des Mottes 86490 Colombiers,juste,0.447183,46.792622,0.9443672727272727,housenumber,4 Impasse des Mottes 86490 Colombiers
+sans commune,4 Impasse des Mottes,juste,0.447183,46.792622,0.9443672727272727,housenumber,4 Impasse des Mottes 86490 Colombiers
+minuscules sans accents,4 impasse des mottes colombiers,juste,0.447183,46.792622,0.9443672727272727,housenumber,4 Impasse des Mottes 86490 Colombiers
+faute de frappe,4 Impasse des Mottes 86490 Colombiers,juste,0.447183,46.792622,0.9443672727272727,housenumber,4 Impasse des Mottes 86490 Colombiers
+exacte,25 Route des Lavoirs 86490 Colombiers,juste,0.420665,46.770405,0.9535854545454545,housenumber,25 Route des Lavoirs 86490 Colombiers
+sans commune,25 Route des Lavoirs,juste,0.420665,46.770405,0.9535854545454545,housenumber,25 Route des Lavoirs 86490 Colombiers
+minuscules sans accents,25 route des lavoirs colombiers,juste,0.420665,46.770405,0.9535854545454545,housenumber,25 Route des Lavoirs 86490 Colombiers
+faute de frappe,25 Route des Lavoris 86490 Colombiers,juste,0.420665,46.770405,0.8137253146853146,housenumber,25 Route des Lavoirs 86490 Colombiers
+exacte,27 La Davaillerie 86490 Colombiers,juste,0.448964,46.772047,0.9529445454545453,housenumber,27 La Davaillerie 86490 Colombiers
+sans commune,27 La Davaillerie,juste,0.448964,46.772047,0.9529445454545453,housenumber,27 La Davaillerie 86490 Colombiers
+minuscules sans accents,27 la davaillerie colombiers,juste,0.448964,46.772047,0.9529445454545453,housenumber,27 La Davaillerie 86490 Colombiers
+faute de frappe,27 La Davaillerie 86490 Colombiers,juste,0.448964,46.772047,0.9529445454545453,housenumber,27 La Davaillerie 86490 Colombiers
+exacte,2 Route de la Girardiere 86490 Colombiers,juste,0.459202,46.777678,0.9443672727272727,housenumber,2 Route de la Girardiere 86490 Colombiers
+sans commune,2 Route de la Girardiere,juste,0.459202,46.777678,0.9443672727272727,housenumber,2 Route de la Girardiere 86490 Colombiers
+minuscules sans accents,2 route de la girardiere colombiers,juste,0.459202,46.777678,0.9443672727272727,housenumber,2 Route de la Girardiere 86490 Colombiers
+faute de frappe,2 Route de la Griardiere 86490 Colombiers,juste,0.459202,46.777678,0.817517378435518,housenumber,2 Route de la Girardiere 86490 Colombiers
+exacte,12 La Lande 86490 Colombiers,juste,0.386022,46.770039,0.9465036363636362,housenumber,12 La Lande 86490 Colombiers
+sans commune,12 La Lande,juste,0.386022,46.770039,0.9465036363636362,housenumber,12 La Lande 86490 Colombiers
+minuscules sans accents,12 la lande colombiers,juste,0.386022,46.770039,0.9465036363636362,housenumber,12 La Lande 86490 Colombiers
+faute de frappe,12 La Lnade 86490 Colombiers,juste,0.386022,46.770039,0.7646854545454546,housenumber,12 La Lande 86490 Colombiers
+exacte,74 Route de Marigny 86490 Colombiers,juste,0.40516,46.76156,0.9525118181818181,housenumber,74 Route de Marigny 86490 Colombiers
+sans commune,74 Route de Marigny,juste,0.40516,46.76156,0.9525118181818181,housenumber,74 Route de Marigny 86490 Colombiers
+minuscules sans accents,74 route de marigny colombiers,juste,0.40516,46.76156,0.9525118181818181,housenumber,74 Route de Marigny 86490 Colombiers
+faute de frappe,74 Route de Mraigny 86490 Colombiers,juste,0.40516,46.76156,0.8089711483253588,housenumber,74 Route de Marigny 86490 Colombiers
+exacte,7 Route des Châtaigniers 86490 Colombiers,juste,0.416451,46.775165,0.9465036363636362,housenumber,7 Route des Châtaigniers 86490 Colombiers
+sans commune,7 Route des Châtaigniers,juste,0.416451,46.775165,0.9465036363636362,housenumber,7 Route des Châtaigniers 86490 Colombiers
+minuscules sans accents,7 route des chataigniers colombiers,juste,0.416451,46.775165,0.9465036363636362,housenumber,7 Route des Châtaigniers 86490 Colombiers
+faute de frappe,7 Route des Châtaigniesr 86490 Colombiers,juste,0.416451,46.775165,0.8196537420718816,housenumber,7 Route des Châtaigniers 86490 Colombiers
+exacte,5 Route de Châtellerault 86490 Colombiers,juste,0.427373,46.772477,0.9504354545454545,housenumber,5 Route de Châtellerault 86490 Colombiers
+sans commune,5 Route de Châtellerault,juste,0.427373,46.772477,0.9504354545454545,housenumber,5 Route de Châtellerault 86490 Colombiers
+minuscules sans accents,5 route de chatellerault colombiers,juste,0.427373,46.772477,0.9504354545454545,housenumber,5 Route de Châtellerault 86490 Colombiers
+faute de frappe,5 Route de Châetllerault 86490 Colombiers,juste,0.427373,46.772477,0.8235855602536998,housenumber,5 Route de Châtellerault 86490 Colombiers
+exacte,8 Route des Mottes 86490 Colombiers,juste,0.452039,46.78713,0.95308,housenumber,8 Route des Mottes 86490 Colombiers
+sans commune,8 Route des Mottes,juste,0.452039,46.78713,0.95308,housenumber,8 Route des Mottes 86490 Colombiers
+minuscules sans accents,8 route des mottes colombiers,juste,0.452039,46.78713,0.95308,housenumber,8 Route des Mottes 86490 Colombiers
+faute de frappe,8 Route des Motets 86490 Colombiers,juste,0.452039,46.78713,0.8520698989898988,housenumber,8 Route des Mottes 86490 Colombiers
+exacte,17 Rue de la Grande Vallée 86490 Colombiers,juste,0.417383,46.766688,0.9499299999999999,housenumber,17 Rue de la Grande Vallée 86490 Colombiers
+sans commune,17 Rue de la Grande Vallée,juste,0.417383,46.766688,0.9499299999999999,housenumber,17 Rue de la Grande Vallée 86490 Colombiers
+minuscules sans accents,17 rue de la grande vallee colombiers,juste,0.417383,46.766688,0.9499299999999999,housenumber,17 Rue de la Grande Vallée 86490 Colombiers
+faute de frappe,17 Rue de la Graned Vallée 86490 Colombiers,juste,0.417383,46.766688,0.8287178787878788,housenumber,17 Rue de la Grande Vallée 86490 Colombiers
+exacte,4 Route du Vivier 86490 Colombiers,juste,0.425097,46.773313,0.9516827272727272,housenumber,4 Route du Vivier 86490 Colombiers
+sans commune,4 Route du Vivier,juste,0.425097,46.773313,0.9516827272727272,housenumber,4 Route du Vivier 86490 Colombiers
+minuscules sans accents,4 route du vivier colombiers,juste,0.425097,46.773313,0.9516827272727272,housenumber,4 Route du Vivier 86490 Colombiers
+faute de frappe,4 Route du Vivire 86490 Colombiers,juste,0.425097,46.773313,0.8001675757575757,housenumber,4 Route du Vivier 86490 Colombiers
+exacte,8 Chemin de la Rabotte 86490 Colombiers,juste,0.45355,46.769013,0.9470390909090909,housenumber,8 Chemin de la Rabotte 86490 Colombiers
+sans commune,8 Chemin de la Rabotte,juste,0.45355,46.769013,0.9470390909090909,housenumber,8 Chemin de la Rabotte 86490 Colombiers
+minuscules sans accents,8 chemin de la rabotte colombiers,juste,0.45355,46.769013,0.9470390909090909,housenumber,8 Chemin de la Rabotte 86490 Colombiers
+faute de frappe,8 Chemin de la Rabotet 86490 Colombiers,juste,0.45355,46.769013,0.85613,housenumber,8 Chemin de la Rabotte 86490 Colombiers
+exacte,10 La Tannerie 86490 Colombiers,juste,0.400073,46.771722,0.9451954545454544,housenumber,10 La Tannerie 86490 Colombiers
+sans commune,10 La Tannerie,juste,0.400073,46.771722,0.9451954545454544,housenumber,10 La Tannerie 86490 Colombiers
+minuscules sans accents,10 la tannerie colombiers,juste,0.400073,46.771722,0.9451954545454544,housenumber,10 La Tannerie 86490 Colombiers
+faute de frappe,10 La Tannerie 86490 Colombiers,juste,0.400073,46.771722,0.9451954545454544,housenumber,10 La Tannerie 86490 Colombiers
+exacte,43 La Davaillerie 86490 Colombiers,juste,0.450045,46.770256,0.9529445454545453,housenumber,43 La Davaillerie 86490 Colombiers
+sans commune,43 La Davaillerie,juste,0.450045,46.770256,0.9529445454545453,housenumber,43 La Davaillerie 86490 Colombiers
+minuscules sans accents,43 la davaillerie colombiers,juste,0.450045,46.770256,0.9529445454545453,housenumber,43 La Davaillerie 86490 Colombiers
+faute de frappe,43 La Davailelrie 86490 Colombiers,juste,0.450045,46.770256,0.8490484415584415,housenumber,43 La Davaillerie 86490 Colombiers
+exacte,2 Impasse Saint - Fleur 86490 Colombiers,juste,0.416108,46.765703,0.9451954545454544,housenumber,2 Impasse Saint - Fleur 86490 Colombiers
+sans commune,2 Impasse Saint - Fleur,juste,0.416108,46.765703,0.9451954545454544,housenumber,2 Impasse Saint - Fleur 86490 Colombiers
+minuscules sans accents,2 impasse saint - fleur colombiers,juste,0.416108,46.765703,0.9451954545454544,housenumber,2 Impasse Saint - Fleur 86490 Colombiers
+faute de frappe,2 Imapsse Saint - Fleur 86490 Colombiers,juste,0.416108,46.765703,0.8088318181818182,housenumber,2 Impasse Saint - Fleur 86490 Colombiers
+exacte,9 La Baltaudiere 86490 Colombiers,juste,0.411761,46.763367,0.94871,housenumber,9 La Baltaudiere 86490 Colombiers
+sans commune,9 La Baltaudiere,juste,0.411761,46.763367,0.94871,housenumber,9 La Baltaudiere 86490 Colombiers
+minuscules sans accents,9 la baltaudiere colombiers,juste,0.411761,46.763367,0.94871,housenumber,9 La Baltaudiere 86490 Colombiers
+faute de frappe,9 La Baltaudieer 86490 Colombiers,juste,0.411761,46.763367,0.8417581283422458,housenumber,9 La Baltaudiere 86490 Colombiers
+exacte,9 Rue de la Perroterie 86490 Colombiers,juste,0.423589,46.769723,0.94871,housenumber,9 Rue de la Perroterie 86490 Colombiers
+sans commune,9 Rue de la Perroterie,juste,0.423589,46.769723,0.94871,housenumber,9 Rue de la Perroterie 86490 Colombiers
+minuscules sans accents,9 rue de la perroterie colombiers,juste,0.423589,46.769723,0.94871,housenumber,9 Rue de la Perroterie 86490 Colombiers
+faute de frappe,9 Rue de la Preroterie 86490 Colombiers,juste,0.423589,46.769723,0.857800909090909,housenumber,9 Rue de la Perroterie 86490 Colombiers
+exacte,15 Route de la Galochonnerie 86490 Colombiers,juste,0.47901,46.787121,0.9499299999999999,housenumber,15 Route de la Galochonnerie 86490 Colombiers
+sans commune,15 Route de la Galochonnerie,juste,0.47901,46.787121,0.9499299999999999,housenumber,15 Route de la Galochonnerie 86490 Colombiers
+minuscules sans accents,15 route de la galochonnerie colombiers,juste,0.47901,46.787121,0.9499299999999999,housenumber,15 Route de la Galochonnerie 86490 Colombiers
+faute de frappe,15 Route de la Galochnonerie 86490 Colombiers,juste,0.47901,46.787121,0.8708786166007905,housenumber,15 Route de la Galochonnerie 86490 Colombiers
+exacte,4 Chemin de Beauregard 86490 Colombiers,juste,0.444429,46.774924,0.9451954545454544,housenumber,4 Chemin de Beauregard 86490 Colombiers
+sans commune,4 Chemin de Beauregard,juste,0.444429,46.774924,0.9451954545454544,housenumber,4 Chemin de Beauregard 86490 Colombiers
+minuscules sans accents,4 chemin de beauregard colombiers,juste,0.444429,46.774924,0.9451954545454544,housenumber,4 Chemin de Beauregard 86490 Colombiers
+faute de frappe,4 Chemin de Beaurgeard 86490 Colombiers,juste,0.444429,46.774924,0.8121577605321507,housenumber,4 Chemin de Beauregard 86490 Colombiers
+exacte,11bis Route des Mottes 86490 Colombiers,juste,0.451152,46.787681,0.95308,housenumber,11bis Route des Mottes 86490 Colombiers
+sans commune,11bis Route des Mottes,juste,0.451152,46.787681,0.95308,housenumber,11bis Route des Mottes 86490 Colombiers
+minuscules sans accents,11bis route des mottes colombiers,juste,0.451152,46.787681,0.95308,housenumber,11bis Route des Mottes 86490 Colombiers
+faute de frappe,11bis Route des Mottes 86490 Colombiers,juste,0.451152,46.787681,0.95308,housenumber,11bis Route des Mottes 86490 Colombiers
+exacte,12 Route des Grenouillés 86490 Colombiers,juste,0.419466,46.773623,0.9490472727272726,housenumber,12 Route des Grenouillés 86490 Colombiers
+sans commune,12 Route des Grenouillés,juste,0.419466,46.773623,0.9490472727272726,housenumber,12 Route des Grenouillés 86490 Colombiers
+minuscules sans accents,12 route des grenouilles colombiers,juste,0.419466,46.773623,0.9490472727272726,housenumber,12 Route des Grenouillés 86490 Colombiers
+faute de frappe,12 Route des Gernouillés 86490 Colombiers,juste,0.419466,46.773623,0.8221973784355179,housenumber,12 Route des Grenouillés 86490 Colombiers
+exacte,1 Chemin de la Grande Vallée 86490 Colombiers,juste,0.417937,46.76633,0.9458963636363635,housenumber,1 Chemin de la Grande Vallée 86490 Colombiers
+sans commune,1 Chemin de la Grande Vallée,juste,0.417937,46.76633,0.9458963636363635,housenumber,1 Chemin de la Grande Vallée 86490 Colombiers
+minuscules sans accents,1 chemin de la grande vallee colombiers,juste,0.417937,46.76633,0.9458963636363635,housenumber,1 Chemin de la Grande Vallée 86490 Colombiers
+faute de frappe,1 Cheimn de la Grande Vallée 86490 Colombiers,juste,0.417937,46.76633,0.8298422050290135,housenumber,1 Chemin de la Grande Vallée 86490 Colombiers
+exacte,23 Route de la Roche 86490 Colombiers,juste,0.454454,46.769724,0.947950909090909,housenumber,23 Route de la Roche 86490 Colombiers
+sans commune,23 Route de la Roche,juste,0.454454,46.769724,0.947950909090909,housenumber,23 Route de la Roche 86490 Colombiers
+minuscules sans accents,23 route de la roche colombiers,juste,0.454454,46.769724,0.947950909090909,housenumber,23 Route de la Roche 86490 Colombiers
+faute de frappe,23 Ruote de la Roche 86490 Colombiers,juste,0.454454,46.769724,0.8080907692307692,housenumber,23 Route de la Roche 86490 Colombiers
+exacte,2 Place de Manderen 86490 Colombiers,juste,0.42538,46.772105,0.9451954545454544,housenumber,2 Place de Manderen 86490 Colombiers
+sans commune,2 Place de Manderen,juste,0.42538,46.772105,0.9451954545454544,housenumber,2 Place de Manderen 86490 Colombiers
+minuscules sans accents,2 place de manderen colombiers,juste,0.42538,46.772105,0.9451954545454544,housenumber,2 Place de Manderen 86490 Colombiers
+faute de frappe,2 Place de Mandeern 86490 Colombiers,juste,0.42538,46.772105,0.8469153562653562,housenumber,2 Place de Manderen 86490 Colombiers
+exacte,15 Route des Châtaigniers 86490 Colombiers,juste,0.415562,46.774933,0.9465036363636362,housenumber,15 Route des Châtaigniers 86490 Colombiers
+sans commune,15 Route des Châtaigniers,juste,0.415562,46.774933,0.9465036363636362,housenumber,15 Route des Châtaigniers 86490 Colombiers
+minuscules sans accents,15 route des chataigniers colombiers,juste,0.415562,46.774933,0.9465036363636362,housenumber,15 Route des Châtaigniers 86490 Colombiers
+faute de frappe,15 Route des Câhtaigniers 86490 Colombiers,juste,0.415562,46.774933,0.822536694214876,housenumber,15 Route des Châtaigniers 86490 Colombiers
+exacte,11 Route de la Coquille 86490 Colombiers,juste,0.466561,46.773091,0.947950909090909,housenumber,11 Route de la Coquille 86490 Colombiers
+sans commune,11 Route de la Coquille,juste,0.466561,46.773091,0.947950909090909,housenumber,11 Route de la Coquille 86490 Colombiers
+minuscules sans accents,11 route de la coquille colombiers,juste,0.466561,46.773091,0.947950909090909,housenumber,11 Route de la Coquille 86490 Colombiers
+faute de frappe,11 Route de la Cqouille 86490 Colombiers,juste,0.466561,46.773091,0.8180807792207792,housenumber,11 Route de la Coquille 86490 Colombiers
+exacte,6 La Rouere 86490 Colombiers,juste,0.450781,46.775727,0.9475172727272727,housenumber,6 La Rouere 86490 Colombiers
+sans commune,6 La Rouere,juste,0.450781,46.775727,0.9475172727272727,housenumber,6 La Rouere 86490 Colombiers
+minuscules sans accents,6 la rouere colombiers,juste,0.450781,46.775727,0.9475172727272727,housenumber,6 La Rouere 86490 Colombiers
+faute de frappe,6 La Roeure 86490 Colombiers,juste,0.450781,46.775727,0.7656990909090909,housenumber,6 La Rouere 86490 Colombiers
+exacte,4 Rue de la Valette 86490 Colombiers,juste,0.430679,46.772771,0.9483463636363635,housenumber,4 Rue de la Valette 86490 Colombiers
+sans commune,4 Rue de la Valette,juste,0.430679,46.772771,0.9483463636363635,housenumber,4 Rue de la Valette 86490 Colombiers
+minuscules sans accents,4 rue de la valette colombiers,juste,0.430679,46.772771,0.9483463636363635,housenumber,4 Rue de la Valette 86490 Colombiers
+faute de frappe,4 Rue de la Vaeltte 86490 Colombiers,juste,0.430679,46.772771,0.8048056937799042,housenumber,4 Rue de la Valette 86490 Colombiers
+exacte,2 Impasse de la Fuie 86490 Colombiers,juste,0.421169,46.76878,0.9433527272727271,housenumber,2 Impasse de la Fuie 86490 Colombiers
+sans commune,2 Impasse de la Fuie,juste,0.421169,46.76878,0.9433527272727271,housenumber,2 Impasse de la Fuie 86490 Colombiers
+minuscules sans accents,2 impasse de la fuie colombiers,juste,0.421169,46.76878,0.9433527272727271,housenumber,2 Impasse de la Fuie 86490 Colombiers
+faute de frappe,2 Impases de la Fuie 86490 Colombiers,juste,0.421169,46.76878,0.8476589473684211,housenumber,2 Impasse de la Fuie 86490 Colombiers
+exacte,8 La Tour Savary 86490 Colombiers,juste,0.405861,46.761026,0.9470390909090909,housenumber,8 La Tour Savary 86490 Colombiers
+sans commune,8 La Tour Savary,juste,0.405861,46.761026,0.9470390909090909,housenumber,8 La Tour Savary 86490 Colombiers
+minuscules sans accents,8 la tour savary colombiers,juste,0.405861,46.761026,0.9470390909090909,housenumber,8 La Tour Savary 86490 Colombiers
+faute de frappe,8 La Tour Savayr 86490 Colombiers,juste,0.405861,46.761026,0.791194935064935,housenumber,8 La Tour Savary 86490 Colombiers
+exacte,9 Res des Jardins de Bellevue 86490 Colombiers,juste,0.44999,46.775418,0.9501890909090908,housenumber,9 Res des Jardins de Bellevue 86490 Colombiers
+sans commune,9 Res des Jardins de Bellevue,juste,0.44999,46.775418,0.9501890909090908,housenumber,9 Res des Jardins de Bellevue 86490 Colombiers
+minuscules sans accents,9 res des jardins de bellevue colombiers,juste,0.44999,46.775418,0.9501890909090908,housenumber,9 Res des Jardins de Bellevue 86490 Colombiers
+faute de frappe,9 Res des Jardins de Bellevue 86490 Colombiers,juste,0.44999,46.775418,0.9501890909090908,housenumber,9 Res des Jardins de Bellevue 86490 Colombiers
+exacte,4 Impasse de la Fuie 86490 Colombiers,juste,0.421597,46.768786,0.9433527272727271,housenumber,4 Impasse de la Fuie 86490 Colombiers
+sans commune,4 Impasse de la Fuie,juste,0.421597,46.768786,0.9433527272727271,housenumber,4 Impasse de la Fuie 86490 Colombiers
+minuscules sans accents,4 impasse de la fuie colombiers,juste,0.421597,46.768786,0.9433527272727271,housenumber,4 Impasse de la Fuie 86490 Colombiers
+faute de frappe,4 Imapsse de la Fuie 86490 Colombiers,juste,0.421597,46.768786,0.8034925874125874,housenumber,4 Impasse de la Fuie 86490 Colombiers
+numéro inexistant,251 Rue Claveurier 86490 Colombiers,juste,0.407004,46.761645,0.8389444919786095,street,Rue Claveurier 86490 Colombiers
+numéro inexistant,251 Route de Marigny 86490 Colombiers,juste,0.408831,46.763221,0.8515017171717171,street,Route de Marigny 86490 Colombiers
+numéro inexistant,251 Impasse de la Valette 86490 Colombiers,juste,0.43206,46.77284,0.8546609312638581,street,Impasse de la Valette 86490 Colombiers
+numéro inexistant,251 Rue de la Fuie 86490 Colombiers,juste,0.420088,46.768728,0.8374154010695187,street,Rue de la Fuie 86490 Colombiers
+numéro inexistant,251 Chemin de la Perroterie 86490 Colombiers,juste,0.424913,46.769903,0.8574788583509513,street,Chemin de la Perroterie 86490 Colombiers
+numéro inexistant,251 Chemin de la Roche 86490 Colombiers,juste,0.456349,46.770562,0.8518234928229664,street,Chemin de la Roche 86490 Colombiers
+numéro inexistant,251 Chemin de Beauregard 86490 Colombiers,juste,0.444599,46.774883,0.8542863636363637,street,Chemin de Beauregard 86490 Colombiers
+numéro inexistant,251 Impasse des Mottes 86490 Colombiers,juste,0.447241,46.792633,0.8486734928229664,street,Impasse des Mottes 86490 Colombiers
+numéro inexistant,251 Route des Pallus 86490 Colombiers,juste,0.468443,46.776127,0.8473362626262625,street,Route des Pallus 86490 Colombiers
+numéro inexistant,251 Impasse de la Fuie 86490 Colombiers,juste,0.421436,46.768794,0.8476589473684211,street,Impasse de la Fuie 86490 Colombiers
+numéro inexistant,251 Route des Grenouillés 86490 Colombiers,juste,0.419723,46.773588,0.8603554767184035,street,Route des Grenouillés 86490 Colombiers
+numéro inexistant,251 Chemin de la Bouillerie 86490 Colombiers,juste,0.441294,46.775463,0.8619370401691331,street,Chemin de la Bouillerie 86490 Colombiers
+numéro inexistant,251 Chemin du Pré Bardet 86490 Colombiers,juste,0.455437,46.787538,0.8524436363636364,street,Chemin du Pré Bardet 86490 Colombiers
+numéro inexistant,251 Impasse Saint - Fleur 86490 Colombiers,juste,0.415748,46.765398,0.8519553613053613,street,Impasse Saint - Fleur 86490 Colombiers
+numéro inexistant,251 Route du Vivier 86490 Colombiers,juste,0.423721,46.775463,0.8477866233766232,street,Route du Vivier 86490 Colombiers
+numéro inexistant,251 Route de la Roche 86490 Colombiers,juste,0.453595,46.769622,0.8496708108108106,street,Route de la Roche 86490 Colombiers
+numéro inexistant,251 Rue de la Valette 86490 Colombiers,juste,0.430802,46.772973,0.8500662653562653,street,Rue de la Valette 86490 Colombiers
+numéro inexistant,251 Route de Beaumont 86490 Colombiers,juste,0.416399,46.765519,0.8476162653562653,street,Route de Beaumont 86490 Colombiers
+numéro inexistant,251 Chemin de la Grande Vallée 86490 Colombiers,juste,0.418024,46.76586,0.8668449802371541,street,Chemin de la Grande Vallée 86490 Colombiers
+numéro inexistant,251 Route de la Maison Neuve 86490 Colombiers,juste,0.416215,46.780236,0.86325173553719,street,Route de la Maison Neuve 86490 Colombiers
+numéro inexistant,251 Route des Châtaigniers 86490 Colombiers,juste,0.416057,46.775318,0.8599235497835498,street,Route des Châtaigniers 86490 Colombiers
+numéro inexistant,251 Route de la Vaube 86490 Colombiers,juste,0.457612,46.776989,0.8437653562653562,street,Route de la Vaube 86490 Colombiers
+numéro inexistant,251 Route des Vignes 86490 Colombiers,juste,0.427921,46.771732,0.8473362626262625,street,Route des Vignes 86490 Colombiers
+numéro inexistant,251 Traverse des Carriers 86490 Colombiers,juste,0.426525,46.771319,0.8565036585365854,street,Traverse des Carriers 86490 Colombiers
+numéro inexistant,251 Ruelle des Vignes 86490 Colombiers,juste,0.42836,46.772479,0.8437653562653562,street,Ruelle des Vignes 86490 Colombiers
+numéro inexistant,251 Rue de la Perroterie 86490 Colombiers,juste,0.424473,46.770414,0.857800909090909,street,Rue de la Perroterie 86490 Colombiers
+numéro inexistant,251 Route des Trainebots 86490 Colombiers,juste,0.482677,46.783179,0.8603945454545454,street,Route des Trainebots 86490 Colombiers
+numéro inexistant,251 Place de Manderen 86490 Colombiers,juste,0.425837,46.772229,0.8469153562653562,street,Place de Manderen 86490 Colombiers
+numéro inexistant,251 Chemin des Cosses 86490 Colombiers,juste,0.485305,46.782917,0.8460871744471744,street,Chemin des Cosses 86490 Colombiers
+numéro inexistant,251 Route de la Bougrière 86490 Colombiers,juste,0.45435,46.793053,0.866320022172949,street,Route de la Bougrière 86490 Colombiers
+numéro inexistant,251 Route de la Coquille 86490 Colombiers,juste,0.466442,46.773059,0.8570418181818182,street,Route de la Coquille 86490 Colombiers
+numéro inexistant,251 Rue de la Grande Vallée 86490 Colombiers,juste,0.418852,46.76745,0.8653634038054967,street,Rue de la Grande Vallée 86490 Colombiers
+numéro inexistant,251 Route du Villé 86490 Colombiers,juste,0.415571,46.769126,0.840999037433155,street,Route du Villé 86490 Colombiers
+numéro inexistant,251 Route de la Galochonnerie 86490 Colombiers,juste,0.479386,46.786838,0.8691219191919192,street,Route de la Galochonnerie 86490 Colombiers
+numéro inexistant,251 Chemin de la Galochonnerie 86490 Colombiers,juste,0.478595,46.788335,0.8643013438735178,street,Chemin de la Galochonnerie 86490 Colombiers
+numéro inexistant,251 Chemin de l’Erpinerie 86490 Colombiers,juste,0.422492,46.769024,0.8533536585365853,street,Chemin de l’Erpinerie 86490 Colombiers
+numéro inexistant,251 Route de Châtellerault 86490 Colombiers,juste,0.429118,46.773202,0.863855367965368,street,Route de Châtellerault 86490 Colombiers
+numéro inexistant,251 Route de l'Envigne 86490 Colombiers,juste,0.422861,46.779005,0.8445080382775119,street,Route de l'Envigne 86490 Colombiers
+numéro inexistant,251 Impasse de la Garenne 86490 Colombiers,juste,0.446568,46.788034,0.8515100221729489,street,Impasse de la Garenne 86490 Colombiers
+numéro inexistant,251 Route de la Girardiere 86490 Colombiers,juste,0.459529,46.777403,0.8577871861471861,street,Route de la Girardiere 86490 Colombiers
+voie seule,Route de Marigny 86490 Colombiers,juste,0.408831,46.763221,0.9525118181818181,street,Route de Marigny 86490 Colombiers
+voie seule,La Giraudiere Montigny 86490 Colombiers,juste,0.435363,46.775261,0.9443672727272727,street,La Giraudiere Montigny 86490 Colombiers
+voie seule,Route des Trainebots 86490 Colombiers,juste,0.482677,46.783179,0.9513036363636364,street,Route des Trainebots 86490 Colombiers
+voie seule,Pouilly 86490 Colombiers,juste,0.434243,46.776199,0.9451954545454544,street,Pouilly 86490 Colombiers
+voie seule,Saint Fleur 86490 Colombiers,juste,0.414468,46.76513,0.9443672727272727,street,Saint Fleur 86490 Colombiers
+voie seule,La Baltaudiere 86490 Colombiers,juste,0.411159,46.763328,0.94871,street,La Baltaudiere 86490 Colombiers
+voie seule,Route de la Galochonnerie 86490 Colombiers,juste,0.479386,46.786838,0.9499299999999999,street,Route de la Galochonnerie 86490 Colombiers
+voie seule,Route des Lavoirs 86490 Colombiers,juste,0.421201,46.770558,0.9535854545454545,street,Route des Lavoirs 86490 Colombiers
+voie seule,Rue Claveurier 86490 Colombiers,juste,0.407004,46.761645,0.9458963636363635,street,Rue Claveurier 86490 Colombiers
+voie seule,La Baudrigere 86490 Colombiers,juste,0.395431,46.757247,0.9420454545454544,street,La Baudrigere 86490 Colombiers
+voie seule,Chemin de l’Erpinerie 86490 Colombiers,juste,0.422492,46.769024,0.9420454545454544,street,Chemin de l’Erpinerie 86490 Colombiers
+voie seule,Chemin du Pré Bardet 86490 Colombiers,juste,0.455437,46.787538,0.9433527272727271,street,Chemin du Pré Bardet 86490 Colombiers
+voie seule,La Garenne des Mottes 86490 Colombiers,juste,0.450254,46.785279,0.9420454545454544,street,La Garenne des Mottes 86490 Colombiers
+voie seule,La Jarrie 86490 Colombiers,juste,0.476215,46.785662,0.9433527272727271,street,La Jarrie 86490 Colombiers
+voie seule,Route de la Bougrière 86490 Colombiers,juste,0.45435,46.793053,0.9550118181818181,street,Route de la Bougrière 86490 Colombiers
+voie seule,Impasse des Mottes 86490 Colombiers,juste,0.447241,46.792633,0.9443672727272727,street,Impasse des Mottes 86490 Colombiers
+voie seule,Route de la Garenne 86490 Colombiers,juste,0.445489,46.789462,0.9493609090909091,street,Route de la Garenne 86490 Colombiers
+voie seule,Chemin du Grand Terrier 86490 Colombiers,juste,0.444505,46.775861,0.9420454545454544,street,Chemin du Grand Terrier 86490 Colombiers
+voie seule,Le Bois du Breuil 86490 Colombiers,juste,0.424701,46.777443,0.940201818181818,street,Le Bois du Breuil 86490 Colombiers
+voie seule,Les Loges 86490 Colombiers,juste,0.405876,46.775945,0.940201818181818,street,Les Loges 86490 Colombiers
+voie seule,Impasse Saint - Fleur 86490 Colombiers,juste,0.415748,46.765398,0.9451954545454544,street,Impasse Saint - Fleur 86490 Colombiers
+voie seule,Route de la Vaube 86490 Colombiers,juste,0.457612,46.776989,0.9420454545454544,street,Route de la Vaube 86490 Colombiers
+voie seule,Chemin de la Galochonnerie 86490 Colombiers,juste,0.478595,46.788335,0.9433527272727271,street,Chemin de la Galochonnerie 86490 Colombiers
+voie seule,Chemin de Beauregard 86490 Colombiers,juste,0.444599,46.774883,0.9451954545454544,street,Chemin de Beauregard 86490 Colombiers
+voie seule,Fenet 86490 Colombiers,juste,0.477661,46.801268,0.9451954545454544,street,Fenet 86490 Colombiers
+voie seule,Les Essarts 86490 Colombiers,juste,0.471676,46.793107,0.9433527272727271,street,Les Essarts 86490 Colombiers
+voie seule,Route des Mottes 86490 Colombiers,juste,0.449961,46.789276,0.95308,street,Route des Mottes 86490 Colombiers
+voie seule,La Davaillerie 86490 Colombiers,juste,0.448112,46.773039,0.9529445454545453,street,La Davaillerie 86490 Colombiers
+voie seule,La Violette 86490 Colombiers,juste,0.454678,46.776695,0.9420454545454544,street,La Violette 86490 Colombiers
+voie seule,Chemin de la Perroterie 86490 Colombiers,juste,0.424913,46.769903,0.9420454545454544,street,Chemin de la Perroterie 86490 Colombiers
+voie seule,Les Brandes 86490 Colombiers,juste,0.459053,46.784077,0.940201818181818,street,Les Brandes 86490 Colombiers
+voie seule,Route du Vivier 86490 Colombiers,juste,0.423721,46.775463,0.9516827272727272,street,Route du Vivier 86490 Colombiers
+voie seule,Route des Vignes 86490 Colombiers,juste,0.427921,46.771732,0.9483463636363635,street,Route des Vignes 86490 Colombiers
+voie seule,Route de Châtellerault 86490 Colombiers,juste,0.429118,46.773202,0.9504354545454545,street,Route de Châtellerault 86490 Colombiers
+voie seule,La Guedonniere 86490 Colombiers,juste,0.4448,46.775644,0.951860909090909,street,La Guedonniere 86490 Colombiers
+voie seule,Le Defens 86490 Colombiers,juste,0.440507,46.776203,0.9443672727272727,street,Le Defens 86490 Colombiers
+voie seule,Les Crochards 86490 Colombiers,juste,0.400551,46.758898,0.9443672727272727,street,Les Crochards 86490 Colombiers
+voie seule,La Grenouille 86490 Colombiers,juste,0.399499,46.781518,0.940201818181818,street,La Grenouille 86490 Colombiers
+voie seule,La Rouere 86490 Colombiers,juste,0.451496,46.77582,0.9475172727272727,street,La Rouere 86490 Colombiers
+voie seule,Traverse des Carriers 86490 Colombiers,juste,0.426525,46.771319,0.9451954545454544,street,Traverse des Carriers 86490 Colombiers
+voie inventée,49 rue des Nulle Part 86490 Colombiers,faux,0.42836,46.772479,0.5380050505050505,street,Ruelle des Vignes 86490 Colombiers
+voie inventée,57 avenue Victor Hugo 86490 Colombiers,faux,0.39789,46.757498,0.4627893446088795,street,L’Ane Vert 86490 Colombiers
+voie inventée,51 rue de la République 86490 Colombiers,faux,0.420088,46.768728,0.5849592389006342,street,Rue de la Fuie 86490 Colombiers
+voie inventée,11 boulevard Gambetta 86490 Colombiers,faux,0.40566,46.760896,0.45461484848484846,housenumber,11 La Tour Savary 86490 Colombiers
+voie inventée,56 rue Jean Jaurès 86490 Colombiers,faux,0.451496,46.77582,0.5046268298368297,street,La Rouere 86490 Colombiers
+voie inventée,33 allée des Tilleuls 86490 Colombiers,faux,0.468443,46.776127,0.5241039393939394,street,Route des Pallus 86490 Colombiers
+voie inventée,32 rue du Moulin Brûlé 86490 Colombiers,faux,0.43227,46.784993,0.544669595959596,street,Route du Rivalin 86490 Colombiers
+voie inventée,25 impasse des Hirondelles 86490 Colombiers,faux,0.447241,46.792633,0.5962047969052223,street,Impasse des Mottes 86490 Colombiers
+voie inventée,6 rue Pasteur 86490 Colombiers,faux,0.407004,46.761645,0.577345995085995,street,Rue Claveurier 86490 Colombiers
+voie inventée,29 avenue de la Gare 86490 Colombiers,faux,0.445489,46.789462,0.6679756277056277,street,Route de la Garenne 86490 Colombiers
+voie inventée,52 rue des Nulle Part 86490 Colombiers,faux,0.42836,46.772479,0.5380050505050505,street,Ruelle des Vignes 86490 Colombiers
+voie inventée,36 avenue Victor Hugo 86490 Colombiers,faux,0.39789,46.757498,0.4627893446088795,street,L’Ane Vert 86490 Colombiers
+voie inventée,55 rue de la République 86490 Colombiers,faux,0.420088,46.768728,0.5849592389006342,street,Rue de la Fuie 86490 Colombiers
+voie inventée,36 boulevard Gambetta 86490 Colombiers,faux,0.461516,46.779156,0.4502961264822134,street,Le Clos Boutet 86490 Colombiers
+voie inventée,27 rue Jean Jaurès 86490 Colombiers,faux,0.451496,46.77582,0.5046268298368297,street,La Rouere 86490 Colombiers
+voie inventée,30 allée des Tilleuls 86490 Colombiers,faux,0.468443,46.776127,0.5241039393939394,street,Route des Pallus 86490 Colombiers
+voie inventée,41 rue du Moulin Brûlé 86490 Colombiers,faux,0.43227,46.784993,0.544669595959596,street,Route du Rivalin 86490 Colombiers
+voie inventée,4 impasse des Hirondelles 86490 Colombiers,faux,0.447183,46.792622,0.6479245849802371,housenumber,4 Impasse des Mottes 86490 Colombiers
+voie inventée,41 rue Pasteur 86490 Colombiers,faux,0.407004,46.761645,0.5631212440191388,street,Rue Claveurier 86490 Colombiers
+voie inventée,48 avenue de la Gare 86490 Colombiers,faux,0.445489,46.789462,0.6679756277056277,street,Route de la Garenne 86490 Colombiers
+voie inventée,21 rue des Nulle Part 86490 Colombiers,faux,0.42836,46.772479,0.5380050505050505,street,Ruelle des Vignes 86490 Colombiers
+voie inventée,27 avenue Victor Hugo 86490 Colombiers,faux,0.39789,46.757498,0.4627893446088795,street,L’Ane Vert 86490 Colombiers
+voie inventée,34 rue de la République 86490 Colombiers,faux,0.420088,46.768728,0.5849592389006342,street,Rue de la Fuie 86490 Colombiers
+voie inventée,52 boulevard Gambetta 86490 Colombiers,faux,0.461516,46.779156,0.4502961264822134,street,Le Clos Boutet 86490 Colombiers
+voie inventée,10 rue Jean Jaurès 86490 Colombiers,faux,0.451496,46.77582,0.5046268298368297,street,La Rouere 86490 Colombiers
+voie inventée,56 allée des Tilleuls 86490 Colombiers,faux,0.468443,46.776127,0.5241039393939394,street,Route des Pallus 86490 Colombiers
+voie inventée,12 rue du Moulin Brûlé 86490 Colombiers,faux,0.432082,46.784809,0.5732159288537549,housenumber,12 Route du Rivalin 86490 Colombiers
+voie inventée,11 impasse des Hirondelles 86490 Colombiers,faux,0.447241,46.792633,0.5962047969052223,street,Impasse des Mottes 86490 Colombiers
+voie inventée,22 rue Pasteur 86490 Colombiers,faux,0.407004,46.761645,0.5631212440191388,street,Rue Claveurier 86490 Colombiers
+voie inventée,52 avenue de la Gare 86490 Colombiers,faux,0.445489,46.789462,0.6679756277056277,street,Route de la Garenne 86490 Colombiers
+nom de lieu,Mairie 86490 Colombiers,faux,0.476215,46.785662,0.651144935064935,street,La Jarrie 86490 Colombiers
+nom de lieu,Place de la Mairie 86490 Colombiers,faux,0.420088,46.768728,0.6180269463869463,street,Rue de la Fuie 86490 Colombiers
+nom de lieu,Salle des fêtes 86490 Colombiers,faux,0.468443,46.776127,0.6373415789473684,street,Route des Pallus 86490 Colombiers
+nom de lieu,École 86490 Colombiers,faux,0.43491,46.776749,0.6773115584415584,municipality,Colombiers
+nom de lieu,Église 86490 Colombiers,faux,0.43491,46.776749,0.6477956198347107,municipality,Colombiers
+nom de lieu,Cimetière 86490 Colombiers,faux,0.391675,46.769953,0.6096233057851239,street,La Genestiere 86490 Colombiers
+nom de lieu,Stade 86490 Colombiers,faux,0.43491,46.776749,0.6773115584415584,municipality,Colombiers
+nom de lieu,Bibliothèque 86490 Colombiers,faux,0.43491,46.776749,0.5149738961038961,municipality,Colombiers
+nom de lieu,Salle polyvalente 86490 Colombiers,faux,0.395107,46.776291,0.5152743540669856,street,Le Poiret 86490 Colombiers
+nom de lieu,Poste 86490 Colombiers,faux,0.43491,46.776749,0.6773115584415584,municipality,Colombiers
+autre commune,3 Mavault 86380 Saint-Martin-la-Pallu,aucun résultat,,,,,
+autre commune,5 Rue du Bijou 86360 Montamisé,aucun résultat,,,,,
+autre commune,20 Rue d'Anjou 86600 Lusignan,aucun résultat,,,,,
+autre commune,2 Rue des Métiers 86180 Buxerolles,aucun résultat,,,,,
+autre commune,38 Chemin de la Loge d’Antoigné 86100 Châtellerault,aucun résultat,,,,,
+autre commune,1 Route de la Grande Batonnière 86130 Saint-Georges-lès-Baillargeaux,aucun résultat,,,,,
+autre commune,2 Impasse de la Boulangerie 86150 Millac,aucun résultat,,,,,
+autre commune,4 Rue des Forgerons 86120 Roiffé,aucun résultat,,,,,
+autre commune,35 Rue des Ecoles d'Etables 86170 Saint-Martin-la-Pallu,aucun résultat,,,,,
+autre commune,6 Impasse du Clos D Andillé 86340 Roches-Prémarie-Andillé,aucun résultat,,,,,
+autre commune,15 Chemin des Malbattes 86500 Montmorillon,aucun résultat,,,,,
+autre commune,1 Rue de Breckerfeld 86160 Gençay,aucun résultat,,,,,
+autre commune,100 Rue de la Gibauderie 86000 Poitiers,aucun résultat,,,,,
+autre commune,1 La Chauvalière 86100 Antran,aucun résultat,,,,,
+autre commune,48 Route de la Puye 86300 Bonnes,aucun résultat,,,,,
+autre commune,5 Rue des Mésanges 86500 Montmorillon,aucun résultat,,,,,
+autre commune,2 Impasse des Ormeaux 86340 Fleuré,aucun résultat,,,,,
+autre commune,1 Lieu Dit Bouldière 86340 Nieuil-l'Espoir,aucun résultat,,,,,
+autre commune,86 Rue des Loges 86100 Châtellerault,aucun résultat,,,,,
+autre commune,3 Lotissement du Champ des Fosses 86250 Genouillé,aucun résultat,,,,,
+autre commune,1 Le Clos de la Grotte Saint-Félix 86240 Smarves,aucun résultat,,,,,
+autre commune,16 Rue des Bois de Rochefort 86580 Biard,aucun résultat,,,,,
+autre commune,4 Rue du Buisson 86530 Availles-en-Châtellerault,aucun résultat,,,,,
+autre commune,9 Rue de la Roche Bridier 86110 Mirebeau,aucun résultat,,,,,
+autre commune,31 rue Elise Arlot 86350 Usson-du-Poitou,aucun résultat,,,,,
+autre commune,2 Rue du Petit Chaunay 86200 Ceaux-en-Loudun,aucun résultat,,,,,
+autre commune,1 Chantegros 86370 Marçay,aucun résultat,,,,,
+autre commune,1 Place Benjamin Franklin 86320 Lussac-les-Châteaux,aucun résultat,,,,,
+autre commune,14 Lieu Dit Epennes 86120 Bournand,aucun résultat,,,,,
+autre commune,2 Route de Montalembert 86400 Voulême,aucun résultat,,,,,
+abréviation,47 Route des Mottes 86490 Colombiers,juste,0.447077,46.793363,0.95308,housenumber,47 Route des Mottes 86490 Colombiers
+abréviation,2bis Route des Vignes 86490 Colombiers,juste,0.426529,46.771707,0.9483463636363635,housenumber,2bis Route des Vignes 86490 Colombiers
+abréviation,40 Route de la Bougrière 86490 Colombiers,juste,0.455524,46.792851,0.9550118181818181,housenumber,40 Route de la Bougrière 86490 Colombiers
+abréviation,4 Impasse Saint - Fleur 86490 Colombiers,juste,0.415798,46.765524,0.9451954545454544,housenumber,4 Impasse Saint - Fleur 86490 Colombiers
+abréviation,2 Route de Marigny 86490 Colombiers,juste,0.41513,46.766038,0.9525118181818181,housenumber,2 Route de Marigny 86490 Colombiers
+abréviation,2 Impasse Saint - Fleur 86490 Colombiers,juste,0.416108,46.765703,0.9451954545454544,housenumber,2 Impasse Saint - Fleur 86490 Colombiers
+abréviation,18bis Route des Lavoirs 86490 Colombiers,juste,0.422645,46.771943,0.9535854545454545,housenumber,18bis Route des Lavoirs 86490 Colombiers
+abréviation,5 Rue de la Valette 86490 Colombiers,juste,0.431542,46.773396,0.9483463636363635,housenumber,5 Rue de la Valette 86490 Colombiers
+abréviation,64 Route de la Bougrière 86490 Colombiers,juste,0.457944,46.791354,0.9550118181818181,housenumber,64 Route de la Bougrière 86490 Colombiers
+abréviation,6 Route du Vivier 86490 Colombiers,juste,0.425494,46.774135,0.9516827272727272,housenumber,6 Route du Vivier 86490 Colombiers
+abréviation,16 Route de la Bougrière 86490 Colombiers,juste,0.450907,46.794213,0.9550118181818181,housenumber,16 Route de la Bougrière 86490 Colombiers
+abréviation,19 Route des Mottes 86490 Colombiers,juste,0.450373,46.788353,0.95308,housenumber,19 Route des Mottes 86490 Colombiers
+abréviation,6 Route des Mottes 86490 Colombiers,juste,0.45223,46.786954,0.95308,housenumber,6 Route des Mottes 86490 Colombiers
+abréviation,5 Route de la Coquille 86490 Colombiers,juste,0.465746,46.772783,0.947950909090909,housenumber,5 Route de la Coquille 86490 Colombiers
+abréviation,13 Route de la Galochonnerie 86490 Colombiers,juste,0.479301,46.786843,0.9499299999999999,housenumber,13 Route de la Galochonnerie 86490 Colombiers
+abréviation,8 Route du Vivier 86490 Colombiers,juste,0.42461,46.774643,0.9516827272727272,housenumber,8 Route du Vivier 86490 Colombiers
+abréviation,5 Route des Vignes 86490 Colombiers,juste,0.428455,46.771604,0.9483463636363635,housenumber,5 Route des Vignes 86490 Colombiers
+abréviation,11bis Route des Mottes 86490 Colombiers,juste,0.451152,46.787681,0.95308,housenumber,11bis Route des Mottes 86490 Colombiers
+abréviation,6 Route de la Galochonnerie 86490 Colombiers,juste,0.479699,46.786627,0.9499299999999999,housenumber,6 Route de la Galochonnerie 86490 Colombiers
+abréviation,7 Route de Beaumont 86490 Colombiers,juste,0.416369,46.765518,0.9458963636363635,housenumber,7 Route de Beaumont 86490 Colombiers
+abréviation,4 Route des Lavoirs 86490 Colombiers,juste,0.424484,46.772251,0.9535854545454545,housenumber,4 Route des Lavoirs 86490 Colombiers
+abréviation,20 Chemin de la Roche 86490 Colombiers,juste,0.457665,46.770435,0.9475172727272727,housenumber,20 Chemin de la Roche 86490 Colombiers
+abréviation,3 Route de la Bougrière 86490 Colombiers,juste,0.447098,46.79417,0.9550118181818181,housenumber,3 Route de la Bougrière 86490 Colombiers
+abréviation,1 Route des Vignes 86490 Colombiers,juste,0.427922,46.771671,0.9483463636363635,housenumber,1 Route des Vignes 86490 Colombiers
+abréviation,3 Route du Villé 86490 Colombiers,juste,0.416357,46.76847,0.947950909090909,housenumber,3 Route du Villé 86490 Colombiers
+abréviation,1 Chemin de la Rabotte 86490 Colombiers,juste,0.454096,46.767442,0.9470390909090909,housenumber,1 Chemin de la Rabotte 86490 Colombiers
+abréviation,14 Route des Trainebots 86490 Colombiers,juste,0.484072,46.781066,0.9513036363636364,housenumber,14 Route des Trainebots 86490 Colombiers
+abréviation,1 Place de Manderen 86490 Colombiers,juste,0.425672,46.77243,0.9451954545454544,housenumber,1 Place de Manderen 86490 Colombiers
+abréviation,31 Route des Mottes 86490 Colombiers,juste,0.448592,46.790143,0.95308,housenumber,31 Route des Mottes 86490 Colombiers
+abréviation,6 Route de la Maison Neuve 86490 Colombiers,juste,0.415188,46.780152,0.9458963636363635,housenumber,6 Route de la Maison Neuve 86490 Colombiers
+abréviation,1 Chemin de la Bouillerie 86490 Colombiers,juste,0.441822,46.775825,0.9465036363636362,housenumber,1 Chemin de la Bouillerie 86490 Colombiers
+abréviation,27 Route des Lavoirs 86490 Colombiers,juste,0.42045,46.770273,0.9535854545454545,housenumber,27 Route des Lavoirs 86490 Colombiers
+abréviation,2a Route des Trainebots 86490 Colombiers,juste,0.482595,46.78312,0.9513036363636364,housenumber,2a Route des Trainebots 86490 Colombiers
+abréviation,3 Rue du 19 Mars 1962 86490 Colombiers,juste,0.432783,46.773784,0.947950909090909,housenumber,3 Rue du 19 Mars 1962 86490 Colombiers
+abréviation,2 Rue de la Grande Vallée 86490 Colombiers,juste,0.419433,46.768165,0.9499299999999999,housenumber,2 Rue de la Grande Vallée 86490 Colombiers
+abréviation,7 Route de Châtellerault 86490 Colombiers,juste,0.427967,46.772629,0.9504354545454545,housenumber,7 Route de Châtellerault 86490 Colombiers
+abréviation,20 Route du Rivalin 86490 Colombiers,juste,0.43329,46.784833,0.94871,housenumber,20 Route du Rivalin 86490 Colombiers
+abréviation,6 Impasse Saint - Fleur 86490 Colombiers,juste,0.415671,46.76544,0.9451954545454544,housenumber,6 Impasse Saint - Fleur 86490 Colombiers
+abréviation,3 Impasse de la Valette 86490 Colombiers,juste,0.432258,46.772879,0.9433527272727271,housenumber,3 Impasse de la Valette 86490 Colombiers
+abréviation,1 Impasse des Trainebots 86490 Colombiers,juste,0.484106,46.781737,0.9465036363636362,housenumber,1 Impasse des Trainebots 86490 Colombiers

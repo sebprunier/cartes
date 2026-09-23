@@ -42,6 +42,7 @@ node src/node/cli.js --aide
 | `src/core/image.js` | assemblage des tuiles décodées en pixels |
 | `src/core/overlays.js` | géométrie, texte et styles du contour et de la mention des sources |
 | `src/core/layers.js` | lecture des données ajoutées (GeoJSON, CSV) et conversion en formes |
+| `src/core/geocoding.js` | géocodage des adresses d'un CSV par la Géoplateforme, et classement de chaque réponse |
 | `src/core/print.js` | tailles d'impression et formats de papier |
 | `src/core/estimates.js` | mémoire nécessaire et poids estimé des fichiers |
 | `src/core/http.js` | requêtes HTTP |

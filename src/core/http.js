@@ -52,3 +52,24 @@ export async function requestJson(url) {
   if (!response.ok) throw new HttpError(url, response.status);
   return response.json();
 }
+
+/**
+ * Text answered to a form sent by POST — a file to geocode. A service under load refuses for a moment (429) or
+ * fails at its gateway (502 to 504): the form is sent again, twice, after a pause.
+ */
+export async function requestForm(url, form, { retryDelayMs = 2000 } = {}) {
+  for (let attempt = 1; ; attempt++) {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: form,
+      headers: isNode ? { 'User-Agent': USER_AGENT } : {},
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (response.ok) return response.text();
+    if (attempt < 3 && [429, 502, 503, 504].includes(response.status)) {
+      await new Promise((resolve) => setTimeout(resolve, attempt * retryDelayMs));
+      continue;
+    }
+    throw new HttpError(url, response.status);
+  }
+}

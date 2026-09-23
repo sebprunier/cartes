@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  GeocodingNeeded,
   LayerError,
+  addressColumns,
   applyProperties,
+  decodeText,
   LARGE_LAYER_FEATURES,
   layerShapes,
   layerWarning,
   layersShapes,
   legendEntries,
+  layersSource,
   legendTitle,
   readLayer,
 } from '../src/core/layers.js';
@@ -125,7 +129,50 @@ describe('readLayer, CSV', () => {
   });
 
   it('says which columns are missing', () => {
-    assert.throws(() => read('nom;adresse\nMairie;1 rue des Écoles\n', 'points.csv'), /Colonnes de coordonnées/);
+    assert.throws(() => read('nom;commentaire\nMairie;ouverte le lundi\n', 'points.csv'), /Colonnes de coordonnées/);
+  });
+
+  it('recognizes a file of addresses without coordinates, that geocoding can place', () => {
+    assert.throws(() => read('nom;adresse\nMairie;1 rue des Écoles\n', 'points.csv'), GeocodingNeeded);
+    assert.throws(() => read('nom;numero;voie;commune\nMairie;1;rue des Écoles;Colombiers\n', 'points.csv'), GeocodingNeeded);
+  });
+});
+
+describe('geocoded CSV', () => {
+  const geocoded =
+    'nom;adresse;latitude;longitude;geocodage_statut;geocodage_score;geocodage_adresse_trouvee;geocodage_date\n' +
+    'Mairie;Place de Manderen;46,772229;0,425837;trouvée;0,95;Place de Manderen 86490 Colombiers;2026-09-23\n' +
+    'École;12 route de Châtellerault;46,77;0,43;à vérifier;0,88;Route de Châtellerault 86490 Colombiers;2026-09-23\n' +
+    'Stade;Stade;;;introuvable;0,68;Colombiers;2026-09-23\n';
+
+  it('draws the addresses found, and those to check only when asked to', () => {
+    assert.deepEqual(read(geocoded, 'lieux.csv').features.map((f) => f.label), ['Mairie']);
+    const all = readLayer(geocoded, { fileName: 'lieux.csv', unverified: true });
+    assert.deepEqual(all.features.map((f) => f.label), ['Mairie', 'École']);
+  });
+
+  it('credits the Base Adresse Nationale, and the day of the geocoding, for the positions', () => {
+    const layer = read(geocoded, 'lieux.csv');
+    assert.equal(layer.geocodedOn, '2026-09-23');
+    assert.equal(
+      layersSource([layer, read(geoJson([feature({ type: 'Point', coordinates: [0.43, 46.78] })]), 'autres.geojson')]).attribution,
+      'Données ajoutées : Lieux (géocodage : Base Adresse Nationale, 23/09/2026), Autres',
+    );
+  });
+});
+
+describe('addressColumns', () => {
+  it('finds a whole address, else its parts in the order they are written', () => {
+    assert.deepEqual(addressColumns(['nom', 'adresse', 'type']), [1]);
+    assert.deepEqual(addressColumns(['commune', 'nom', 'voie', 'numéro', 'code postal']), [3, 2, 4, 0]);
+    assert.equal(addressColumns(['nom', 'type', 'commune']), undefined); // Without a street, no address.
+  });
+});
+
+describe('decodeText', () => {
+  it('reads UTF-8, and the Windows-1252 that many spreadsheets write', () => {
+    assert.equal(decodeText(new TextEncoder().encode('Église;Châtellerault')), 'Église;Châtellerault');
+    assert.equal(decodeText(new Uint8Array([0xc9, 0x67, 0x6c, 0x69, 0x73, 0x65])), 'Église');
   });
 });
 
