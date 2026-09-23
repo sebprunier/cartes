@@ -10,6 +10,7 @@ Usage :
   cartes fonds                               lister les fonds de carte disponibles
   cartes couches                             lister les couches superposables
   cartes generer <commune> [options]         générer la carte d'une commune, par nom ou code INSEE
+  cartes serveur [--port <n>]                servir l'API HTTP, pour intégrer cartes à d'autres logiciels
 
 Options de « generer » :
   -d, --departement <code>  département, pour lever une homonymie, ex. 86
@@ -54,6 +55,13 @@ Options de « generer » :
   -h, --aide                afficher cette aide
   -v, --version             afficher la version de cartes
 
+Options de « serveur » :
+      --port <n>            port d'écoute ; défaut : la variable PORT, sinon 8080
+      --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
+  Le reste se règle par des variables d'environnement : CARTES_CLE_API, CARTES_ZOOM_MAX,
+  CARTES_GENERATIONS, CARTES_CONSERVATION et CARTES_SORTIES. La documentation les décrit :
+  https://sebprunier.github.io/cartes/documentation/api.html
+
 Exemples :
   cartes generer 86081                                  la carte de Colombiers, au zoom par défaut
   cartes generer Colombiers -d 86 -z 16                 par son nom, en levant l'homonymie, au zoom 16
@@ -68,7 +76,7 @@ Le niveau de zoom décide de la taille de l'image, donc du format papier : le ch
 plutôt que d'après le détail souhaité. La documentation l'explique :
 https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html
 
-Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, --department,
+Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, serve, --department,
 --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name, --custom-layer-source,
 --custom-layer-opacity, --data, --data-title, --data-category, --data-color, --output,
 --margin, --grayscale, --no-outline, --no-legend, --estimate, --max-tiles, --concurrency, --help.`;
@@ -80,6 +88,7 @@ export const FRENCH_COMMANDS = {
   couches: 'maplayers',
   generer: 'generate',
   générer: 'generate',
+  serveur: 'serve',
 };
 
 // Options are keyed by their English name (used in code), with their French name shown to users.
@@ -108,6 +117,7 @@ export const OPTIONS = {
   'max-tiles': { type: 'string', french: 'max-tuiles', default: '5000' },
   concurrency: { type: 'string', french: 'paralleles', default: '6' },
   cache: { type: 'string', default: '.cache/tiles' },
+  port: { type: 'string' },
   help: { type: 'boolean', short: 'h', french: 'aide', default: false },
   version: { type: 'boolean', short: 'v', default: false },
 };

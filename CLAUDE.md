@@ -19,6 +19,7 @@ Ce fichier s'adresse à Claude Code et aux autres assistants qui travaillent sur
 | `node src/node/cli.js generer 86081 --estimer` | tailles, mémoire et poids estimé par niveau de zoom |
 | `npm run web` | construit `dist/` et sert la page sur <http://localhost:8000> |
 | `npm run electron` | construit l'interface et lance l'application de bureau |
+| `npm start` | sert l'API HTTP sur <http://localhost:8080> |
 
 ## Pièges déjà rencontrés
 
@@ -26,7 +27,7 @@ Ce fichier s'adresse à Claude Code et aux autres assistants qui travaillent sur
 - **Les services publics renvoient des erreurs passagères** : la Géoplateforme répond parfois 400 ou 404 sur une tuile qui existe. Le téléchargement réessaie et isole la tuile fautive ; ne « simplifiez » pas ce mécanisme. Pour les essais manuels, restez à de petits niveaux de zoom et laissez jouer le cache `.cache/tiles/`.
 - **librsvg refuse les images de plus de 32 767 px** : les surcouches SVG sont dessinées par blocs de 4 096 px dans `src/node/render.js`. Une carte au zoom 19 dépasse largement cette limite.
 - **Le texte de l'interface est partagé** entre la page web et l'application : une phrase qui parle de « navigateur » serait fausse dans l'application. Ce qui diffère passe par `engine.privacyNote` et `engine.zoomNote`.
-- **Les formulations du cœur sont vues par l'utilisateur** : les messages d'erreur de `src/core/` s'affichent tels quels dans les trois outils.
+- **Les formulations du cœur sont vues par l'utilisateur** : les messages d'erreur de `src/core/` s'affichent tels quels dans les trois outils, et l'API les renvoie aux logiciels qui l'appellent.
 
 ## Mesurer plutôt que supposer
 

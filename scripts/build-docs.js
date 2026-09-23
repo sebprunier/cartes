@@ -14,6 +14,7 @@ export const DOCUMENTATION_PAGES = [
   { file: 'donnees.md', title: 'Ajouter des données' },
   { file: 'application-de-bureau.md', title: 'Application de bureau' },
   { file: 'ligne-de-commande.md', title: 'Ligne de commande' },
+  { file: 'api.md', title: 'API' },
   { file: 'donnees-et-licences.md', title: 'Sources et licences' },
   { file: 'problemes-courants.md', title: 'Problèmes courants' },
 ];

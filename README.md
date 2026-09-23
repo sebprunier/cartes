@@ -13,7 +13,7 @@
   Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format.
 </p>
 
-> **État du projet** : utilisable, en version 0.x. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/), l'application de bureau et la ligne de commande. Les commandes, les options et l'interface peuvent encore évoluer.
+> **État du projet** : utilisable, en version 0.x. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/), l'application de bureau et la ligne de commande — et une API, pour l'intégrer à d'autres logiciels. Les commandes, les options et l'interface peuvent encore évoluer.
 
 ## Pourquoi ce projet
 
@@ -40,6 +40,7 @@ Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient s
 5. **Fait** : un catalogue de couches ouvertes à superposer — cadastre, PPR inondation et mouvements de terrain, cavités souterraines, canalisations de matières dangereuses, aléa retrait-gonflement des argiles.
 6. **Fait** : une documentation utilisateur en ligne, et une aide dans les outils eux-mêmes.
 7. **Fait** : ouvrir le catalogue aux couches que la commune fournit elle-même, par l'adresse de leurs tuiles.
+8. **Fait** : une API HTTP, pour intégrer cartes à d'autres logiciels, et son déploiement sur Clever Cloud.
 
 ## Documentation
 
@@ -49,6 +50,7 @@ Le mode d'emploi est en ligne : **<https://sebprunier.github.io/cartes/documenta
 - [Zoom et impression](https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html) — pourquoi le zoom maximal n'est pas le bon choix
 - [Ajouter des données](https://sebprunier.github.io/cartes/documentation/donnees.html) — couches publiques et fichiers de la commune
 - [Application de bureau](https://sebprunier.github.io/cartes/documentation/application-de-bureau.html) et [ligne de commande](https://sebprunier.github.io/cartes/documentation/ligne-de-commande.html)
+- [API](https://sebprunier.github.io/cartes/documentation/api.html) — intégrer cartes à un autre logiciel, et la déployer sur Clever Cloud
 - [Sources et licences](docs/donnees-et-licences.md) — ce que les données permettent, et ce qu'elles imposent
 - [Problèmes courants](https://sebprunier.github.io/cartes/documentation/problemes-courants.html)
 

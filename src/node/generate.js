@@ -4,18 +4,27 @@
 
 import { canUsePalette } from '../core/basemaps.js';
 import { estimateFileSize } from '../core/estimates.js';
-import { layersSource } from '../core/layers.js';
+import { layerWarning, layersSource } from '../core/layers.js';
 import {
+  checkMapLayer,
+  isCustomLayer,
   isTileLayer,
   isVectorLayer,
   isWmsLayer,
   mapLayerLegendEntries,
+  mapLayerZoomWarning,
   vectorStyleOf,
 } from '../core/maplayers.js';
 import { withUpdateDates } from '../core/metadata.js';
-import { BOUNDARY_SOURCE } from '../core/municipalities.js';
+import {
+  BOUNDARY_SOURCE,
+  boundaryBbox,
+  fetchBoundary,
+  normalizeName,
+  resolveMunicipality,
+} from '../core/municipalities.js';
 import { attributionText } from '../core/overlays.js';
-import { downloadTiles, fetchTile, sampleTiles, tilesInExtent } from '../core/tiles.js';
+import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from '../core/tiles.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
 import { wmsLegendUrl, wmsRequests } from '../core/wms.js';
 import { cachedTileLoader, tileSizes } from './cache.js';
@@ -38,6 +47,43 @@ import {
 export const SAMPLE_GRID_SIZE = 6;
 
 /**
+ * Finds the municipality — by name or INSEE code — its boundary and the extent of its map, and says what the
+ * user should know before generating it: a layer that stops short of this zoom, a data file too large to
+ * label every object, a layer given by its address that has nothing on this municipality. That last one is
+ * found by trying the layer on one tile, so that a mistyped address fails here, not after a long download.
+ */
+export async function planMap({ municipality, department, zoom, margin, mapLayers = [], layers = [] }) {
+  const inseeCode = await resolveMunicipality(municipality, department);
+  const boundary = await fetchBoundary(inseeCode);
+  const bbox = boundaryBbox(boundary);
+  const extent = extentFromBbox(bbox, zoom, margin);
+
+  const warnings = [];
+  const [lon, lat] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
+  for (const layer of mapLayers.filter(isCustomLayer)) {
+    const { empty } = await checkMapLayer(layer, { lon, lat, zoom });
+    if (empty) warnings.push(`« ${layer.name} » répond, mais n’a aucune donnée sur cette commune.`);
+  }
+  for (const layer of mapLayers) {
+    const warning = mapLayerZoomWarning(layer, zoom);
+    if (warning) warnings.push(warning);
+  }
+  for (const layer of layers) {
+    const warning = layerWarning(layer);
+    if (warning) warnings.push(`${layer.name} — ${warning}`);
+  }
+  return { boundary, bbox, extent, warnings };
+}
+
+/** Name of the file of a map, without its extension: the municipality, the basemap, the layers and the zoom. */
+export function mapFileName({ boundary, basemap, mapLayers = [], zoom, grayscale = false }) {
+  return (
+    `${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}` +
+    `${mapLayers.map((layer) => `-${layer.id}`).join('')}-z${zoom}${grayscale ? '-gris' : ''}`
+  );
+}
+
+/**
  * Generates the map of `extent` into `outputPath`.
  *
  * - `basemap`, `mapLayers`: the basemap and the chosen layers, as the catalogs define them;
@@ -47,7 +93,7 @@ export const SAMPLE_GRID_SIZE = 6;
  *
  * `onStep(message)` tells what is being done, and what went wrong along the way without stopping the map;
  * `onProgress({ sourceId, done, total })` counts the tiles or images of each source. An aborted `signal` stops
- * the download of the tiles. What the tool has to word for its own user comes back in the result: `missing`
+ * the generation at the next step. What the tool has to word for its own user comes back in the result: `missing`
  * tiles of the basemap, left blank, and `updateDatesMissing` when the catalog did not give the date of the
  * data, which the license of the IGN asks to write on the map.
  */
@@ -70,6 +116,11 @@ export async function generateMap(
   { onStep = () => {}, onProgress = () => {}, signal } = {},
 ) {
   const { zoom } = extent;
+  // Checked between the steps, and not only while tiles download: a map canceled once its tiles are there
+  // would otherwise be drawn and written to the end, for nothing.
+  const stopIfAborted = () => {
+    if (signal?.aborted) throw new Error('Génération annulée.');
+  };
   const download = (source) =>
     downloadTiles(source, zoom, [...tilesInExtent(extent)], {
       loadTile: cachedTileLoader({ cacheDir, basemapId: source.id, zoom }),
@@ -87,12 +138,14 @@ export async function generateMap(
     );
   }
 
+  stopIfAborted();
   onStep(`Assemblage d'une image de ${extent.width} × ${extent.height} px…`);
   const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale });
 
   const vectorShapes = [];
   const legendExtra = [];
   for (const layer of mapLayers) {
+    stopIfAborted();
     if (isVectorLayer(layer)) {
       onStep(`Lecture des tuiles vectorielles de « ${layer.name} »…`);
       const vectorTiles = await readVectorLayer(layer, extent);
@@ -110,6 +163,7 @@ export async function generateMap(
       const blocks = wmsRequests(layer, extent);
       onStep(`Téléchargement de ${blocks.length} image(s) pour « ${layer.name} »…`);
       for (const [index, block] of blocks.entries()) {
+        stopIfAborted();
         block.content = await fetchTile(block.url);
         onProgress({ sourceId: layer.id, done: index + 1, total: blocks.length });
       }
@@ -129,6 +183,7 @@ export async function generateMap(
     }
   }
 
+  stopIfAborted();
   const overlays = vectorOverlays(vectorShapes);
   if (outline) overlays.push(boundaryOutline(boundary, extent));
   overlays.push(...layerOverlays(layers, extent));
@@ -141,6 +196,7 @@ export async function generateMap(
   onStep(outline ? 'Tracé du contour et ajout de la mention des sources…' : 'Ajout de la mention des sources…');
   await drawOverlays(pixels, extent, overlays);
 
+  stopIfAborted();
   onStep(`Enregistrement dans ${outputPath}…`);
   await saveImage(pixels, extent, outputPath, { dpi, palette: canUsePalette(basemap, format) });
 

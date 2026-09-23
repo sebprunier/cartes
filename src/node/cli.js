@@ -2,32 +2,19 @@
 // Command line interface.
 
 import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { tmpdir } from 'node:os';
+import path, { basename } from 'node:path';
 
 import { BASEMAPS } from '../core/basemaps.js';
-import {
-  MAP_LAYERS,
-  MapLayerError,
-  checkMapLayer,
-  chooseMapLayers,
-  isCustomLayer,
-  mapLayerZoomWarning,
-} from '../core/maplayers.js';
+import { MAP_LAYERS, MapLayerError, chooseMapLayers } from '../core/maplayers.js';
 import { formatBytes, imageMemory } from '../core/estimates.js';
-import {
-  MunicipalityNotFound,
-  boundaryBbox,
-  describeMunicipality,
-  fetchBoundary,
-  normalizeName,
-  resolveMunicipality,
-  searchMunicipalities,
-} from '../core/municipalities.js';
-import { LayerError, layerWarning, readLayer } from '../core/layers.js';
+import { MunicipalityNotFound, describeMunicipality, searchMunicipalities } from '../core/municipalities.js';
+import { LayerError, readLayer } from '../core/layers.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
-import { SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap } from './generate.js';
+import { SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
+import { createApiServer } from './server.js';
 
 const { version: VERSION } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
@@ -49,9 +36,50 @@ async function main() {
     listMapLayers();
   } else if (command === 'generate' && argument) {
     await generate(argument, options);
+  } else if (command === 'serve') {
+    await serve(options);
   } else {
     throw new UsageError(`Commande invalide.\n\n${HELP}`);
   }
+}
+
+/**
+ * Serves the HTTP API. Its settings come from the environment, where a hosting platform sets them: nothing
+ * is limited unless asked for.
+ */
+async function serve(options) {
+  const env = process.env;
+  const port = parseInteger(options.port ?? env.PORT ?? '8080', '--port', 0, 65535);
+  const apiKey = env.CARTES_CLE_API || undefined;
+  const maxZoom = env.CARTES_ZOOM_MAX ? parseInteger(env.CARTES_ZOOM_MAX, 'CARTES_ZOOM_MAX', 0) : Infinity;
+  const maxGenerations = parseInteger(env.CARTES_GENERATIONS ?? '1', 'CARTES_GENERATIONS', 1);
+  const retentionMinutes = parseInteger(env.CARTES_CONSERVATION ?? '60', 'CARTES_CONSERVATION', 1);
+  const outputDir = env.CARTES_SORTIES || path.join(tmpdir(), 'cartes');
+  const concurrency = parseInteger(options.concurrency, '--paralleles', 1);
+
+  const server = createApiServer({
+    cacheDir: options.cache,
+    outputDir,
+    version: VERSION,
+    apiKey,
+    maxZoom,
+    maxGenerations,
+    retentionMs: retentionMinutes * 60 * 1000,
+    concurrency,
+  });
+  await new Promise((resolve, reject) => server.once('error', reject).listen(port, resolve));
+
+  console.log(`API de cartes ${VERSION} à l'écoute sur le port ${server.address().port}.`);
+  console.log(`  Clé d'API     : ${apiKey ? 'exigée' : 'aucune, l’API répond à tous'}`);
+  console.log(`  Zoom maximal  : ${maxZoom === Infinity ? 'celui de chaque fond de carte' : maxZoom}`);
+  console.log(`  Générations   : ${maxGenerations} à la fois, cartes conservées ${retentionMinutes} min`);
+  console.log(`  Cartes        : ${outputDir}`);
+  console.log(`  Cache         : ${options.cache}`);
+  // A platform stops an application with SIGTERM: the maps in progress are dropped, not left half written.
+  for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
+    server.close(() => process.exit(0));
+    server.closeIdleConnections();
+  });
 }
 
 async function search(name, options) {
@@ -120,16 +148,18 @@ async function generate(input, options) {
     throw error instanceof MapLayerError ? new UsageError(error.message) : error;
   }
 
-  const inseeCode = await resolveMunicipality(input, options.department);
-  const boundary = await fetchBoundary(inseeCode);
-  const bbox = boundaryBbox(boundary);
-  const extent = extentFromBbox(bbox, zoom, margin);
+  let plan;
+  try {
+    plan = await planMap({ municipality: input, department: options.department, zoom, margin, mapLayers, layers });
+  } catch (error) {
+    throw error instanceof MapLayerError ? new UsageError(error.message) : error;
+  }
+  const { boundary, bbox, extent, warnings } = plan;
   const { grayscale } = options;
   const { path: outputPath, format } = resolveOutputPath(
     options,
     basemap.outputFormat,
-    `sorties/${boundary.inseeCode}-${normalizeName(boundary.name).replaceAll(' ', '-')}-${basemap.id}` +
-      `${mapLayers.map((layer) => `-${layer.id}`).join('')}-z${zoom}${grayscale ? '-gris' : ''}`,
+    `sorties/${mapFileName({ boundary, basemap, mapLayers, zoom, grayscale })}`,
   );
 
   console.log(`Commune       : ${boundary.name} (${boundary.inseeCode})`);
@@ -138,28 +168,7 @@ async function generate(input, options) {
     console.log(`Couche        : ${layer.name} (opacité ${layer.opacity}) — ${layer.attribution}`);
   }
   console.log();
-  // A layer given by its address is tried on one tile before hundreds are asked for: a mistyped address says
-  // so here, not after a long download.
-  for (const layer of mapLayers.filter(isCustomLayer)) {
-    const [lon, lat] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
-    let checked;
-    try {
-      checked = await checkMapLayer(layer, { lon, lat, zoom });
-    } catch (error) {
-      throw error instanceof MapLayerError ? new UsageError(error.message) : error;
-    }
-    if (checked.empty) {
-      console.log(`Attention : « ${layer.name} » répond, mais n’a aucune donnée sur cette commune.\n`);
-    }
-  }
-  for (const layer of mapLayers) {
-    const warning = mapLayerZoomWarning(layer, zoom);
-    if (warning) console.log(`Attention : ${warning}\n`);
-  }
-  for (const layer of layers) {
-    const warning = layerWarning(layer);
-    if (warning) console.log(`Attention : ${layer.name} — ${warning}\n`);
-  }
+  for (const warning of warnings) console.log(`Attention : ${warning}\n`);
   const fileSizeOptions = options.estimate
     ? { format, grayscale, cacheDir: options.cache, concurrency, mapLayers }
     : undefined;

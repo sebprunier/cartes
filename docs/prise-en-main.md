@@ -14,6 +14,8 @@ L'outil est libre et gratuit. Les données viennent de services publics — IGN,
 
 Les trois produisent exactement la même carte : elles partagent le même code de génération. La page web s'arrête là où le navigateur ne sait plus dessiner d'image assez grande ; l'application et la ligne de commande n'ont pas cette limite.
 
+Pour un logiciel plutôt que pour une personne, une [API](api.md) rend les mêmes services : un serveur que chacun héberge, et que d'autres logiciels appellent.
+
 ## Votre première carte, en cinq minutes
 
 1. **Ouvrez la [page web](https://sebprunier.github.io/cartes/)** et saisissez le nom de votre commune. En cas d'homonymes, la liste indique le département et le nombre d'habitants.

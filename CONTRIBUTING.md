@@ -47,7 +47,9 @@ node src/node/cli.js --aide
 | `src/core/http.js` | requêtes HTTP |
 | `src/node/cli.js` | point d'entrée de la ligne de commande |
 | `src/node/command-line.js` | analyse des commandes et des options (noms français, alias anglais) |
-| `src/node/generate.js` | génération d'une carte et estimation de son poids, partagées par la ligne de commande et l'application |
+| `src/node/generate.js` | génération d'une carte et estimation de son poids, partagées par la ligne de commande, l'application et l'API |
+| `src/node/server.js` | API HTTP : `cartes serveur` |
+| `src/node/openapi.js` | description OpenAPI de l'API, servie par l'API elle-même |
 | `src/node/cache.js` | cache des tuiles sur disque |
 | `src/node/render.js` | rendu avec sharp : décodage des tuiles, surcouches et écriture du fichier |
 | `web/` | page web : interface, moteur de rendu sur canvas, aperçu et worker |

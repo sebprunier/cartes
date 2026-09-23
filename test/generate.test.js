@@ -118,6 +118,22 @@ describe('generateMap', () => {
     );
     await assert.rejects(access(outputPath));
   });
+
+  it('stops at the next step when aborted once the tiles are downloaded, before writing anything', async () => {
+    const outputPath = path.join(tempDir, 'annulee-en-cours.png');
+    const controller = new AbortController();
+    const steps = [];
+    const onStep = (step) => {
+      steps.push(step);
+      if (step.startsWith('Assemblage')) controller.abort();
+    };
+    await assert.rejects(
+      generateMap(request({ outputPath }), { onStep, signal: controller.signal }),
+      /^Error: Génération annulée\.$/,
+    );
+    assert.equal(steps.at(-1).startsWith('Assemblage'), true, steps.join('\n'));
+    await assert.rejects(access(outputPath));
+  });
 });
 
 describe('estimateMapFileSize', () => {

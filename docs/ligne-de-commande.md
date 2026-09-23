@@ -22,7 +22,10 @@ cartes chercher Colombiers        # retrouver une commune et son code INSEE
 cartes fonds                      # lister les fonds de carte
 cartes couches                    # lister les couches superposables
 cartes generer 86081              # générer la carte d'une commune
+cartes serveur                    # servir l'API HTTP, pour d'autres logiciels
 ```
+
+La commande `cartes serveur` a sa propre page : [API](api.md).
 
 Une commune se désigne par son nom ou par son code INSEE. En cas d'homonymes, précisez le département avec `-d 86`.
 

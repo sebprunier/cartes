@@ -28,6 +28,7 @@
   },
   "scripts": {
     "test": "node --test",
+    "start": "node src/node/cli.js serveur",
     "build:web": "node scripts/build-web.js",
     "web": "node scripts/build-web.js --serve",
     "build:electron": "node scripts/build-electron.js",

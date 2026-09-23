@@ -6,6 +6,11 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Ajouté
+
+- Une API HTTP, pour intégrer cartes à d'autres logiciels : `cartes serveur` (ou `npm start`) rend les services de la ligne de commande — chercher une commune, lister les fonds et les couches, estimer, générer. Une carte se demande, se suit puis se télécharge. Rien n'est bridé par défaut ; une clé d'API, un zoom maximal, le nombre de générations simultanées et la durée de conservation des cartes se règlent par des variables d'environnement. La documentation décrit l'API et son déploiement sur Clever Cloud.
+- Annuler une génération l'arrête à l'étape suivante, et non plus seulement pendant le téléchargement des tuiles : dans l'application de bureau, une carte annulée une fois ses tuiles téléchargées n'est plus dessinée jusqu'au bout pour rien.
+
 ### Corrigé
 
 - La documentation de l'application de bureau décrivait, pour ouvrir l'application sur macOS, un clic droit puis « Ouvrir » qui n'a plus d'effet depuis macOS Sequoia. Elle détaille maintenant le passage par Confidentialité et sécurité, étape par étape et avec les captures d'écran des dialogues.
