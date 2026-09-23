@@ -114,9 +114,21 @@ clever deploy
 Quelques particularités à connaître :
 
 - **Une seule instance** : une carte n'existe que dans l'instance qui l'a générée. Avec deux instances, le suivi d'une carte pourrait tomber sur l'autre, qui ne la connaît pas : n'activez pas la mise à l'échelle horizontale.
-- **Taille de l'instance** : choisissez-la (`clever scale --flavor …`) d'après le zoom le plus élevé que vous accepterez, avec le tableau de la mémoire ci-dessus.
+- **Taille de l'instance** : choisissez-la (`clever scale --flavor …`) d'après le zoom le plus élevé que vous accepterez, avec le tableau ci-dessous.
 - **Disque éphémère** : il est effacé à chaque déploiement. Le cache des tuiles se reconstitue au fil des demandes, et les cartes en cours ou non téléchargées sont perdues.
 - **Dépendances** : seules celles de l'exécution sont installées ; l'application de bureau et ses outils de construction ne partent pas sur le serveur.
+
+### Quelle taille d'instance ?
+
+Mesuré sur Clever Cloud en septembre 2026, avec la carte de Colombiers (Vienne), une commune de taille moyenne. La première durée est celle d'une instance qui vient de démarrer, sans tuile en cache ; la seconde, celle de la même carte redemandée.
+
+| Taille | Mémoire | Zoom 16 | Zoom 17 | Zoom 18 |
+| --- | --- | --- | --- | --- |
+| XS | 1 Go | 13 s | 157 s, instance sans réponse une minute et demie | |
+| S | 2 Go | 10 s, puis 2 s | 39 s, puis 5 s | |
+| M | 4 Go | | | 156 s, puis 20 s |
+
+Une XS suffit donc jusqu'au zoom 16 : réglez `CARTES_ZOOM_MAX` à 16. Au zoom 17, la carte finit par sortir, mais l'instance, à la limite de sa mémoire, cesse de répondre le temps de la produire. Une S tient le zoom 17 sans peine, une M le zoom 18. Le zoom 19 n'a pas été essayé : son image seule pèse 3,8 Go pour la même commune. Pour une commune plus étendue, comparez la mémoire que donne `POST /estimations` à celle de Colombiers.
 
 ## Aller plus loin : une passerelle d'API
 
