@@ -267,6 +267,7 @@ function topbar({ root = '', current, page = {}, version }) {
         <nav class="topnav" aria-label="Navigation principale">
           ${link('prise-en-main.html', 'Documentation', 'documentation')}
           ${link(GENERATOR_PATH, 'Générer une carte', 'generator')}
+          ${link('application-de-bureau.html', 'Application de bureau', 'desktop')}
           ${link('api.html', 'API', 'api')}
           <a href="${REPOSITORY}">GitHub</a>
           <a class="version" href="${REPOSITORY}/releases" title="Versions publiées">v${version}</a>
@@ -355,7 +356,7 @@ function pageTemplate({ page, rendered, version, date, previous, next }) {
   </head>
   <body>
     <a class="skip" href="#contenu">Aller au contenu</a>
-    ${topbar({ current: page.file === 'api.md' ? 'api' : 'documentation', page, version })}
+    ${topbar({ current: { 'api.md': 'api', 'application-de-bureau.md': 'desktop' }[page.file] ?? 'documentation', page, version })}
     <div class="layout">
       <nav class="sidebar" aria-label="Pages de la documentation">
         ${sidebar(page)}

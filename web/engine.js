@@ -2,6 +2,7 @@
 // The Electron application provides another engine with the same interface.
 
 export const engine = {
+  desktop: false,
   // All the zoom levels of the basemaps are offered: how far a browser can go depends on the size of the
   // municipality and on the machine, and the canvas refuses what it cannot draw before anything is downloaded.
   maxZoom: 19,

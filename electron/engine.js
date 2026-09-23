@@ -2,6 +2,7 @@
 // It replaces web/engine.js, which renders in the browser, and offers the same interface.
 
 export const engine = {
+  desktop: true,
   // The main process renders with sharp: no limit from the browser, only the memory of the machine.
   maxZoom: 19,
   formats: [

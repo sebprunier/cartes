@@ -9,6 +9,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 ### Modifié
 
 - La documentation a son propre site, à l'adresse de l'outil (<https://sebprunier.github.io/cartes/>) : une page d'accueil, un menu par thème, un sommaire pour chaque page, des blocs de code à copier, et des illustrations tirées de vraies cartes. La page qui génère les cartes passe à <https://sebprunier.github.io/cartes/generer/>, aussi joignable par `/try-it/`. Les anciennes adresses de la documentation mènent à leur nouvelle page.
+- La page de génération, et l'application de bureau qui la partage, adoptent la présentation du site : des étapes numérotées, des champs, des boutons et un tableau des dimensions plus lisibles, l'aperçu en deux vues côte à côte, et la carte terminée offerte par un vrai bouton de téléchargement. Les aides des réglages s'ouvrent dans une bulle, sous leur point d'interrogation, et se ferment d'un clic ailleurs ou avec Échap.
 
 ## [0.5.0] – 2026-09-23
 

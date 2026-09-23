@@ -161,6 +161,7 @@ img {
   font-size: 0.95rem;
   font-weight: 500;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .topnav a:hover,
@@ -812,6 +813,10 @@ a.card strong::after {
     display: block;
   }
 
+  .topnav {
+    display: none;
+  }
+
   .content {
     padding-top: 1.5rem;
   }
@@ -835,10 +840,6 @@ a.card strong::after {
   .topbar-inner {
     gap: 1rem;
     padding: 0 1rem;
-  }
-
-  .topnav {
-    display: none;
   }
 
   .brand {

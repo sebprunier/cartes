@@ -82,6 +82,8 @@ for (const [value, label] of engine.formats) formatChoice.append(new Option(labe
 if (engine.zoomNote) zoomNote.textContent = engine.zoomNote;
 else zoomNote.hidden = true;
 privacyNote.textContent = engine.privacyNote;
+// What only makes sense on the web page — such as a link to download the desktop application — is left out of it.
+if (engine.desktop) for (const link of document.querySelectorAll('[data-web-only]')) link.hidden = true;
 
 let municipality;
 let pendingSearch;
@@ -387,14 +389,65 @@ function acceptCustomLayer(layer) {
 layerSearch.addEventListener('input', showLayerChoices);
 
 // Each field can explain itself, on demand: a hint shown by a button, rather than on hover, which neither a
-// touchscreen nor a keyboard can reach.
+// touchscreen nor a keyboard can reach. Where the browser knows popovers — the desktop application always does —
+// the hint opens as a bubble under its button, closed by a click elsewhere or by Escape, one at a time. Elsewhere
+// it opens within the page.
+const popovers = typeof HTMLElement.prototype.togglePopover === 'function';
+const hintToggles = new Map();
 for (const toggle of document.querySelectorAll('.hint-toggle')) {
   const hint = element(toggle.getAttribute('aria-controls'));
-  toggle.addEventListener('click', () => {
-    const shown = toggle.getAttribute('aria-expanded') === 'true';
-    toggle.setAttribute('aria-expanded', String(!shown));
-    hint.hidden = shown;
-  });
+  if (popovers) {
+    hint.popover = 'auto';
+    hint.hidden = false;
+    // Declared as the invoker of the bubble, the button closes it when it is open, where a click handler would see
+    // the bubble closed by the click itself, landing outside it, and open it again.
+    toggle.popoverTargetElement = hint;
+    hintToggles.set(hint, toggle);
+    hint.addEventListener('beforetoggle', (event) => {
+      if (event.newState === 'open') placeHint(hint, toggle);
+    });
+    hint.addEventListener('toggle', (event) => {
+      const open = event.newState === 'open';
+      toggle.setAttribute('aria-expanded', String(open));
+      if (open) placeHint(hint, toggle);
+    });
+  } else {
+    toggle.addEventListener('click', () => {
+      const shown = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!shown));
+      hint.hidden = shown;
+    });
+  }
+}
+
+/**
+ * Places a hint under its button, its arrow on the button, within the window — or above the button when there is
+ * no room left under it. Before it opens, its height is not known yet: it is placed under, then moved if needed.
+ */
+function placeHint(hint, toggle) {
+  const margin = 12;
+  const gap = 10;
+  const button = toggle.getBoundingClientRect();
+  const width = Math.min(hint.offsetWidth || 352, innerWidth - 2 * margin);
+  const height = hint.offsetHeight;
+  const center = button.left + button.width / 2;
+  const left = Math.min(Math.max(margin, center - width / 2), innerWidth - width - margin);
+  const above = height > 0 && button.bottom + gap + height > innerHeight - margin && button.top - gap - height > margin;
+  hint.style.left = `${left}px`;
+  hint.style.top = `${above ? button.top - gap - height : button.bottom + gap}px`;
+  hint.style.setProperty('--arrow', `${center - left}px`);
+  hint.classList.toggle('above', above);
+}
+
+// A bubble follows its button when the page scrolls or the window changes size.
+for (const event of ['scroll', 'resize']) {
+  window.addEventListener(
+    event,
+    () => {
+      for (const [hint, toggle] of hintToggles) if (hint.matches(':popover-open')) placeHint(hint, toggle);
+    },
+    { passive: true },
+  );
 }
 
 searchField.addEventListener('input', debounce(search, 300));
