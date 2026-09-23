@@ -36,7 +36,12 @@
   display: none !important;
 }
 
+/* A column at least as tall as the window: when the page is short, as at the start, the footer stays at the
+   bottom of the window rather than above an empty band. */
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   margin: 0;
   background: var(--page);
   color: var(--text);
@@ -133,6 +138,8 @@ code {
 /* Contenu */
 
 main {
+  flex: 1 0 auto;
+  width: 100%;
   max-width: 62rem;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 3rem;

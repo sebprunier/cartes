@@ -8,6 +8,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Corrigé
 
+- Sur une page courte — la page de génération à son ouverture, dans l'application comme dans le navigateur — le pied de page reste en bas de la fenêtre, au lieu de laisser une bande vide sous lui.
+- Sur un téléphone, la page Ajouter des données débordait de l'écran, à cause d'une adresse trop longue pour passer à la ligne, et l'accueil aussi sur les plus petits écrans. Plus aucune page ne déborde, de 320 à 1 440 pixels de large.
 - La documentation de l'application de bureau donne les deux commandes qui lancent l'AppImage sous Linux, plutôt qu'un simple « lancez-le », et ne présente plus ce lancement comme un avertissement à contourner : c'est seulement le cas sur macOS et Windows.
 
 ## [0.6.0] – 2026-09-23
