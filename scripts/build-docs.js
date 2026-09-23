@@ -126,7 +126,7 @@ export async function buildDocs(output, { version, date = new Date() }) {
  * missing ones, code blocks with a copy button, tables that scroll on a narrow screen. Returns the HTML, the
  * headings for the table of contents, and the pieces the home page lays out on its own.
  */
-function render(markdown, page) {
+export function render(markdown, page) {
   const headings = [];
   const slugs = new Map();
   const slugOf = (text) => {
@@ -187,9 +187,9 @@ function figure({ href, title, text }) {
   const caption = title ? `<figcaption>${escapeHtml(title)}</figcaption>` : '';
   if (/^https?:/.test(href) || existsSync(path.join(SOURCE, href))) {
     const size = /^https?:/.test(href) ? undefined : imageSize(href);
-    // Screenshots are taken at twice the resolution of the screen, to stay sharp on a dense one: they are shown at
-    // the size the interface has on the screen, not at their size in pixels.
-    const scale = href.startsWith('images/captures/') ? 2 : 1;
+    // A screenshot taken at twice the resolution of the screen, to stay sharp on a dense one, says so by its
+    // density — 144 dpi, as macOS writes it — and is shown at the size the interface has on the screen.
+    const scale = size?.dpi === 144 ? 2 : 1;
     const dimensions = size ? ` width="${size.width / scale}" height="${size.height / scale}"` : '';
     return `<figure><img src="${href}" alt="${alt}"${dimensions} loading="lazy" />${caption}</figure>\n`;
   }
@@ -201,10 +201,19 @@ function figure({ href, title, text }) {
   );
 }
 
-/** Size of a PNG or JPEG image, read from its header, so that the page does not jump while it loads. */
+/** Size of a PNG or JPEG image, and density of a PNG, read from its header, so that the page does not jump. */
 function imageSize(href) {
   const bytes = readFileSync(path.join(SOURCE, href));
-  if (href.endsWith('.png')) return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+  if (href.endsWith('.png')) {
+    // The density is in the pHYs chunk, in pixels per metre, when the image declares one.
+    let dpi;
+    for (let offset = 8; offset < bytes.length - 12; offset += 12 + bytes.readUInt32BE(offset)) {
+      const type = bytes.toString('latin1', offset + 4, offset + 8);
+      if (type === 'pHYs' && bytes[offset + 16] === 1) dpi = Math.round(bytes.readUInt32BE(offset + 8) * 0.0254);
+      if (type === 'IDAT') break;
+    }
+    return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), dpi };
+  }
   if (!/\.jpe?g$/.test(href)) return undefined;
   // The size of a JPEG is in its frame header, one of the segments that follow the start of the image.
   for (let offset = 2; offset < bytes.length; offset += 2 + bytes.readUInt16BE(offset + 2)) {

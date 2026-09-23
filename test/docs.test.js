@@ -12,6 +12,7 @@ import {
   buildDocs,
   imagesOf,
   pendingCaptures,
+  render,
 } from '../scripts/build-docs.js';
 import { FRENCH_COMMANDS } from '../src/node/command-line.js';
 
@@ -125,12 +126,16 @@ describe('documentation site', () => {
     }
   });
 
-  it('shows what a screenshot still to take should hold, in its place', async () => {
-    const pending = await pendingCaptures();
-    assert.ok(pending.length > 0, 'plus aucune capture à venir : ce test peut s’appuyer sur un autre exemple');
-    const [{ file, pages }] = pending;
-    const page = DOCUMENTATION_PAGES.find(({ title }) => title === pages[0]).page;
-    const html = await readFile(path.join(output, page), 'utf8');
-    assert.match(html, new RegExp(`class="capture-pending"[\\s\\S]*?<code>${file}</code>`));
+  it('shows what a screenshot still to take should hold, in its place', () => {
+    const { html } = render('![La fenêtre de départ, vide](images/captures/pas-encore-prise.png)\n', { title: 'Essai' });
+    assert.match(html, /class="capture-pending"[\s\S]*La fenêtre de départ, vide[\s\S]*<code>images\/captures\/pas-encore-prise\.png<\/code>/);
+  });
+
+  // A screenshot at twice the resolution says so by its density, and is shown at the size of the interface.
+  it('shows a screenshot at the size the interface has on the screen', () => {
+    const double = render('![Réglages](images/captures/generer-2-reglages.png)\n', { title: 'Essai' }).html;
+    assert.match(double, /width="972" height="761"/);
+    const windows = render('![SmartScreen](images/captures/windows-smartscreen-1.png)\n', { title: 'Essai' }).html;
+    assert.match(windows, /width="536" height="508"/);
   });
 });

@@ -56,6 +56,10 @@ Lancez l'installeur `.exe` téléchargé. SmartScreen affiche « Windows a prot�
 
    ![Le même avertissement une fois déplié : le nom de l'application, l'éditeur inconnu et le bouton « Exécuter quand même »](images/captures/windows-smartscreen-2.png)
 
+3. **L'installation se lance.**
+
+   ![La fenêtre « Installation de cartes » et sa barre de progression](images/captures/windows-installation.png)
+
 Sur un poste géré par un service informatique, ce bouton peut manquer : l'installation se demande alors à ce service, ou la page web prend le relais.
 
 ### Linux
