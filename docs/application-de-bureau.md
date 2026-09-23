@@ -16,9 +16,9 @@ L'application reprend l'interface de la page web, mais génère les cartes avec 
 
 Les installeurs pour **macOS (Apple Silicon)**, **Windows** et **Linux** sont joints à chaque [version publiée](https://github.com/sebprunier/cartes/releases). Sur un Mac à processeur Intel, utilisez pour l'instant la page web ou la ligne de commande.
 
-## Au premier lancement, votre système va se méfier
+## Au premier lancement
 
-Les applications ne sont pas signées, faute de certificat : signer coûte environ 99 $ par an chez Apple, et un certificat payant chez Windows. Votre système affiche donc un avertissement, et il a raison de le faire — voici comment passer outre en connaissance de cause.
+Les applications ne sont pas signées, faute de certificat : signer coûte environ 99 $ par an chez Apple, et un certificat payant chez Windows. macOS et Windows affichent donc un avertissement, et ils ont raison de le faire — voici comment passer outre en connaissance de cause. Si cette manipulation vous gêne — et elle a de bonnes raisons de gêner —, la [page web](https://sebprunier.github.io/cartes/generer/) ne demande aucune installation et fait la même chose jusqu'au zoom 17.
 
 ### macOS
 
@@ -64,9 +64,14 @@ Sur un poste géré par un service informatique, ce bouton peut manquer : l'inst
 
 ### Linux
 
-Rendez le fichier exécutable avec `chmod +x cartes-*.AppImage`, puis lancez-le.
+L'application est un fichier AppImage, qui se lance sans rien installer. Il suffit de le rendre exécutable, une fois, puis de le lancer. Dans un terminal, depuis le dossier où il a été téléchargé, et en remplaçant `0.6.0` par la version que vous avez téléchargée :
 
-Si cette manipulation vous gêne — et elle a de bonnes raisons de gêner —, la [page web](https://sebprunier.github.io/cartes/generer/) ne demande aucune installation et fait la même chose jusqu'au zoom 17.
+```sh
+chmod +x cartes-0.6.0-linux-x86_64.AppImage
+./cartes-0.6.0-linux-x86_64.AppImage
+```
+
+Les fois suivantes, la seconde commande suffit.
 
 ## Depuis les sources
 

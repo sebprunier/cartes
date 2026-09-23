@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Corrigé
+
+- La documentation de l'application de bureau donne les deux commandes qui lancent l'AppImage sous Linux, plutôt qu'un simple « lancez-le », et ne présente plus ce lancement comme un avertissement à contourner : c'est seulement le cas sur macOS et Windows.
+
 ## [0.6.0] – 2026-09-23
 
 Une présentation neuve pour la documentation, qui a désormais son propre site, et pour la page de génération comme pour l'application de bureau qui la partage.
