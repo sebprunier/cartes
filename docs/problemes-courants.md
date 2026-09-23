@@ -4,6 +4,8 @@
 
 L'image demandée dépasse ce que le navigateur sait dessiner. Trois solutions, de la plus simple à la plus complète :
 
+![Le message de la page web quand l'image demandée dépasse ce que le navigateur sait dessiner, avec ses renvois vers l'application de bureau et la ligne de commande](images/captures/probleme-limite-navigateur.png)
+
 1. **Descendre d'un niveau de zoom.** Souvent suffisant, et sans conséquence si le format papier visé est petit.
 2. **Utiliser l'[application de bureau](application-de-bureau.md)**, qui n'a pas cette limite.
 3. **Passer par la [ligne de commande](ligne-de-commande.md)**, qui n'a pas cette limite non plus.

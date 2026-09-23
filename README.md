@@ -13,7 +13,7 @@
   Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format.
 </p>
 
-> **État du projet** : utilisable, en version 0.x. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/), l'application de bureau et la ligne de commande — et une API, pour l'intégrer à d'autres logiciels. Les commandes, les options et l'interface peuvent encore évoluer.
+> **État du projet** : utilisable, en version 0.x. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/generer/), l'application de bureau et la ligne de commande — et une API, pour l'intégrer à d'autres logiciels. Les commandes, les options et l'interface peuvent encore évoluer.
 
 ## Pourquoi ce projet
 
@@ -44,15 +44,15 @@ Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient s
 
 ## Documentation
 
-Le mode d'emploi est en ligne : **<https://sebprunier.github.io/cartes/documentation/>**
+La documentation est en ligne : **<https://sebprunier.github.io/cartes/>**
 
-- [Prise en main](https://sebprunier.github.io/cartes/documentation/) — les trois façons de s'en servir, et une première carte en cinq minutes
-- [Zoom et impression](https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html) — pourquoi le zoom maximal n'est pas le bon choix
-- [Ajouter des données](https://sebprunier.github.io/cartes/documentation/donnees.html) — couches publiques et fichiers de la commune
-- [Application de bureau](https://sebprunier.github.io/cartes/documentation/application-de-bureau.html) et [ligne de commande](https://sebprunier.github.io/cartes/documentation/ligne-de-commande.html)
-- [API](https://sebprunier.github.io/cartes/documentation/api.html) — intégrer cartes à un autre logiciel, et la déployer sur Clever Cloud
+- [Prise en main](https://sebprunier.github.io/cartes/prise-en-main.html) — une première carte en cinq minutes
+- [Zoom et impression](https://sebprunier.github.io/cartes/zoom-et-impression.html) — pourquoi le zoom maximal n'est pas le bon choix
+- [Ajouter des données](https://sebprunier.github.io/cartes/donnees.html) — couches publiques et fichiers de la commune
+- [Application de bureau](https://sebprunier.github.io/cartes/application-de-bureau.html) et [ligne de commande](https://sebprunier.github.io/cartes/ligne-de-commande.html)
+- [API](https://sebprunier.github.io/cartes/api.html) — intégrer cartes à un autre logiciel, et la déployer sur Clever Cloud
 - [Sources et licences](docs/donnees-et-licences.md) — ce que les données permettent, et ce qu'elles imposent
-- [Problèmes courants](https://sebprunier.github.io/cartes/documentation/problemes-courants.html)
+- [Problèmes courants](https://sebprunier.github.io/cartes/problemes-courants.html)
 
 Les pages sont écrites en Markdown dans [`docs/`](docs/) : elles se lisent aussi bien ici que sur le site.
 

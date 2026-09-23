@@ -2,6 +2,8 @@
 
 L'application reprend l'interface de la page web, mais génère les cartes avec le même moteur que la ligne de commande. Elle sert quand le navigateur ne suffit plus.
 
+![La fenêtre de l'application de bureau sur macOS, à sa première étape : le choix de la commune](images/bureau-fenetre.png)
+
 ## Ce qu'elle apporte
 
 - **Les zooms 18 et 19**, que le navigateur refuse de dessiner sur une commune de taille moyenne.
@@ -42,12 +44,25 @@ L'application s'ouvre, et s'ouvrira désormais d'un simple double-clic. Sur les 
 
 Si vous êtes à l'aise avec le Terminal, une commande remplace ces quatre étapes : `xattr -dr com.apple.quarantine /Applications/cartes.app`.
 
-### Windows et Linux
+### Windows
 
-- **Windows** : SmartScreen affiche « Windows a protégé votre ordinateur ». Cliquez sur « Informations complémentaires », puis « Exécuter quand même ».
-- **Linux** : rendez le fichier exécutable avec `chmod +x cartes-*.AppImage`, puis lancez-le.
+Lancez l'installeur `.exe` téléchargé. SmartScreen affiche « Windows a protégé votre ordinateur » :
 
-Si cette manipulation vous gêne — et elle a de bonnes raisons de gêner —, la [page web](https://sebprunier.github.io/cartes/) ne demande aucune installation et fait la même chose jusqu'au zoom 17.
+1. **Cliquez sur « Informations complémentaires »**, sous le texte de l'avertissement.
+
+   ![L'avertissement de SmartScreen, « Windows a protégé votre ordinateur », avec le lien « Informations complémentaires »](images/captures/windows-smartscreen-1.png)
+
+2. **Cliquez sur « Exécuter quand même »**, qui apparaît alors avec le nom de l'application.
+
+   ![Le même avertissement une fois déplié : le nom de l'application, l'éditeur inconnu et le bouton « Exécuter quand même »](images/captures/windows-smartscreen-2.png)
+
+Sur un poste géré par un service informatique, ce bouton peut manquer : l'installation se demande alors à ce service, ou la page web prend le relais.
+
+### Linux
+
+Rendez le fichier exécutable avec `chmod +x cartes-*.AppImage`, puis lancez-le.
+
+Si cette manipulation vous gêne — et elle a de bonnes raisons de gêner —, la [page web](https://sebprunier.github.io/cartes/generer/) ne demande aucune installation et fait la même chose jusqu'au zoom 17.
 
 ## Depuis les sources
 

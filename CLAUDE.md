@@ -17,7 +17,7 @@ Ce fichier s'adresse à Claude Code et aux autres assistants qui travaillent sur
 | `npm test` | tests unitaires |
 | `node src/node/cli.js generer 86081 -z 14` | une carte de Colombiers à petit zoom, pour un essai rapide |
 | `node src/node/cli.js generer 86081 --estimer` | tailles, mémoire et poids estimé par niveau de zoom |
-| `npm run web` | construit `dist/` et sert la page sur <http://localhost:8000> |
+| `npm run web` | construit `dist/` et sert la documentation sur <http://localhost:8000>, la page de génération sur <http://localhost:8000/generer/> |
 | `npm run electron` | construit l'interface et lance l'application de bureau |
 | `npm start` | sert l'API HTTP sur <http://localhost:8080> |
 

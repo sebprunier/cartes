@@ -56,8 +56,8 @@ node src/node/cli.js --aide
 | `web/` | page web : interface, moteur de rendu sur canvas, aperçu et worker |
 | `web/preview.js` | aperçu avant génération : miniature de la commune et extrait à l'échelle réelle |
 | `electron/` | application de bureau : processus principal, pont vers l'interface et moteur de rendu |
-| `scripts/build-web.js` | construit la page dans `dist/` (avec `--serve`, la sert en local) |
-| `scripts/build-docs.js` | construit la documentation dans `dist/documentation/`, à partir de `docs/` |
+| `scripts/build-web.js` | construit le site dans `dist/` : la documentation à la racine, la page de génération dans `dist/generer/` (avec `--serve`, sert le tout en local) |
+| `scripts/build-docs.js` | construit le site de la documentation à la racine de `dist/`, à partir de `docs/` ; lancé seul, liste les captures d'écran à venir |
 | `scripts/build-electron.js` | construit l'interface de l'application dans `dist-electron/` |
 | `test/` | tests unitaires (`node:test`) |
 

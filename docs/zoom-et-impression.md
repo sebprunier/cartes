@@ -8,6 +8,8 @@ Les fonds de carte sont faits de tuiles d'images. **Les noms de rue et de lieux 
 
 Monter d'un niveau de zoom double la largeur de l'image, sans changer la taille du texte. Le détail augmente donc, mais si vous réduisez ensuite l'image pour la faire tenir sur une feuille, le texte rétrécit d'autant et devient illisible.
 
+![Le même extrait de 480 × 330 pixels autour de la mairie de Colombiers, aux zooms 15, 16 et 17 : le texte garde la même taille, le détail augmente](images/zoom-15-16-17.png "Le même extrait de 480 × 330 pixels autour de la mairie de Colombiers, aux zooms 15, 16 et 17. Le texte garde sa taille ; c'est la surface couverte qui diminue.")
+
 Pour Colombiers, une commune d'environ 8 × 6 km, à 150 points par pouce :
 
 | Zoom | Image | Taille imprimée | Format |
@@ -34,6 +36,8 @@ L'aperçu répond à la question par l'image plutôt que par le calcul. Il montr
 
 - **la commune entière réduite**, pour vérifier le cadrage, les données et la légende ;
 - **un extrait à l'échelle réelle** : un pixel de l'aperçu est un pixel de la carte. C'est là que se juge la lisibilité des étiquettes. Un clic sur la miniature déplace l'extrait — allez voir le bourg, où le texte est le plus dense.
+
+![L'aperçu : à gauche la commune entière réduite, à droite un extrait à l'échelle réelle autour du bourg, et au-dessous le poids estimé du fichier](images/captures/generer-4-apercu.png)
 
 Le poids estimé du fichier s'affiche en même temps, à ±30 % environ.
 

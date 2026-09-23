@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Modifié
+
+- La documentation a son propre site, à l'adresse de l'outil (<https://sebprunier.github.io/cartes/>) : une page d'accueil, un menu par thème, un sommaire pour chaque page, des blocs de code à copier, et des illustrations tirées de vraies cartes. La page qui génère les cartes passe à <https://sebprunier.github.io/cartes/generer/>, aussi joignable par `/try-it/`. Les anciennes adresses de la documentation mènent à leur nouvelle page.
+
 ## [0.5.0] – 2026-09-23
 
 cartes s'intègre désormais à d'autres logiciels : une API HTTP, que chacun héberge où il veut, rend les services de la ligne de commande.

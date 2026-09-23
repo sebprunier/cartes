@@ -149,7 +149,7 @@ function home({ version, apiKey }) {
     version,
     description: "Cartes détaillées des communes françaises, prêtes à imprimer en grand format.",
     cleRequise: Boolean(apiKey),
-    documentation: 'https://sebprunier.github.io/cartes/documentation/api.html',
+    documentation: 'https://sebprunier.github.io/cartes/api.html',
     openapi: '/openapi.json',
   };
 }

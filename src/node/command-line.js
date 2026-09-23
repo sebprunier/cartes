@@ -60,7 +60,7 @@ Options de « serveur » :
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   Le reste se règle par des variables d'environnement : CARTES_CLE_API, CARTES_ZOOM_MAX,
   CARTES_GENERATIONS, CARTES_CONSERVATION et CARTES_SORTIES. La documentation les décrit :
-  https://sebprunier.github.io/cartes/documentation/api.html
+  https://sebprunier.github.io/cartes/api.html
 
 Exemples :
   cartes generer 86081                                  la carte de Colombiers, au zoom par défaut
@@ -74,7 +74,7 @@ Exemples :
 
 Le niveau de zoom décide de la taille de l'image, donc du format papier : le choisir d'après le format visé
 plutôt que d'après le détail souhaité. La documentation l'explique :
-https://sebprunier.github.io/cartes/documentation/zoom-et-impression.html
+https://sebprunier.github.io/cartes/zoom-et-impression.html
 
 Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, serve, --department,
 --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name, --custom-layer-source,

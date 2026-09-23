@@ -8,6 +8,8 @@ Dans les deux cas, ce que vous ajoutez est cité dans la mention des sources en 
 
 Elles ne demandent aucun fichier : elles sont téléchargées au moment de la génération. Dans l'interface, le bouton « Ajouter une couche » ouvre le catalogue ; en ligne de commande, `cartes couches` en donne la liste.
 
+![Le catalogue des couches, ouvert par le bouton « Ajouter une couche » : le champ de recherche, puis chaque couche avec sa description et sa source](images/captures/donnees-catalogue.png)
+
 | Couche | Ce qu'elle montre |
 | --- | --- |
 | Parcelles cadastrales | limites et numéros des parcelles, à partir du zoom 16 |
@@ -24,6 +26,8 @@ Une couche vide n'est pas une panne : beaucoup de communes ne sont traversées p
 ### Ajouter sa propre couche
 
 Le catalogue ne couvre pas tout. Une communauté de communes, un département, un syndicat d'eau publient souvent leurs propres tuiles : le bouton « Ajouter une couche par son adresse », dans le catalogue, permet de les afficher. En ligne de commande, c'est `--couche-perso`.
+
+![Le formulaire « Ajouter une couche par son adresse », rempli : l'adresse des tuiles en gabarit {z}/{x}/{y}, le nom de la couche et la source à citer](images/captures/donnees-couche-adresse.png)
 
 Trois choses sont demandées :
 
@@ -45,6 +49,8 @@ Les adresses saisies sont retenues pour vos prochaines cartes — dans votre nav
 ## Vos fichiers
 
 Glissez un fichier dans la zone prévue, ou utilisez `--donnees` en ligne de commande.
+
+![Un fichier de données ajouté : son nom, le nombre d'objets lus, le titre de la légende modifiable, et le choix de la propriété qui porte les catégories](images/captures/donnees-fichier.png)
 
 ### Formats acceptés
 

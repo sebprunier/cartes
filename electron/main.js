@@ -17,7 +17,7 @@ const MARGIN_DEFAULT = 0.03;
 const cacheDir = () => path.join(app.getPath('userData'), 'tuiles');
 let generation;
 
-const DOCUMENTATION = 'https://sebprunier.github.io/cartes/documentation/';
+const DOCUMENTATION = 'https://sebprunier.github.io/cartes/';
 const SOURCE_CODE = 'https://github.com/sebprunier/cartes';
 
 app.whenReady().then(() => {
