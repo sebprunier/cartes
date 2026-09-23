@@ -1,20 +1,27 @@
 // OpenAPI description of the HTTP API, served by the API itself: software that integrates it reads there what
 // it can ask for. The paths are given by their French name; their English aliases are listed in the text.
 
+import { REQUEST_FIELDS } from './api-fields.js';
+
+// Every field of a request is accepted under its French name and its English alias, and none other.
+const ACCEPTED_FIELDS = [...new Set([...Object.keys(REQUEST_FIELDS), ...Object.values(REQUEST_FIELDS)])];
+const ENGLISH_ONLY = Object.entries(REQUEST_FIELDS)
+  .filter(([french, english]) => french !== english)
+  .map(([, english]) => english);
+
 const error = { $ref: '#/components/responses/Erreur' };
 const id = { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } };
 
 const MAP_REQUEST = {
   type: 'object',
   description:
-    'Les options de `cartes generer`, en champs JSON. Chaque champ accepte aussi son nom anglais : municipality, ' +
-    'department, basemap, zoom, maplayers, customLayers, data, dataCategory, dataColor, format, margin, dpi, ' +
-    'grayscale, outline, legend. Un champ inconnu est refusé.',
+    'Les options de `cartes generer`, en champs JSON. Chaque champ accepte aussi son nom anglais : ' +
+    `${ENGLISH_ONLY.join(', ')}. Un champ inconnu est refusé.`,
   required: ['commune'],
-  additionalProperties: false,
+  propertyNames: { enum: ACCEPTED_FIELDS },
   properties: {
-    commune: { type: 'string', description: 'Nom de la commune ou code INSEE.', example: '86081' },
-    departement: { type: 'string', description: 'Département, pour lever une homonymie.', example: '86' },
+    commune: { type: 'string', description: 'Nom de la commune ou code INSEE.', examples: ['86081'] },
+    departement: { type: 'string', description: 'Département, pour lever une homonymie.', examples: ['86'] },
     fond: { type: 'string', default: 'plan-ign', description: 'Fond de carte : voir /fonds.' },
     zoom: { type: 'integer', default: 17, minimum: 0, description: "Niveau de zoom, qui décide de la taille de l'image." },
     couches: {
@@ -22,7 +29,7 @@ const MAP_REQUEST = {
       description: 'Couches superposées au fond de carte : voir /couches.',
       items: {
         oneOf: [
-          { type: 'string', example: 'cadastre' },
+          { type: 'string', examples: ['cadastre'] },
           {
             type: 'object',
             required: ['id'],
@@ -38,7 +45,7 @@ const MAP_REQUEST = {
         type: 'object',
         required: ['adresse', 'source'],
         properties: {
-          adresse: { type: 'string', example: 'https://exemple.fr/tuiles/{z}/{x}/{y}.pbf' },
+          adresse: { type: 'string', examples: ['https://exemple.fr/tuiles/{z}/{x}/{y}.pbf'] },
           nom: { type: 'string' },
           source: { type: 'string', description: 'Mention de la source, écrite sur la carte.' },
           opacite: { type: 'number', minimum: 0, maximum: 1, default: 0.6 },
@@ -52,7 +59,7 @@ const MAP_REQUEST = {
         type: 'object',
         required: ['fichier', 'contenu'],
         properties: {
-          fichier: { type: 'string', description: "Nom du fichier : son extension en dit le format.", example: 'points.geojson' },
+          fichier: { type: 'string', description: "Nom du fichier : son extension en dit le format.", examples: ['points.geojson'] },
           titre: { type: 'string', description: 'Nom du jeu de données, pour la légende et la mention des sources.' },
           contenu: { type: 'string', description: 'Contenu du fichier, en texte.' },
         },
@@ -74,9 +81,9 @@ const MAP = {
   properties: {
     id: { type: 'string', format: 'uuid' },
     statut: { type: 'string', enum: ['en attente', 'en cours', 'terminée', 'échouée', 'annulée', 'supprimée'] },
-    fichier: { type: 'string', nullable: true, description: 'Adresse du fichier, une fois la carte terminée.' },
+    fichier: { type: ['string', 'null'], description: 'Adresse du fichier, une fois la carte terminée.' },
     nomFichier: { type: 'string' },
-    poids: { type: 'integer', nullable: true, description: 'Poids du fichier, en octets.' },
+    poids: { type: ['integer', 'null'], description: 'Poids du fichier, en octets.' },
     largeur: { type: 'integer' },
     hauteur: { type: 'integer' },
     avancement: {
@@ -86,20 +93,21 @@ const MAP = {
     },
     etapes: { type: 'array', items: { type: 'string' } },
     avertissements: { type: 'array', items: { type: 'string' } },
-    erreur: { type: 'string', nullable: true },
+    erreur: { type: ['string', 'null'] },
     creation: { type: 'string', format: 'date-time' },
-    debut: { type: 'string', format: 'date-time', nullable: true },
-    fin: { type: 'string', format: 'date-time', nullable: true },
-    expiration: { type: 'string', format: 'date-time', nullable: true },
+    debut: { type: ['string', 'null'], format: 'date-time' },
+    fin: { type: ['string', 'null'], format: 'date-time' },
+    expiration: { type: ['string', 'null'], format: 'date-time' },
   },
 };
 
 export function openApi(version) {
   return {
-    openapi: '3.0.3',
+    openapi: '3.1.2',
     info: {
       title: 'cartes',
       version,
+      license: { name: 'MIT', identifier: 'MIT' },
       description:
         'Cartes détaillées des communes françaises, prêtes à imprimer en grand format. ' +
         'Chaque chemin a un alias anglais : /municipalities, /basemaps, /maplayers, /estimates, /maps, /maps/{id}/file.',

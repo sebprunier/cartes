@@ -16,6 +16,7 @@ import { MAP_LAYERS, MapLayerError, chooseMapLayers } from '../core/maplayers.js
 import { MunicipalityNotFound, searchMunicipalities } from '../core/municipalities.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
+import { REQUEST_FIELDS } from './api-fields.js';
 import { estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
 import { openApi } from './openapi.js';
 
@@ -34,24 +35,6 @@ const ROUTES = {
 };
 const FRENCH_ROUTES = Object.fromEntries(Object.entries(ROUTES).map(([french, english]) => [english, french]));
 
-// Fields of a map request, by their French name, with their English alias: those of the command line options.
-export const REQUEST_FIELDS = {
-  commune: 'municipality',
-  departement: 'department',
-  fond: 'basemap',
-  zoom: 'zoom',
-  couches: 'maplayers',
-  couchesPerso: 'customLayers',
-  donnees: 'data',
-  donneesCategorie: 'dataCategory',
-  donneesCouleur: 'dataColor',
-  format: 'format',
-  marge: 'margin',
-  dpi: 'dpi',
-  gris: 'grayscale',
-  contour: 'outline',
-  legende: 'legend',
-};
 const LAYER_FIELDS = { id: 'id', opacite: 'opacity' };
 const CUSTOM_LAYER_FIELDS = { adresse: 'url', nom: 'name', source: 'attribution', opacite: 'opacity' };
 const DATA_FIELDS = { fichier: 'fileName', titre: 'title', contenu: 'content' };
