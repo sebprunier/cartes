@@ -5,3 +5,4 @@ sorties/
 dist/
 dist-electron/
 dist-installers/
+.clever.json
