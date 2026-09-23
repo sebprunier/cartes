@@ -5,41 +5,12 @@ import path from 'node:path';
 
 import { BrowserWindow, Menu, app, dialog, ipcMain, shell } from 'electron';
 
-import { BASEMAPS, canUsePalette } from '../src/core/basemaps.js';
-import {
-  checkMapLayer,
-  chooseMapLayers,
-  customMapLayer,
-  isTileLayer,
-  isVectorLayer,
-  isWmsLayer,
-  mapLayerLegendEntries,
-  vectorStyleOf,
-} from '../src/core/maplayers.js';
-import { wmsLegendUrl, wmsRequests } from '../src/core/wms.js';
-import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../src/core/vectortiles.js';
-import { estimateFileSize } from '../src/core/estimates.js';
-import { withUpdateDates } from '../src/core/metadata.js';
-import { layersSource } from '../src/core/layers.js';
-import { BOUNDARY_SOURCE } from '../src/core/municipalities.js';
-import { attributionText } from '../src/core/overlays.js';
-import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from '../src/core/tiles.js';
-import { cachedTileLoader, tileSizes } from '../src/node/cache.js';
-import {
-  assembleTiles,
-  attributionLabel,
-  boundaryOutline,
-  drawMapLayer,
-  drawWmsLayer,
-  legendImageEntry,
-  vectorOverlays,
-  drawOverlays,
-  layerOverlays,
-  legendOverlay,
-  saveImage,
-} from '../src/node/render.js';
+import { BASEMAPS } from '../src/core/basemaps.js';
+import { checkMapLayer, chooseMapLayers, customMapLayer } from '../src/core/maplayers.js';
+import { extentFromBbox } from '../src/core/tiles.js';
+import { cachedTileLoader } from '../src/node/cache.js';
+import { estimateMapFileSize, generateMap } from '../src/node/generate.js';
 
-const SAMPLE_GRID_SIZE = 6;
 const CONCURRENCY = 6;
 const MARGIN_DEFAULT = 0.03;
 
@@ -183,33 +154,16 @@ ipcMain.handle('check-layer', async (event, definition, place) => {
 
 ipcMain.handle('estimate', async (event, request) => {
   const { basemap, extent } = plan(request);
-  const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
-  const sizesOf = async (source) => {
-    const tiles = await downloadTiles(source, extent.zoom, sample, {
-      loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: source.id, zoom: extent.zoom }),
-      concurrency: CONCURRENCY,
-    });
-    return tileSizes(tiles);
-  };
-
-  const sampleSizes = await sizesOf(basemap);
-  const layers = [];
-  // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
-  for (const layer of chooseMapLayers(request.mapLayers ?? []).filter(isTileLayer)) {
-    layers.push({ layer, sampleSizes: await sizesOf(layer) });
-  }
-  return {
-    size: estimateFileSize({
-      basemap,
-      format: request.format,
-      grayscale: request.grayscale,
-      palette: canUsePalette(basemap, request.format),
-      zoom: extent.zoom,
-      tileCount: extent.tileCount,
-      sampleSizes,
-      layers,
-    }),
-  };
+  const size = await estimateMapFileSize({
+    basemap,
+    extent,
+    mapLayers: chooseMapLayers(request.mapLayers ?? []),
+    format: request.format,
+    grayscale: request.grayscale,
+    cacheDir: cacheDir(),
+    concurrency: CONCURRENCY,
+  });
+  return { size };
 });
 
 ipcMain.handle('generate', async (event, request) => {
@@ -224,75 +178,25 @@ ipcMain.handle('generate', async (event, request) => {
 
   generation = new AbortController();
   try {
-    const tiles = await downloadTiles(basemap, extent.zoom, [...tilesInExtent(extent)], {
-      loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: basemap.id, zoom: extent.zoom }),
-      concurrency: CONCURRENCY,
-      signal: generation.signal,
-      onProgress: (done, total) => event.sender.send('progress', { sourceId: basemap.id, done, total }),
-    });
-
-    const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale: request.grayscale });
-
-    const mapLayers = chooseMapLayers(request.mapLayers ?? []);
-    const vectorShapes = [];
-    const legendExtra = [];
-    for (const layer of mapLayers) {
-      if (isVectorLayer(layer)) {
-        const vectorTiles = await readVectorLayer(layer, extent);
-        vectorShapes.push(...vectorTileShapes(vectorTiles, extent, { styleOf: vectorStyleOf(layer) }));
-        legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, vectorTiles)));
-        event.sender.send('progress', { sourceId: layer.id, done: 1, total: 1 });
-        continue;
-      }
-
-      if (isWmsLayer(layer)) {
-        const blocks = wmsRequests(layer, extent);
-        for (const [index, block] of blocks.entries()) {
-          block.content = await fetchTile(block.url);
-          event.sender.send('progress', { sourceId: layer.id, done: index + 1, total: blocks.length });
-        }
-        await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
-        const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
-        if (legend) legendExtra.push(await legendImageEntry(legend));
-        continue;
-      }
-
-      const layerTiles = await downloadTiles(layer, extent.zoom, [...tilesInExtent(extent)], {
-        loadTile: cachedTileLoader({ cacheDir: cacheDir(), basemapId: layer.id, zoom: extent.zoom }),
+    const result = await generateMap(
+      {
+        basemap,
+        extent,
+        boundary: request.boundary,
+        layers: request.layers ?? [],
+        mapLayers: chooseMapLayers(request.mapLayers ?? []),
+        outline: request.outline,
+        legend: request.legend !== false,
+        grayscale: request.grayscale,
+        dpi: request.dpi ?? 150,
+        format: request.format,
+        outputPath: filePath,
+        cacheDir: cacheDir(),
         concurrency: CONCURRENCY,
-        signal: generation.signal,
-        onProgress: (done, total) => event.sender.send('progress', { sourceId: layer.id, done, total }),
-      });
-      await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
-    }
-
-    const layers = request.layers ?? [];
-    const sources = await withUpdateDates([
-      basemap,
-      ...mapLayers,
-      ...(request.outline ? [BOUNDARY_SOURCE] : []),
-    ]);
-    const added = layersSource(layers);
-    if (added) sources.push(added);
-
-    const overlays = vectorOverlays(vectorShapes);
-    if (request.outline) overlays.push(boundaryOutline(request.boundary, extent));
-    overlays.push(...layerOverlays(layers, extent));
-    if (request.legend !== false) overlays.push(await legendOverlay(layers, extent, legendExtra));
-    overlays.push(await attributionLabel(attributionText({ sources }), extent));
-    await drawOverlays(pixels, extent, overlays);
-    await saveImage(pixels, extent, filePath, {
-      dpi: request.dpi ?? 150,
-      palette: canUsePalette(basemap, request.format),
-    });
-
-    return {
-      path: filePath,
-      width: extent.width,
-      height: extent.height,
-      missing,
-      updateDatesMissing: sources.some((source) => source.metadataId && !source.updateDate),
-    };
+      },
+      { onProgress: (progress) => event.sender.send('progress', progress), signal: generation.signal },
+    );
+    return { path: filePath, ...result };
   } finally {
     generation = undefined;
   }

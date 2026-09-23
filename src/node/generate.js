@@ -1,0 +1,185 @@
+// Generation of a map, and estimate of its file size, shared by the tools that render with sharp: the command
+// line, the desktop application and the API. Each tool resolves its own request — options, interface, HTTP —
+// into the objects taken here, and tells its user what happens in its own way.
+
+import { canUsePalette } from '../core/basemaps.js';
+import { estimateFileSize } from '../core/estimates.js';
+import { layersSource } from '../core/layers.js';
+import {
+  isTileLayer,
+  isVectorLayer,
+  isWmsLayer,
+  mapLayerLegendEntries,
+  vectorStyleOf,
+} from '../core/maplayers.js';
+import { withUpdateDates } from '../core/metadata.js';
+import { BOUNDARY_SOURCE } from '../core/municipalities.js';
+import { attributionText } from '../core/overlays.js';
+import { downloadTiles, fetchTile, sampleTiles, tilesInExtent } from '../core/tiles.js';
+import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
+import { wmsLegendUrl, wmsRequests } from '../core/wms.js';
+import { cachedTileLoader, tileSizes } from './cache.js';
+import {
+  assembleTiles,
+  attributionLabel,
+  boundaryOutline,
+  drawMapLayer,
+  drawOverlays,
+  drawWmsLayer,
+  layerOverlays,
+  legendImageEntry,
+  legendOverlay,
+  saveImage,
+  vectorOverlays,
+} from './render.js';
+
+// Size of the grid of tiles downloaded for each zoom level to estimate the size of the generated file:
+// 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
+export const SAMPLE_GRID_SIZE = 6;
+
+/**
+ * Generates the map of `extent` into `outputPath`.
+ *
+ * - `basemap`, `mapLayers`: the basemap and the chosen layers, as the catalogs define them;
+ * - `boundary`: the outline of the municipality, drawn unless `outline` is false;
+ * - `layers`: the data added to the map, as `readLayer` returns them;
+ * - `legend`: false to leave the legend out.
+ *
+ * `onStep(message)` tells what is being done, and what went wrong along the way without stopping the map;
+ * `onProgress({ sourceId, done, total })` counts the tiles or images of each source. An aborted `signal` stops
+ * the download of the tiles. What the tool has to word for its own user comes back in the result: `missing`
+ * tiles of the basemap, left blank, and `updateDatesMissing` when the catalog did not give the date of the
+ * data, which the license of the IGN asks to write on the map.
+ */
+export async function generateMap(
+  {
+    basemap,
+    extent,
+    boundary,
+    layers = [],
+    mapLayers = [],
+    outline = true,
+    legend = true,
+    grayscale = false,
+    dpi,
+    format,
+    outputPath,
+    cacheDir,
+    concurrency,
+  },
+  { onStep = () => {}, onProgress = () => {}, signal } = {},
+) {
+  const { zoom } = extent;
+  const download = (source) =>
+    downloadTiles(source, zoom, [...tilesInExtent(extent)], {
+      loadTile: cachedTileLoader({ cacheDir, basemapId: source.id, zoom }),
+      concurrency,
+      signal,
+      onProgress: (done, total) => onProgress({ sourceId: source.id, done, total }),
+    });
+
+  onStep(`Téléchargement de ${extent.tileCount} tuiles pour « ${basemap.name} » (zoom ${zoom})…`);
+  const tiles = await download(basemap);
+  const failedTiles = tiles.filter((tile) => tile.error);
+  if (failedTiles.length > 0) {
+    onStep(
+      `  ${failedTiles.length} tuile(s) en échec malgré plusieurs tentatives, par exemple : ${failedTiles[0].error.message}`,
+    );
+  }
+
+  onStep(`Assemblage d'une image de ${extent.width} × ${extent.height} px…`);
+  const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale });
+
+  const vectorShapes = [];
+  const legendExtra = [];
+  for (const layer of mapLayers) {
+    if (isVectorLayer(layer)) {
+      onStep(`Lecture des tuiles vectorielles de « ${layer.name} »…`);
+      const vectorTiles = await readVectorLayer(layer, extent);
+      const shapes = vectorTileShapes(vectorTiles, extent, { styleOf: vectorStyleOf(layer) });
+      const readAt = vectorTiles[0]?.zoom;
+      const coarser = readAt !== undefined && readAt < zoom ? `, lues au zoom ${readAt} et dessinées en plus grand` : '';
+      onStep(`  ${shapes.length} forme(s) dessinée(s) depuis ${vectorTiles.length} tuile(s)${coarser}.`);
+      onProgress({ sourceId: layer.id, done: 1, total: 1 });
+      vectorShapes.push(...shapes);
+      legendExtra.push(...mapLayerLegendEntries(layer, categoriesInTiles(layer, vectorTiles)));
+      continue;
+    }
+
+    if (isWmsLayer(layer)) {
+      const blocks = wmsRequests(layer, extent);
+      onStep(`Téléchargement de ${blocks.length} image(s) pour « ${layer.name} »…`);
+      for (const [index, block] of blocks.entries()) {
+        block.content = await fetchTile(block.url);
+        onProgress({ sourceId: layer.id, done: index + 1, total: blocks.length });
+      }
+      const missingBlocks = await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
+      if (missingBlocks > 0) onStep(`  ${missingBlocks} image(s) indisponible(s) : le fond reste visible.`);
+      // The service styles its own zoning: its legend is the only one that tells the truth about it.
+      const legendImage = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+      if (legendImage) legendExtra.push(await legendImageEntry(legendImage));
+      continue;
+    }
+
+    onStep(`Téléchargement de ${extent.tileCount} tuiles pour « ${layer.name} »…`);
+    const layerTiles = await download(layer);
+    const missingLayerTiles = await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
+    if (missingLayerTiles > 0) {
+      onStep(`  ${missingLayerTiles} tuile(s) de la couche indisponible(s) : le fond reste visible.`);
+    }
+  }
+
+  const overlays = vectorOverlays(vectorShapes);
+  if (outline) overlays.push(boundaryOutline(boundary, extent));
+  overlays.push(...layerOverlays(layers, extent));
+  if (legend) overlays.push(await legendOverlay(layers, extent, legendExtra));
+
+  const sources = await withUpdateDates([basemap, ...mapLayers, ...(outline ? [BOUNDARY_SOURCE] : [])]);
+  const added = layersSource(layers);
+  if (added) sources.push(added);
+  overlays.push(await attributionLabel(attributionText({ sources }), extent));
+  onStep(outline ? 'Tracé du contour et ajout de la mention des sources…' : 'Ajout de la mention des sources…');
+  await drawOverlays(pixels, extent, overlays);
+
+  onStep(`Enregistrement dans ${outputPath}…`);
+  await saveImage(pixels, extent, outputPath, { dpi, palette: canUsePalette(basemap, format) });
+
+  return {
+    width: extent.width,
+    height: extent.height,
+    missing,
+    updateDatesMissing: sources.some((source) => source.metadataId && !source.updateDate),
+  };
+}
+
+/**
+ * Estimated size in bytes of the file of the map of `extent`, from a sample of its tiles: undefined when the
+ * format gives no way to estimate it. Fails when the sample cannot be downloaded.
+ */
+export async function estimateMapFileSize({ basemap, extent, mapLayers = [], format, grayscale, cacheDir, concurrency }) {
+  const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
+  const sizesOf = async (source) => {
+    const tiles = await downloadTiles(source, extent.zoom, sample, {
+      loadTile: cachedTileLoader({ cacheDir, basemapId: source.id, zoom: extent.zoom }),
+      concurrency,
+    });
+    return tileSizes(tiles);
+  };
+
+  const sampleSizes = await sizesOf(basemap);
+  const layers = [];
+  // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
+  for (const layer of mapLayers.filter(isTileLayer)) {
+    layers.push({ layer, sampleSizes: await sizesOf(layer) });
+  }
+  return estimateFileSize({
+    basemap,
+    format,
+    grayscale,
+    palette: canUsePalette(basemap, format),
+    zoom: extent.zoom,
+    tileCount: extent.tileCount,
+    sampleSizes,
+    layers,
+  });
+}
