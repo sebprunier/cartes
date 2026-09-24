@@ -8,16 +8,7 @@ import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 
 import { HttpError } from '../src/core/http.js';
 import { cachedTileLoader } from '../src/node/cache.js';
-import {
-  TILE_SIZE,
-  downloadTiles,
-  extentFromBbox,
-  extentWindow,
-  groundResolution,
-  lonLatToPixel,
-  sampleTiles,
-  tilesInExtent,
-} from '../src/core/tiles.js';
+import { downloadTiles, extentFromBbox, extentWindow, groundResolution, layerTiles, lonLatToPixel, sampleTiles, TILE_SIZE, tilesInExtent } from '../src/core/tiles.js';
 
 // Bounding box of Colombiers (86081), as returned by ADMIN EXPRESS.
 const COLOMBIERS_BBOX = [0.38344088, 46.75332418, 0.48673916, 46.80743244];
@@ -217,3 +208,30 @@ describe('downloadTiles', () => {
     assert.equal(requests.length, requestCount);
   });
 });
+
+describe('layerTiles', () => {
+  const extent = extentFromBbox([0.42, 46.77, 0.445, 46.79], 17, 0);
+
+  it('takes the tiles of the map for a layer published at its zoom', () => {
+    const { zoom, scale, tiles } = layerTiles({}, extent);
+    assert.deepEqual([zoom, scale, tiles.length], [17, 1, extent.tileCount]);
+  });
+
+  it('takes once each tile of the last zoom a service publishes, to draw it larger', () => {
+    const { zoom, scale, tiles } = layerTiles({ dataMaxZoom: 16 }, extent);
+    assert.deepEqual([zoom, scale], [16, 2]);
+    const parents = extentFromBbox([0.42, 46.77, 0.445, 46.79], 16, 0);
+    // Every tile of the map falls in one of them, and each of them holds at least one tile of the map.
+    for (const { x, y } of tilesInExtent(extent)) {
+      assert.ok(tiles.some((parent) => parent.x === Math.floor(x / 2) && parent.y === Math.floor(y / 2)));
+    }
+    assert.ok(tiles.length <= parents.tileCount);
+    assert.equal(new Set(tiles.map(({ x, y }) => `${x}/${y}`)).size, tiles.length);
+  });
+
+  it('narrows a sample of the map to the parents of its tiles', () => {
+    const sample = [{ x: 100, y: 200 }, { x: 101, y: 201 }, { x: 102, y: 200 }];
+    assert.deepEqual(layerTiles({ dataMaxZoom: 16 }, extent, sample).tiles, [{ x: 50, y: 100 }, { x: 51, y: 100 }]);
+  });
+});
+

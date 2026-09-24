@@ -53,9 +53,10 @@ export function assembleTiles(extent, tiles, { grayscale = false } = {}) {
  * A layer keeps its colors over a grayscale basemap, as the boundary and the added data do: `--gris` turns
  * the basemap gray so that what is laid over it stands out. Returns the number of tiles that could not be
  * drawn, which leave the basemap visible, and whether any tile had something to show — a layer that draws
- * nothing on the map gets no line in the legend.
+ * nothing on the map gets no line in the legend. With `scale`, the tiles are those of a lower zoom level — the
+ * last one the service publishes — each drawn `scale` times larger.
  */
-export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) {
+export async function drawMapLayer(pixels, extent, tiles, { opacity = 1, scale = 1 } = {}) {
   let missing = 0;
   let drawn = false;
   for (const tile of tiles) {
@@ -64,13 +65,17 @@ export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) 
       continue;
     }
     try {
-      const { data, info } = await sharp(tile.content).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      let image = sharp(tile.content).ensureAlpha();
+      // Enlarged pixel by pixel: smoothed, the edges took shades that a PNG compresses badly — 27 MB instead of
+      // 22.6 MB for the land cover of Colombiers at zoom 17 — and looked no better.
+      if (scale > 1) image = image.resize(TILE_SIZE * scale, TILE_SIZE * scale, { kernel: 'nearest' });
+      const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
       drawn ||= hasVisiblePixel(data);
       blendPixels(
         { data, width: info.width, height: info.height },
         pixels,
-        tile.x * TILE_SIZE - extent.xMin,
-        tile.y * TILE_SIZE - extent.yMin,
+        tile.x * TILE_SIZE * scale - extent.xMin,
+        tile.y * TILE_SIZE * scale - extent.yMin,
         extent.width,
         extent.height,
         opacity,

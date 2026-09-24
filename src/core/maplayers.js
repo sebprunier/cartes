@@ -110,9 +110,10 @@ const MAP_LAYER_LIST = [
     theme: 'territoire',
     provider: 'IGN',
     url: geoplateformeWmts('ELEVATION.CONTOUR.LINE', 'image/png'),
-    // The service publishes zoom levels 6 to 18: at 19 it answers 404 for every tile.
-    maxZoom: 18,
-    maxZoomNote: 'Au zoom 19, le service n’en publie pas : la carte est générée sans elles.',
+    // The service publishes zoom levels 6 to 18, and answers 404 above: at 19, the tiles of 18 are drawn twice
+    // larger, the lines thicker but in their place.
+    dataMaxZoom: 18,
+    maxZoom: 19,
     // Lines one pixel wide, in a pale orange: any less and they vanish over aerial photographs.
     opacity: 1,
     attribution: '© IGN – Courbes de niveau',
@@ -134,8 +135,9 @@ const MAP_LAYER_LIST = [
     // The latest edition, rather than a year: the tool does not have to follow the campaigns of the PAC, and the
     // date of the catalog record, written in the attribution, says which edition the map shows.
     url: geoplateformeWmts('HYDROGRAPHY.BCAE.LATEST', 'image/png'),
-    maxZoom: 17,
-    maxZoomNote: 'Au-delà du zoom 17, le service n’en publie pas : la carte est générée sans elles.',
+    // The service stops at zoom 17: above, its tiles are drawn larger.
+    dataMaxZoom: 17,
+    maxZoom: 19,
     opacity: 1,
     attribution: '© IGN – Cours d’eau BCAE',
     metadataId: 'IGNF_BCAE',
@@ -146,6 +148,39 @@ const MAP_LAYER_LIST = [
     fileSizeRatios: {
       color: { png: 0.16, pngPalette: 0.02, jpg: 0.09, tif: 0.25 },
       grayscale: { png: 0.22, pngPalette: 0.09, jpg: 0.15, tif: 0.55 },
+    },
+  },
+  {
+    id: 'artificialisation',
+    name: 'Artificialisation des sols',
+    description:
+      'Surfaces artificialisées, et celles qui ne le sont pas, selon l’OCS GE, dans le dernier millésime ' +
+      'disponible pour la commune.',
+    theme: 'territoire',
+    provider: 'IGN',
+    // One layer per campaign of aerial photographs, each covering the departments photographed then: the most
+    // recent one the municipality has is taken, and named in the attribution. The Vienne has 2017-2020 and
+    // 2021-2023, not yet 2024-2026, on 24 September 2026.
+    url: geoplateformeWmts('OCSGE.ARTIF.{vintage}', 'image/png'),
+    vintages: ['2024-2026', '2021-2023', '2017-2020', '2016-2017'],
+    vintageNote: 'l’OCS GE n’est pas encore publiée pour cette commune : la carte est générée sans elle.',
+    // Published up to zoom 16: at 17, the zoom offered first, its tiles are drawn twice larger. Surfaces keep
+    // their shape; their edges soften a little.
+    dataMaxZoom: 16,
+    maxZoom: 19,
+    // The tiles are half transparent already: green and pink over the whole municipality.
+    opacity: 0.8,
+    attribution: '© IGN – OCS GE',
+    metadataId: 'IGNF_OCS-GE',
+    // Its colors, read in the tiles.
+    legend: [
+      { label: 'Surfaces artificialisées', color: '#ff9191', shape: 'polygon' },
+      { label: 'Surfaces non artificialisées', color: '#a5ff80', shape: 'polygon' },
+    ],
+    // Measured on Colombiers at zoom 16, where its tiles are drawn as they are.
+    fileSizeRatios: {
+      color: { png: 0.4, pngPalette: 0.16, jpg: 0.12, tif: 0.56 },
+      grayscale: { png: 0.44, pngPalette: 0.18, jpg: 0.16, tif: 0.83 },
     },
   },
   {
@@ -511,6 +546,64 @@ export function mapLayerZoomWarning(layer, zoom) {
   if (zoom < layer.minZoom) return `${layer.name} : ${layer.zoomNote}`;
   if (zoom > layer.maxZoom) return `${layer.name} : ${layer.maxZoomNote}`;
   return undefined;
+}
+
+// A layer published by vintage, one per campaign of aerial photographs, each covering the departments
+// photographed then: `vintages` lists them, most recent first, and `url` holds {vintage}. The most recent one
+// the municipality has is found by trying one tile at its centre, and kept for the session.
+const resolvedVintages = new Map();
+
+/**
+ * The layers of a map, each ready to be downloaded: a layer published by vintage gets the most recent one the
+ * place at [lon, lat] has — its address, and its name in the attribution. A layer without any vintage there is
+ * left out, and `warnings` says so.
+ */
+export async function resolveMapLayers(layers, [lon, lat], { fetchBytes = requestBytes } = {}) {
+  const resolved = [];
+  const warnings = [];
+  for (const layer of layers) {
+    if (!layer.vintages) {
+      resolved.push(layer);
+      continue;
+    }
+    const vintage = await vintageAt(layer, lon, lat, fetchBytes);
+    if (vintage) {
+      resolved.push({
+        ...layer,
+        url: layer.url.replace('{vintage}', vintage),
+        attribution: `${layer.attribution} ${vintage}`,
+        vintage,
+      });
+    } else {
+      warnings.push(`${layer.name} : ${layer.vintageNote}`);
+    }
+  }
+  return { layers: resolved, warnings };
+}
+
+function vintageAt(layer, lon, lat, fetchBytes) {
+  const zoom = layer.dataMaxZoom ?? 16;
+  const [x, y] = lonLatToPixel(lon, lat, zoom).map((value) => Math.floor(value / TILE_SIZE));
+  const key = `${layer.id} ${zoom}/${x}/${y}`;
+  if (!resolvedVintages.has(key)) {
+    const found = (async () => {
+      for (const vintage of layer.vintages) {
+        const url = tileUrl({ url: layer.url.replace('{vintage}', vintage) }, zoom, x, y);
+        // A vintage that does not cover the place answers 404: requestBytes gives null.
+        if (await fetchBytes(url)) return vintage;
+      }
+      return undefined;
+    })();
+    // A failed search is not kept: the next map tries again.
+    found.catch(() => resolvedVintages.delete(key));
+    resolvedVintages.set(key, found);
+  }
+  return resolvedVintages.get(key);
+}
+
+/** Forgets the vintages found, for the tests. */
+export function forgetVintages() {
+  resolvedVintages.clear();
 }
 
 /** Whether a layer has something to draw at this zoom level: nothing above the last level its service publishes. */

@@ -322,6 +322,21 @@ describe('saveImage', () => {
   });
 });
 
+describe('drawMapLayer, with tiles of a lower zoom', () => {
+  it('draws each tile larger, pixel by pixel, at the place of the tiles of the map it covers', async () => {
+    const extent = extentFromBbox([0.42, 46.77, 0.43, 46.78], 14, 0);
+    const pixels = new Uint8Array(extent.width * extent.height * 3).fill(255);
+    // The tile of zoom 13 that holds the corner of the map, drawn twice larger.
+    const [x, y] = [Math.floor(extent.xMin / 512), Math.floor(extent.yMin / 512)];
+    const red = await solidTile('rouge', { r: 255, g: 0, b: 0, alpha: 1 });
+    await drawMapLayer(pixels, extent, [{ x, y, content: red }], { scale: 2 });
+    // The tile covers 512 × 512 pixels from (x × 512, y × 512): the first pixel of the map is in it.
+    assert.deepEqual(pixelAt(pixels, extent.width, 0, 0), [255, 0, 0]);
+    const right = x * 512 + 512 - extent.xMin;
+    if (right < extent.width) assert.deepEqual(pixelAt(pixels, extent.width, right, 0), [255, 255, 255]);
+  });
+});
+
 describe('drawMapLayer', () => {
   it('tells whether the layer drew anything, for its line in the legend', async () => {
     const extent = extentFromBbox([0.42, 46.77, 0.43, 46.78], 14, 0);

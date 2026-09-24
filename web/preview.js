@@ -8,6 +8,7 @@ import {
   chooseMapLayers,
   drawnAtZoom,
   isTileLayer,
+  resolveMapLayers,
   isUrbanismLayer,
   isVectorLayer,
   isWmsLayer,
@@ -20,7 +21,7 @@ import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vec
 import { withUpdateDates } from './core/metadata.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
-import { downloadTiles, extentFromBbox, extentWindow, fetchTile, tilesInExtent } from './core/tiles.js';
+import { downloadTiles, extentFromBbox, extentWindow, fetchTile, layerTiles, tilesInExtent } from './core/tiles.js';
 import { engine } from './engine.js';
 import {
   createCanvas,
@@ -65,7 +66,8 @@ function urbanPlanOf(layer, boundary, extent) {
 export async function renderPreview(request, center) {
   const { basemapId, boundary, bbox, margin, grayscale, outline, mapLayers = [], layers, legend } = request;
   const basemap = BASEMAPS[basemapId];
-  const chosen = chooseMapLayers(mapLayers);
+  // A layer published by vintage gets the most recent one the municipality has, as on the map.
+  const { layers: chosen } = await resolveMapLayers(chooseMapLayers(mapLayers), centerOf(bbox));
   const extent = extentFromBbox(bbox, overviewZoom(bbox, margin), margin);
   const urbanSources = [];
   for (const layer of chosen.filter(isUrbanismLayer)) {
@@ -114,7 +116,7 @@ export async function renderDetail(request, center) {
   const area = extentWindow(mapExtent, DETAIL_WIDTH, DETAIL_HEIGHT, center);
   const detail = await paint({
     basemap,
-    mapLayers: chooseMapLayers(mapLayers),
+    mapLayers: (await resolveMapLayers(chooseMapLayers(mapLayers), centerOf(bbox))).layers,
     area,
     sizedFor: mapExtent,
     grayscale,
@@ -123,6 +125,11 @@ export async function renderDetail(request, center) {
     layers,
   });
   return { detail, wholeMap: area.width === mapExtent.width && area.height === mapExtent.height };
+}
+
+/** The centre [lon, lat] of a bbox, where the vintage of a layer is looked for. */
+function centerOf([lonMin, latMin, lonMax, latMax]) {
+  return [(lonMin + lonMax) / 2, (latMin + latMax) / 2];
 }
 
 /** Largest zoom level whose image fits in the miniature: a handful of tiles, and the shape of the municipality. */
@@ -175,18 +182,24 @@ async function paint({
   // The basemap first, then the image layers laid over it, in the order of the catalog.
   for (const source of [basemap, ...mapLayers.filter(isTileLayer)]) {
     let drawn = false;
-    await downloadTiles(source, area.zoom, tiles, {
+    // Above the last zoom its service publishes, a layer is downloaded at that zoom, and drawn larger.
+    const wanted = layerTiles(source, area, tiles);
+    // Each vintage of a layer has tiles of its own, and a place of its own in the cache of the application.
+    const cacheId = source.vintage ? `${source.id}-${source.vintage}` : source.id;
+    await downloadTiles(source, wanted.zoom, wanted.tiles, {
       loadTile: async (url, tile) => {
         // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
         // the page downloads it itself.
         const load = engine.loadTile ?? ((tileUrl) => fetchTile(tileUrl));
-        const content = await load(url, { basemapId: source.id, zoom: area.zoom, x: tile.x, y: tile.y });
+        const content = await load(url, { basemapId: cacheId, zoom: wanted.zoom, x: tile.x, y: tile.y });
         // Only the basemap goes gray: a layer laid over it keeps its colors, as the boundary does.
         const isBasemap = source === basemap;
         if (content) {
           const detect = Boolean(source.legend) && !drawn;
-          const options = { grayscale: grayscale && isBasemap, opacity: source.opacity, detect };
-          drawn ||= Boolean(await drawTile(context, area, { ...tile, content }, options));
+          const options = { grayscale: grayscale && isBasemap, opacity: source.opacity, detect, scale: wanted.scale };
+          // Drawn first, then counted: with ||=, the tiles after the first visible one were not drawn at all.
+          const visible = await drawTile(context, area, { ...tile, content }, options);
+          if (visible) drawn = true;
         }
         return content ? true : null;
       },

@@ -8,6 +8,7 @@ import {
   checkMapLayer,
   chooseMapLayers,
   drawnAtZoom,
+  resolveMapLayers,
   isTileLayer,
   isUrbanismLayer,
   isVectorLayer,
@@ -20,7 +21,7 @@ import { fetchWmsImages, wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
-import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from './core/tiles.js';
+import { downloadTiles, extentFromBbox, fetchTile, layerTiles, sampleTiles, tilesInExtent } from './core/tiles.js';
 import {
   canRender,
   createCanvas,
@@ -59,20 +60,31 @@ onmessage = async ({ data: message }) => {
   }
 };
 
+/** The centre [lon, lat] of a bbox, where the vintage of a layer is looked for. */
+function centerOf([lonMin, latMin, lonMax, latMax]) {
+  return [(lonMin + lonMax) / 2, (latMin + latMax) / 2];
+}
+
 /** Estimated file size for one zoom level, from a sample of tiles. */
 async function estimate({ basemapId, bbox, zoom, margin, format, grayscale, mapLayers = [] }) {
   const basemap = BASEMAPS[basemapId];
   const extent = extentFromBbox(bbox, zoom, margin);
   const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
   const sizesOf = async (source) => {
-    const tiles = await downloadTiles(source, zoom, sample, { loadTile, concurrency: CONCURRENCY });
+    // A tile drawn larger weighs about as much as each tile of the map it covers, as measured under Node.
+    const { zoom: tileZoom, tiles: wanted } = layerTiles(source, extent, sample);
+    const tiles = await downloadTiles(source, tileZoom, wanted, { loadTile, concurrency: CONCURRENCY });
     return tiles.filter((tile) => tile.content).map((tile) => tile.content.byteLength);
   };
 
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
   // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
-  for (const layer of chooseMapLayers(mapLayers).filter((each) => isTileLayer(each) && drawnAtZoom(each, zoom))) {
+  const { layers: resolved } = await resolveMapLayers(
+    chooseMapLayers(mapLayers).filter((each) => isTileLayer(each) && drawnAtZoom(each, zoom)),
+    centerOf(bbox),
+  );
+  for (const layer of resolved) {
     layers.push({ layer, sampleSizes: await sizesOf(layer) });
   }
   return {
@@ -105,11 +117,17 @@ async function generate({
     );
   }
 
-  // A layer whose service publishes nothing at this zoom is left out, and not credited.
-  const chosen = chooseMapLayers(mapLayers).filter((layer) => drawnAtZoom(layer, zoom));
+  // A layer whose service publishes nothing at this zoom is left out, and not credited. One published by vintage
+  // gets the most recent one the municipality has, or is left out, and says so.
+  const warnings = [];
+  const resolved = await resolveMapLayers(
+    chooseMapLayers(mapLayers).filter((layer) => drawnAtZoom(layer, zoom)),
+    centerOf(bbox),
+  );
+  const chosen = resolved.layers;
+  warnings.push(...resolved.warnings);
   // The zoning and the images of a WMS are read before the tiles: a service that does not answer fails the map
   // at once.
-  const warnings = [];
   const urbanPlans = new Map();
   // The labels of the zoning are placed first, those of the prescriptions around them.
   const placedLabels = [];
@@ -187,12 +205,17 @@ async function generate({
     }
 
     let drawn = false;
-    await downloadTiles(layer, zoom, tiles, {
+    // Above the last zoom its service publishes, a layer is downloaded at that zoom, and drawn larger.
+    const wanted = layerTiles(layer, extent, tiles);
+    await downloadTiles(layer, wanted.zoom, wanted.tiles, {
       loadTile: async (url, tile) => {
         const content = await fetchTile(url);
         if (content) {
-          const detect = Boolean(layer.legend) && !drawn;
-          drawn ||= Boolean(await drawTile(context, extent, { ...tile, content }, { opacity: layer.opacity, detect }));
+          const options = { opacity: layer.opacity, detect: Boolean(layer.legend) && !drawn, scale: wanted.scale };
+          // Drawn first, then counted: `drawn ||= await drawTile(…)` stopped drawing once a tile had shown
+          // something, the right side of ||= being skipped when the left one is true.
+          const visible = await drawTile(context, extent, { ...tile, content }, options);
+          if (visible) drawn = true;
         }
         return content ? true : null;
       },

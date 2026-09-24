@@ -15,6 +15,7 @@ import {
   isWmsLayer,
   mapLayerLegendEntries,
   mapLayerZoomWarning,
+  resolveMapLayers,
   vectorStyleOf,
 } from '../core/maplayers.js';
 import { withUpdateDates } from '../core/metadata.js';
@@ -26,7 +27,7 @@ import {
   resolveMunicipality,
 } from '../core/municipalities.js';
 import { attributionText } from '../core/overlays.js';
-import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from '../core/tiles.js';
+import { downloadTiles, extentFromBbox, fetchTile, layerTiles, sampleTiles, tilesInExtent } from '../core/tiles.js';
 import { extentBbox, readUrbanPlan, urbanPlanDrawing } from '../core/urbanism.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
 import { fetchWmsImages, wmsLegendUrl, wmsRequests } from '../core/wms.js';
@@ -123,16 +124,25 @@ export async function generateMap(
   { onStep = () => {}, onProgress = () => {}, signal } = {},
 ) {
   const { zoom } = extent;
+  const warnings = [];
   // A layer whose service publishes nothing at this zoom is left out, and not credited: its warning said so.
-  const mapLayers = chosenLayers.filter((layer) => drawnAtZoom(layer, zoom));
+  // One published by vintage gets the most recent one the municipality has, or is left out, and says so.
+  const [lonMin, latMin, lonMax, latMax] = extentBbox(extent);
+  const resolved = await resolveMapLayers(
+    chosenLayers.filter((layer) => drawnAtZoom(layer, zoom)),
+    [(lonMin + lonMax) / 2, (latMin + latMax) / 2],
+  );
+  const mapLayers = resolved.layers;
+  warnings.push(...resolved.warnings);
   // Checked between the steps, and not only while tiles download: a map canceled once its tiles are there
   // would otherwise be drawn and written to the end, for nothing.
   const stopIfAborted = () => {
     if (signal?.aborted) throw new Error('Génération annulée.');
   };
-  const download = (source) =>
-    downloadTiles(source, zoom, [...tilesInExtent(extent)], {
-      loadTile: cachedTileLoader({ cacheDir, basemapId: source.id, zoom }),
+  // A layer above the last zoom its service publishes is downloaded at that zoom, and drawn larger.
+  const download = (source, { zoom: tileZoom, tiles } = { zoom, tiles: [...tilesInExtent(extent)] }) =>
+    downloadTiles(source, tileZoom, tiles, {
+      loadTile: cachedTileLoader({ cacheDir, basemapId: source.vintage ? `${source.id}-${source.vintage}` : source.id, zoom: tileZoom }),
       concurrency,
       signal,
       onProgress: (done, total) => onProgress({ sourceId: source.id, done, total }),
@@ -140,7 +150,6 @@ export async function generateMap(
 
   // The zoning and the images of a WMS are read before anything else: a service that does not answer fails the
   // map at once, rather than once its thousands of tiles are downloaded.
-  const warnings = [];
   const urbanPlans = new Map();
   // The labels of the zoning are placed first, those of the prescriptions around them.
   const placedLabels = [];
@@ -228,9 +237,14 @@ export async function generateMap(
       continue;
     }
 
-    onStep(`Téléchargement de ${extent.tileCount} tuiles pour « ${layer.name} »…`);
-    const layerTiles = await download(layer);
-    const { missing: missingLayerTiles, drawn } = await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
+    const wanted = layerTiles(layer, extent);
+    const larger = wanted.scale > 1 ? `, au zoom ${wanted.zoom} et dessinées ${wanted.scale} fois plus grandes` : '';
+    onStep(`Téléchargement de ${wanted.tiles.length} tuiles pour « ${layer.name} »${larger}…`);
+    const downloaded = await download(layer, wanted);
+    const { missing: missingLayerTiles, drawn } = await drawMapLayer(pixels, extent, downloaded, {
+      opacity: layer.opacity,
+      scale: wanted.scale,
+    });
     // A layer of tiles can declare its legend; it is shown only when the layer drew something on this map.
     if (drawn) legendExtra.push(...(layer.legend ?? []));
     if (missingLayerTiles > 0) {
@@ -272,8 +286,12 @@ export async function generateMap(
 export async function estimateMapFileSize({ basemap, extent, mapLayers = [], format, grayscale, cacheDir, concurrency }) {
   const sample = sampleTiles(extent, SAMPLE_GRID_SIZE);
   const sizesOf = async (source) => {
-    const tiles = await downloadTiles(source, extent.zoom, sample, {
-      loadTile: cachedTileLoader({ cacheDir, basemapId: source.id, zoom: extent.zoom }),
+    // A tile drawn larger fills as many pixels as the tiles of the map it covers, and weighs about as much as
+    // each of them: counted as one of them. Measured on Colombiers at zoom 17, from the land cover of zoom 16:
+    // 7.4 MB estimated for the layer, 8.0 MB in the file. Spread over them, the estimate fell to 1.9 MB.
+    const { zoom, tiles: wanted } = layerTiles(source, extent, sample);
+    const tiles = await downloadTiles(source, zoom, wanted, {
+      loadTile: cachedTileLoader({ cacheDir, basemapId: source.vintage ? `${source.id}-${source.vintage}` : source.id, zoom }),
       concurrency,
     });
     return tileSizes(tiles);
@@ -281,8 +299,13 @@ export async function estimateMapFileSize({ basemap, extent, mapLayers = [], for
 
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
+  const [lonMin, latMin, lonMax, latMax] = extentBbox(extent);
+  const { layers: resolved } = await resolveMapLayers(
+    mapLayers.filter((each) => isTileLayer(each) && drawnAtZoom(each, extent.zoom)),
+    [(lonMin + lonMax) / 2, (latMin + latMax) / 2],
+  );
   // A layer we draw ourselves has no tiles to sample, and adds nothing to the file; nor does one left out.
-  for (const layer of mapLayers.filter((each) => isTileLayer(each) && drawnAtZoom(each, extent.zoom))) {
+  for (const layer of resolved) {
     layers.push({ layer, sampleSizes: await sizesOf(layer) });
   }
   return estimateFileSize({

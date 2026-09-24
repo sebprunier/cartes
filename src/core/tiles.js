@@ -80,6 +80,24 @@ export function* tilesInExtent(extent) {
 }
 
 /**
+ * The tiles a layer is downloaded at for the map of `extent`: those of the map, or, above the last zoom level
+ * its service publishes (`dataMaxZoom`), those of that level, each drawn `scale` times larger. The land cover
+ * stops at zoom 16: without them, it would be missing from the maps at zoom 17, the one offered first.
+ * `tiles` narrows the tiles of the map to a sample, whose parents are then taken once each.
+ */
+export function layerTiles(layer, extent, tiles = [...tilesInExtent(extent)]) {
+  const zoom = Math.min(extent.zoom, layer.dataMaxZoom ?? extent.zoom);
+  const scale = 2 ** (extent.zoom - zoom);
+  if (scale === 1) return { zoom, scale, tiles };
+  const parents = new Map();
+  for (const { x, y } of tiles) {
+    const parent = { x: Math.floor(x / scale), y: Math.floor(y / scale) };
+    parents.set(`${parent.x}/${parent.y}`, parent);
+  }
+  return { zoom, scale, tiles: [...parents.values()] };
+}
+
+/**
  * Tiles spread over the extent: the tile at the center of each cell of a grid of `gridSize` × `gridSize` cells,
  * or all the tiles when there are fewer of them in a direction.
  */

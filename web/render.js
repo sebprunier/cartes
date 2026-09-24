@@ -45,12 +45,16 @@ export function canRender(width, height) {
  * whether the tile holds anything visible — a layer that draws nothing gets no line in the legend. Reading its
  * pixels back costs a little, and is asked only for the layers that have a legend.
  */
-export async function drawTile(context, extent, tile, { grayscale = false, opacity = 1, detect = false } = {}) {
+export async function drawTile(context, extent, tile, { grayscale = false, opacity = 1, detect = false, scale = 1 } = {}) {
   const bitmap = await createImageBitmap(new Blob([tile.content]));
   context.save();
   if (grayscale) context.filter = 'grayscale(1)';
   context.globalAlpha = opacity;
-  context.drawImage(bitmap, tile.x * TILE_SIZE - extent.xMin, tile.y * TILE_SIZE - extent.yMin);
+  // A tile of a lower zoom level, drawn larger pixel by pixel, as the Node engine does: smoothed, it looked no
+  // better and weighed more.
+  context.imageSmoothingEnabled = scale === 1;
+  const side = TILE_SIZE * scale;
+  context.drawImage(bitmap, tile.x * side - extent.xMin, tile.y * side - extent.yMin, side, side);
   context.restore();
   let visible;
   if (detect) {

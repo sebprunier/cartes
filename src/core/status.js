@@ -140,6 +140,17 @@ export const SERVICES = [
     expect: 'image',
   },
   {
+    id: 'artificialisation',
+    group: 'Couches',
+    name: 'Artificialisation des sols (OCS GE)',
+    provider: 'Géoplateforme (IGN)',
+    use: 'la couche de l’artificialisation des sols',
+    layers: ['artificialisation'],
+    // The vintage Colombiers has.
+    url: tileOf({ url: MAP_LAYERS.artificialisation.url.replace('{vintage}', '2021-2023') }, 16),
+    expect: 'image',
+  },
+  {
     id: 'urbanisme',
     group: 'Couches',
     name: 'Documents d’urbanisme',

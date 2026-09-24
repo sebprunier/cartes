@@ -20,14 +20,17 @@ Elles ne demandent aucun fichier : elles sont téléchargées au moment de la g�
 | Risques | Cavités souterraines | carrières, caves et ouvrages souterrains abandonnés |
 | Risques | Canalisations de matières dangereuses | gaz, hydrocarbures et produits chimiques |
 | Risques | Retrait-gonflement des argiles | aléa faible, moyen ou fort, millésime 2026 |
-| Territoire et environnement | Bandes tampons des cours d'eau | cours d'eau le long desquels la PAC impose une bande enherbée (BCAE 4), dernière édition ; jusqu'au zoom 17 |
-| Territoire et environnement | Courbes de niveau | le relief, en lignes de même altitude ; jusqu'au zoom 18, le service ne publiant rien au-delà |
+| Territoire et environnement | Artificialisation des sols | surfaces artificialisées ou non, selon l'OCS GE, dans le dernier millésime disponible pour la commune |
+| Territoire et environnement | Bandes tampons des cours d'eau | cours d'eau le long desquels la PAC impose une bande enherbée (BCAE 4), dernière édition |
+| Territoire et environnement | Courbes de niveau | le relief, en lignes de même altitude |
 
 Chaque couche a une **opacité** réglable, pour laisser lire le fond de carte en dessous. Certaines ne sont dessinées qu'à partir d'un certain zoom : l'outil le signale avant de télécharger quoi que ce soit.
 
 Le zonage du PLU est celui du document en vigueur sur la commune, tel qu'il est publié sur le Géoportail de l'urbanisme : un PLU, un PLU intercommunal — dont la carte ne garde que ce qu'elle montre — ou les secteurs d'une carte communale. Une commune qui relève du règlement national d'urbanisme n'a pas de zonage : la carte est générée sans, et l'outil le dit.
 
 Les prescriptions du même document se superposent au zonage : chaque emplacement réservé porte le numéro qui renvoie à la liste du PLU. Le standard national en compte une cinquantaine de types ; la carte distingue les plus courants, et regroupe les autres sous « Autre prescription ». Une carte communale n'en a pas.
+
+Certains services s'arrêtent avant les derniers niveaux de zoom : l'OCS GE au zoom 16, les bandes tampons au zoom 17, les courbes de niveau au zoom 18. Au-delà, l'outil agrandit leurs tuiles : les formes restent à leur place, sans plus de précision. L'OCS GE est publiée par millésime, département par département : l'outil prend le plus récent dont dispose la commune, et le nomme dans la mention des sources.
 
 Une couche vide n'est pas une panne : beaucoup de communes ne sont traversées par aucune canalisation, et n'ont ni cavité recensée ni plan de prévention.
 

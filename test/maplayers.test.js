@@ -10,6 +10,8 @@ import {
   chooseMapLayers,
   customMapLayer,
   drawnAtZoom,
+  forgetVintages,
+  resolveMapLayers,
   isCustomLayer,
   isTileLayer,
   isUrbanismLayer,
@@ -54,6 +56,8 @@ describe('MAP_LAYERS', () => {
       for (const entry of layer.legend ?? []) {
         assert.ok(entry.label && /^#[0-9a-f]{6}$/.test(entry.color) && ['line', 'point', 'polygon'].includes(entry.shape), id);
       }
+      // A layer published by vintage lists them, and says what happens where none covers the municipality.
+      if (layer.url?.includes('{vintage}')) assert.ok(layer.vintages?.length > 0 && layer.vintageNote, `${id} vintages`);
       // A layer whose service stops before the last zoom level of the maps says what then happens.
       if (layer.maxZoom < 19) assert.ok(layer.maxZoomNote, `${id} maxZoomNote`);
       // A layer that shows less below its minimum zoom says what is missing.
@@ -147,12 +151,13 @@ describe('mapLayerZoomWarning', () => {
   });
 
   it('says that a layer is left out above the last zoom level its service publishes', () => {
-    const { courbes } = MAP_LAYERS;
-    assert.equal(mapLayerZoomWarning(courbes, 18), undefined);
-    assert.match(mapLayerZoomWarning(courbes, 19), /^Courbes de niveau : Au zoom 19, le service n’en publie pas/);
-    assert.ok(drawnAtZoom(courbes, 18));
-    assert.ok(!drawnAtZoom(courbes, 19));
-    assert.ok(drawnAtZoom(MAP_LAYERS.cadastre, 19));
+    // No layer of the catalog stops before zoom 19 any more: those that could have are drawn larger instead.
+    const layer = { name: 'Relevés', maxZoom: 18, maxZoomNote: 'Au zoom 19, le service n’en publie pas.' };
+    assert.equal(mapLayerZoomWarning(layer, 18), undefined);
+    assert.equal(mapLayerZoomWarning(layer, 19), 'Relevés : Au zoom 19, le service n’en publie pas.');
+    assert.ok(drawnAtZoom(layer, 18));
+    assert.ok(!drawnAtZoom(layer, 19));
+    for (const each of Object.values(MAP_LAYERS)) assert.ok(drawnAtZoom(each, 19), each.id);
   });
 });
 
@@ -290,3 +295,37 @@ describe('mapLayersByTheme', () => {
     );
   });
 });
+
+describe('resolveMapLayers', () => {
+  const layer = { ...MAP_LAYERS.artificialisation };
+  const COLOMBIERS = [0.4267, 46.7721];
+
+  it('gives a layer published by vintage the most recent one the place has, named in the attribution', async () => {
+    forgetVintages();
+    const asked = [];
+    // The Vienne has 2017-2020 and 2021-2023, not yet 2024-2026: its tile answers 404, which gives null.
+    const fetchBytes = async (url) => {
+      asked.push(url.match(/OCSGE\.ARTIF\.([\d-]+)/)[1]);
+      return url.includes('2024-2026') ? null : new Uint8Array([1]);
+    };
+    const { layers, warnings } = await resolveMapLayers([MAP_LAYERS.cadastre, layer], COLOMBIERS, { fetchBytes });
+    assert.deepEqual(asked, ['2024-2026', '2021-2023']);
+    assert.equal(layers[0], MAP_LAYERS.cadastre);
+    assert.equal(layers[1].vintage, '2021-2023');
+    assert.match(layers[1].url, /LAYER=OCSGE\.ARTIF\.2021-2023&/);
+    assert.equal(layers[1].attribution, '© IGN – OCS GE 2021-2023');
+    assert.deepEqual(warnings, []);
+
+    // The place was tried once: the estimate of every zoom level asks again, and gets it at once.
+    await resolveMapLayers([layer], COLOMBIERS, { fetchBytes });
+    assert.equal(asked.length, 2);
+  });
+
+  it('leaves out a layer that no vintage covers there, and says so', async () => {
+    forgetVintages();
+    const { layers, warnings } = await resolveMapLayers([layer], COLOMBIERS, { fetchBytes: async () => null });
+    assert.deepEqual(layers, []);
+    assert.deepEqual(warnings, [`Artificialisation des sols : ${layer.vintageNote}`]);
+  });
+});
+
