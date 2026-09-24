@@ -22,7 +22,8 @@ export function attributionText({ sources, date = new Date() }) {
     if (datedByConsultation) return `${attribution} (consulté le ${date.toLocaleDateString('fr-FR')})`;
     return attribution;
   });
-  return `Sources : ${credits.join(' ; ')} · Carte générée le ${date.toLocaleDateString('fr-FR')}`;
+  // The zoning and the prescriptions of a PLU come from the same document: it is credited once.
+  return `Sources : ${[...new Set(credits)].join(' ; ')} · Carte générée le ${date.toLocaleDateString('fr-FR')}`;
 }
 
 /** YYYY-MM-DD date written as DD/MM/YYYY, without time zone conversion. */

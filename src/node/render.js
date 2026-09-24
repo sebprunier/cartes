@@ -139,8 +139,10 @@ export function vectorOverlays(shapes) {
   return shapes.map(pathOverlay);
 }
 
-function pathOverlay({ path, box: area, color, strokeWidth, fill, fillOpacity, fillRule = 'nonzero' }) {
-  const stroke = color && strokeWidth > 0 ? `stroke="${color}" stroke-width="${strokeWidth}"` : 'stroke="none"';
+function pathOverlay({ path, box: area, color, strokeWidth, fill, fillOpacity, fillRule = 'nonzero', dash }) {
+  const dashes = dash ? ` stroke-dasharray="${dash.join(' ')}"` : '';
+  const stroke =
+    color && strokeWidth > 0 ? `stroke="${color}" stroke-width="${strokeWidth}"${dashes}` : 'stroke="none"';
   return {
     svg:
       `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" fill-rule="${fillRule}" ` +

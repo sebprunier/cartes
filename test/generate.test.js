@@ -189,8 +189,8 @@ describe('generateMap, with the zoning of the PLU', () => {
     });
 
     assert.deepEqual(asked, ['wfs_du:doc_urba_com', 'wfs_du:doc_urba', 'wfs_du:zone_urba']);
-    assert.match(steps[0], /^Lecture du zonage de Colombiers/);
-    assert.match(steps[1], /1 zone\(s\)/);
+    assert.match(steps[0], /^Lecture de « Zonage du PLU » pour Colombiers/);
+    assert.match(steps[1], /1 forme\(s\), 1 étiquette\(s\)/);
     assert.deepEqual(result.warnings, []);
 
     // The middle of the map is inside the zone: its yellow is laid over the basemap, which is gray.

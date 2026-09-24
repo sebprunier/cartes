@@ -20,12 +20,13 @@ const DOCUMENT_NAMES = { PLU: 'PLU', PLUI: 'PLU intercommunal', CC: 'carte commu
 export class UrbanismError extends Error {}
 
 /**
- * The urban planning documents in force on the municipality `inseeCode`, and their zones that fall within
- * `bbox` [lonMin, latMin, lonMax, latMax] — an intercommunal PLU covers far more than one map. A municipality
- * under the national planning rules (RNU) has none: both lists come back empty.
+ * The urban planning documents in force on the municipality `inseeCode`, and what they draw within `bbox`
+ * [lonMin, latMin, lonMax, latMax] — an intercommunal PLU covers far more than one map: their `zones`, or with
+ * `content: 'prescriptions'` their `prescriptions`. A municipality under the national planning rules (RNU) has no
+ * document: every list comes back empty.
  * A plan of safeguard (PSMV) is left out: it is a document of its own, over the centre of a few towns only.
  */
-export async function readUrbanPlan(inseeCode, bbox, { fetchJson = requestWfs } = {}) {
+export async function readUrbanPlan(inseeCode, bbox, { fetchJson = requestWfs, content = 'zones' } = {}) {
   const links = await fetchJson(
     wfsUrl('wfs_du:doc_urba_com', { CQL_FILTER: `insee='${inseeCode}'`, PROPERTYNAME: 'partition' }),
   );
@@ -34,7 +35,7 @@ export async function readUrbanPlan(inseeCode, bbox, { fetchJson = requestWfs } 
   );
 
   const documents = [];
-  const zones = [];
+  const found = [];
   for (const partition of partitions) {
     const [record] = (
       await fetchJson(
@@ -47,29 +48,45 @@ export async function readUrbanPlan(inseeCode, bbox, { fetchJson = requestWfs } 
     const kind = (record?.properties.typedoc ?? '').toUpperCase();
     documents.push({ partition, kind, approvedOn: isoDate(record?.properties.datappro) });
 
-    const sectors = kind === 'CC';
-    const [lonMin, latMin, lonMax, latMax] = bbox;
-    // The service reads its bounds latitude first, as EPSG:4326 orders its axes.
-    const filter = `partition='${partition}' AND BBOX(the_geom,${latMin},${lonMin},${latMax},${lonMax})`;
-    const properties = sectors ? 'the_geom,typesect,libelle' : 'the_geom,typezone,libelle,libelong';
-    for (let start = 0; ; start += PAGE_SIZE) {
-      const page = await fetchJson(
-        wfsUrl(sectors ? 'wfs_du:secteur_cc' : 'wfs_du:zone_urba', {
-          CQL_FILTER: filter,
-          PROPERTYNAME: properties,
-          SRSNAME: 'EPSG:4326',
-          COUNT: String(PAGE_SIZE),
-          STARTINDEX: String(start),
-        }),
-      );
-      for (const feature of page.features) {
-        const zone = sectors ? sectorOf(feature) : zoneOf(feature);
-        if (zone) zones.push(zone);
-      }
-      if (page.features.length < PAGE_SIZE) break;
+    const read = (typeName, properties, shape) =>
+      readFeatures(fetchJson, typeName, partition, bbox, properties, (feature) => {
+        const item = shape(feature);
+        if (item) found.push(item);
+      });
+    if (content === 'prescriptions') {
+      // A carte communale has no prescriptions: only its sectors.
+      if (kind === 'CC') continue;
+      const properties = 'the_geom,typepsc,stypepsc,libelle,txt';
+      await read('wfs_du:prescription_surf', properties, (feature) => prescriptionOf(feature, 'polygon'));
+      await read('wfs_du:prescription_lin', properties, (feature) => prescriptionOf(feature, 'line'));
+      await read('wfs_du:prescription_pct', properties, (feature) => prescriptionOf(feature, 'point'));
+    } else if (kind === 'CC') {
+      await read('wfs_du:secteur_cc', 'the_geom,typesect,libelle', sectorOf);
+    } else {
+      await read('wfs_du:zone_urba', 'the_geom,typezone,libelle,libelong', zoneOf);
     }
   }
-  return { documents, zones };
+  return content === 'prescriptions' ? { documents, prescriptions: found } : { documents, zones: found };
+}
+
+/** Reads the features of a document within the bounds, page after page, handing each one to `take`. */
+async function readFeatures(fetchJson, typeName, partition, bbox, properties, take) {
+  const [lonMin, latMin, lonMax, latMax] = bbox;
+  // The service reads its bounds latitude first, as EPSG:4326 orders its axes.
+  const filter = `partition='${partition}' AND BBOX(the_geom,${latMin},${lonMin},${latMax},${lonMax})`;
+  for (let start = 0; ; start += PAGE_SIZE) {
+    const page = await fetchJson(
+      wfsUrl(typeName, {
+        CQL_FILTER: filter,
+        PROPERTYNAME: properties,
+        SRSNAME: 'EPSG:4326',
+        COUNT: String(PAGE_SIZE),
+        STARTINDEX: String(start),
+      }),
+    );
+    page.features.forEach(take);
+    if (page.features.length < PAGE_SIZE) break;
+  }
 }
 
 /** A zone of a PLU: its category among U, AUc, AUs, A and N, the label written on it, and its polygons. */
@@ -105,6 +122,50 @@ function sectorOf({ properties, geometry }) {
   return { category, label: text(short), name: text(long), polygons };
 }
 
+/**
+ * A prescription of a PLU: its category, from its type in the national standard (CNIG) and its shape, the label
+ * written on it — the number of a reserved site, which refers to the list of the PLU — and its geometry.
+ */
+function prescriptionOf({ properties, geometry }, shape) {
+  const category = prescriptionCategory(properties.typepsc, properties.stypepsc, shape);
+  const parts = shape === 'polygon' ? polygonsOf(geometry) : shape === 'line' ? linesOf(geometry) : pointsOf(geometry);
+  if (parts.length === 0) return undefined;
+  const label = category === 'reserve' ? text(properties.txt) : undefined;
+  return { category, shape, label, name: text(properties.libelle), parts };
+}
+
+/**
+ * Category of a prescription, among those the map tells apart: of about fifty types in the standard, the ones a
+ * town hall meets most — seen at Colombiers, and in the intercommunal PLU of Poitiers. The others are drawn
+ * alike, as « other prescription », each shape in its own way.
+ */
+export function prescriptionCategory(type, subtype, shape) {
+  const code = text(type)?.padStart(2, '0');
+  if (code === '01' && shape === 'polygon') return 'boise';
+  if (code === '05') return shape === 'point' ? 'autre-point' : 'reserve';
+  // Type 07 protects buildings (subtype 01) as well as hedges, trees, woods and gardens.
+  if (code === '07') {
+    if (shape === 'point') return 'element-protege';
+    if (shape === 'line') return 'lineaire-protege';
+    return text(subtype) === '01' ? 'bati-protege' : 'paysage-protege';
+  }
+  if (code === '15' && shape === 'line') return 'recul';
+  if (code === '16' && shape === 'point') return 'changement-destination';
+  return `autre-${shape}`;
+}
+
+function linesOf(geometry) {
+  if (geometry?.type === 'LineString') return [geometry.coordinates];
+  if (geometry?.type === 'MultiLineString') return geometry.coordinates;
+  return [];
+}
+
+function pointsOf(geometry) {
+  if (geometry?.type === 'Point') return [geometry.coordinates];
+  if (geometry?.type === 'MultiPoint') return geometry.coordinates;
+  return [];
+}
+
 function polygonsOf(geometry) {
   if (geometry?.type === 'Polygon') return [geometry.coordinates];
   if (geometry?.type === 'MultiPolygon') return geometry.coordinates;
@@ -128,16 +189,17 @@ export function urbanPlanSource(layer, documents, municipalityName) {
 }
 
 /**
- * What a platform draws of the zoning on the map of `extent`: the zones and their labels, the lines of the
- * legend for the kinds of zones shown, the source to credit — and, for a municipality without a document, a
- * warning instead, the map being generated without zoning.
+ * What a platform draws of the zoning or the prescriptions on the map of `extent`: the shapes and their labels,
+ * the lines of the legend for the kinds shown, the source to credit — and, for a municipality without a
+ * document, a warning instead, the map being generated without them. `avoid` holds the boxes of labels already
+ * placed by another layer: the number of a reserved site is not written over the code of its zone.
  */
-export function urbanPlanDrawing(layer, plan, extent, municipalityName) {
-  const { paths, labels, categories } = urbanPlanShapes(plan.zones, extent, {
-    styles: layer.styles,
-    opacity: layer.opacity,
-    fontSize: labelFontSize(extent),
-  });
+export function urbanPlanDrawing(layer, plan, extent, municipalityName, { avoid = [] } = {}) {
+  const options = { styles: layer.styles, opacity: layer.opacity, fontSize: labelFontSize(extent), avoid };
+  const { paths, labels, categories } =
+    layer.content === 'prescriptions'
+      ? prescriptionShapes(plan.prescriptions, extent, options)
+      : urbanPlanShapes(plan.zones, extent, options);
   const source = urbanPlanSource(layer, plan.documents, municipalityName);
   const warning =
     plan.documents.length === 0
@@ -152,13 +214,13 @@ export function urbanPlanDrawing(layer, plan, extent, municipalityName) {
  * and the labels written on them. A label goes where the zone is widest, and is left out where it would not fit
  * or would cover another one.
  */
-export function urbanPlanShapes(zones, extent, { styles, opacity, fontSize }) {
+export function urbanPlanShapes(zones, extent, { styles, opacity, fontSize, avoid = [] }) {
   const scale = Math.max(extent.width, extent.height);
   const strokeWidth = Math.max(1, Math.round(scale / 2500));
   const image = box(0, 0, extent.width, extent.height);
   const paths = [];
   const labels = [];
-  const taken = [];
+  const taken = [...avoid];
   const categories = new Set();
 
   for (const zone of zones) {
@@ -190,6 +252,88 @@ export function urbanPlanShapes(zones, extent, { styles, opacity, fontSize }) {
     }
   }
   return { paths, labels, categories };
+}
+
+/**
+ * Shapes of the prescriptions in image pixels: surfaces outlined over a light wash of their color, lines, and
+ * points as dots, drawn in that order so that none hides another. A reserved site carries its number.
+ */
+export function prescriptionShapes(prescriptions, extent, { styles, opacity, fontSize, avoid = [] }) {
+  const scale = Math.max(extent.width, extent.height);
+  const strokeWidth = Math.max(2, Math.round(scale / 1500));
+  const radius = Math.max(3, Math.round(scale / 500));
+  const image = box(0, 0, extent.width, extent.height);
+  const layers = { polygon: [], line: [], point: [] };
+  const labels = [];
+  const taken = [...avoid];
+  const categories = new Set();
+  const labelSize = Math.round(fontSize * 0.85);
+
+  for (const prescription of prescriptions) {
+    const style = styles[prescription.category];
+    for (const part of prescription.parts) {
+      if (prescription.shape === 'point') {
+        const [x, y] = pixel(part[0], part[1], extent);
+        const area = box(x - radius - 1, y - radius - 1, 2 * radius + 2, 2 * radius + 2);
+        if (!boxesOverlap(area, image)) continue;
+        categories.add(prescription.category);
+        layers.point.push({
+          path: circlePath(x, y, radius),
+          box: area,
+          fill: style.color,
+          fillOpacity: 1,
+          // A white rim keeps a dot readable over any zone.
+          color: '#ffffff',
+          strokeWidth: Math.max(1, Math.round(radius / 3)),
+        });
+        continue;
+      }
+
+      const rings = prescription.shape === 'polygon' ? part : [part];
+      const pixels = rings.map((ring) => ring.map(([lon, lat]) => pixel(lon, lat, extent)));
+      const area = expandBox(ringsBox(pixels), strokeWidth);
+      if (!boxesOverlap(area, image)) continue;
+      categories.add(prescription.category);
+      const polygon = prescription.shape === 'polygon';
+      layers[prescription.shape].push({
+        path: pathData(pixels, polygon),
+        box: area,
+        fill: polygon ? style.color : undefined,
+        fillOpacity: polygon ? opacity * (style.fillOpacity ?? 0.35) : 0,
+        fillRule: 'evenodd',
+        color: style.color,
+        strokeWidth,
+        dash: style.dash ? style.dash.map((length) => length * strokeWidth) : undefined,
+      });
+
+      if (!polygon || !prescription.label) continue;
+      const width = labelWidth(prescription.label, labelSize);
+      // Most reserved sites are narrow strips, to widen a road: their number is written across the strip, as long
+      // as it covers no other label — it refers to the list of the PLU, and a site without it says little.
+      const spot = widestPoint(pixels, area, image);
+      if (!spot) continue;
+      const labelBox = box(spot.x - width / 2 - 2, spot.y - labelSize * 0.5 - 2, width + 4, labelSize + 4);
+      if (!within(labelBox, image) || taken.some((other) => boxesOverlap(labelBox, other))) continue;
+      taken.push(labelBox);
+      labels.push({
+        text: prescription.label,
+        x: spot.x,
+        y: spot.y + labelSize * 0.35,
+        fontSize: labelSize,
+        color: style.color,
+        box: labelBox,
+      });
+    }
+  }
+  return { paths: [...layers.polygon, ...layers.line, ...layers.point], labels, categories };
+}
+
+/** A circle as SVG path data, which a canvas draws as well. */
+function circlePath(x, y, radius) {
+  return (
+    `M${(x - radius).toFixed(1)},${y.toFixed(1)}` +
+    `a${radius},${radius} 0 1,0 ${2 * radius},0a${radius},${radius} 0 1,0 ${-2 * radius},0Z`
+  );
 }
 
 // Outlines of the zones: dark enough to part two zones of the same color, light enough not to compete with the

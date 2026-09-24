@@ -136,12 +136,16 @@ export async function generateMap(
   // map at once, rather than once its thousands of tiles are downloaded.
   const warnings = [];
   const urbanPlans = new Map();
+  // The labels of the zoning are placed first, those of the prescriptions around them.
+  const placedLabels = [];
   for (const layer of mapLayers.filter(isUrbanismLayer)) {
-    onStep(`Lecture du zonage de ${boundary.name} sur le Géoportail de l’urbanisme…`);
-    const plan = await readUrbanPlan(boundary.inseeCode, extentBbox(extent));
-    const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name);
-    if (drawing.warning) warnings.push(drawing.warning);
-    else onStep(`  ${plan.zones.length} zone(s), ${drawing.labels.length} étiquette(s).`);
+    onStep(`Lecture de « ${layer.name} » pour ${boundary.name}, sur le Géoportail de l’urbanisme…`);
+    const plan = await readUrbanPlan(boundary.inseeCode, extentBbox(extent), { content: layer.content });
+    const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name, { avoid: placedLabels });
+    placedLabels.push(...drawing.labels.map(({ box }) => box));
+    // The zoning and the prescriptions of a municipality without a document say it alike: once is enough.
+    if (drawing.warning && !warnings.includes(drawing.warning)) warnings.push(drawing.warning);
+    if (!drawing.warning) onStep(`  ${drawing.paths.length} forme(s), ${drawing.labels.length} étiquette(s).`);
     urbanPlans.set(layer.id, drawing);
   }
   const wmsBlocks = new Map();

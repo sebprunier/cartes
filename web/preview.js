@@ -40,17 +40,21 @@ const DETAIL_WIDTH = 700;
 const DETAIL_HEIGHT = 420;
 const CONCURRENCY = 6;
 
-// The zoning of the municipality previewed, read once: the miniature and every move of the detail draw it again.
-let urbanPlanRead;
+// The zoning and the prescriptions of the municipality previewed, read once: the miniature and every move of the
+// detail draw them again.
+const urbanPlansRead = new Map();
 
-function urbanPlanOf(boundary, extent) {
-  if (urbanPlanRead?.inseeCode !== boundary.inseeCode) {
-    const plan = readUrbanPlan(boundary.inseeCode, extentBbox(extent));
+function urbanPlanOf(layer, boundary, extent) {
+  const key = `${boundary.inseeCode} ${layer.content ?? 'zones'}`;
+  if (!urbanPlansRead.has(key)) {
+    // One municipality at a time: the plans of the previous one are of no use any more.
+    for (const other of urbanPlansRead.keys()) if (!other.startsWith(`${boundary.inseeCode} `)) urbanPlansRead.delete(other);
+    const plan = readUrbanPlan(boundary.inseeCode, extentBbox(extent), { content: layer.content });
     // A failed read is not kept: the next preview tries again.
-    plan.catch(() => (urbanPlanRead = undefined));
-    urbanPlanRead = { inseeCode: boundary.inseeCode, plan };
+    plan.catch(() => urbanPlansRead.delete(key));
+    urbanPlansRead.set(key, plan);
   }
-  return urbanPlanRead.plan;
+  return urbanPlansRead.get(key);
 }
 
 /**
@@ -62,11 +66,15 @@ export async function renderPreview(request, center) {
   const basemap = BASEMAPS[basemapId];
   const chosen = chooseMapLayers(mapLayers);
   const extent = extentFromBbox(bbox, overviewZoom(bbox, margin), margin);
-  const urbanPlan = chosen.some(isUrbanismLayer) ? await urbanPlanOf(boundary, extent) : undefined;
+  const urbanSources = [];
+  for (const layer of chosen.filter(isUrbanismLayer)) {
+    const plan = await urbanPlanOf(layer, boundary, extent);
+    urbanSources.push({ layer, source: urbanPlanDrawing(layer, plan, extent, boundary.name).source });
+  }
   const sources = await withUpdateDates([
     basemap,
     ...chosen.flatMap((layer) =>
-      isUrbanismLayer(layer) ? (urbanPlanDrawing(layer, urbanPlan, extent, boundary.name).source ?? []) : [layer],
+      isUrbanismLayer(layer) ? (urbanSources.find((each) => each.layer === layer).source ?? []) : [layer],
     ),
     ...(outline ? [BOUNDARY_SOURCE] : []),
   ]);
@@ -144,8 +152,11 @@ async function paint({
   const legendExtra = [];
   const vectors = [];
   const zonings = [];
+  const placedLabels = [];
   for (const layer of mapLayers.filter(isUrbanismLayer)) {
-    const drawing = urbanPlanDrawing(layer, await urbanPlanOf(municipality, sizedFor), sizedFor, municipality.name);
+    const plan = await urbanPlanOf(layer, municipality, sizedFor);
+    const drawing = urbanPlanDrawing(layer, plan, sizedFor, municipality.name, { avoid: placedLabels });
+    placedLabels.push(...drawing.labels.map(({ box }) => box));
     zonings.push(drawing);
     legendExtra.push(...drawing.legend);
   }

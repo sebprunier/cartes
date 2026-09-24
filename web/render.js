@@ -90,7 +90,7 @@ export function drawPaths(context, paths) {
   context.save();
   context.lineJoin = 'round';
   context.lineCap = 'round';
-  for (const { path, color, strokeWidth, fill, fillOpacity, fillRule = 'nonzero' } of paths) {
+  for (const { path, color, strokeWidth, fill, fillOpacity, fillRule = 'nonzero', dash } of paths) {
     const shape = new Path2D(path);
     if (fill) {
       context.globalAlpha = fillOpacity;
@@ -101,6 +101,7 @@ export function drawPaths(context, paths) {
     if (color && strokeWidth > 0) {
       context.strokeStyle = color;
       context.lineWidth = strokeWidth;
+      context.setLineDash(dash ?? []);
       context.stroke(shape);
     }
   }

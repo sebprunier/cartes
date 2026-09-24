@@ -73,6 +73,36 @@ const MAP_LAYER_LIST = [
     // No weight ratio, as for the clays: a wash of translucent color flattens the image rather than weighing on it.
   },
   {
+    id: 'plu-prescriptions',
+    name: 'Prescriptions du PLU',
+    description:
+      'Emplacements réservés, espaces boisés classés, patrimoine et éléments de paysage protégés, bâtiments ' +
+      'pouvant changer de destination, reculs imposés.',
+    theme: 'urbanisme',
+    provider: 'Géoportail de l’urbanisme',
+    kind: 'urbanism',
+    content: 'prescriptions',
+    maxZoom: 19,
+    // Of the wash under a surface: the outlines, lines and dots stay opaque, to be read over the zoning.
+    opacity: 0.6,
+    attribution: 'Géoportail de l’urbanisme',
+    // The categories of urbanism.js, with the conventions of printed PLU: green for what is wooded or planted,
+    // purple for reserved sites, brown for buildings, dashes for what runs along a line.
+    styles: {
+      boise: { color: '#1b7a3a', shape: 'polygon', label: 'Espace boisé classé' },
+      reserve: { color: '#6a3d9a', shape: 'polygon', label: 'Emplacement réservé, avec son numéro' },
+      'bati-protege': { color: '#9c4f1c', shape: 'polygon', label: 'Patrimoine bâti protégé' },
+      'paysage-protege': { color: '#4d9a2a', shape: 'polygon', label: 'Élément de paysage protégé' },
+      'autre-polygon': { color: '#5d6b79', shape: 'polygon', fillOpacity: 0.2, label: 'Autre prescription' },
+      'lineaire-protege': { color: '#4d9a2a', shape: 'line', dash: [3, 2], label: 'Haie ou élément linéaire protégé' },
+      recul: { color: '#5d6b79', shape: 'line', dash: [1, 2], label: 'Recul ou implantation imposés' },
+      'autre-line': { color: '#5d6b79', shape: 'line', label: 'Autre prescription (linéaire)' },
+      'element-protege': { color: '#2e7d32', shape: 'point', label: 'Arbre ou élément ponctuel protégé' },
+      'changement-destination': { color: '#e8710a', shape: 'point', label: 'Bâtiment pouvant changer de destination' },
+      'autre-point': { color: '#5d6b79', shape: 'point', label: 'Autre prescription (ponctuelle)' },
+    },
+  },
+  {
     id: 'ppr-inondation',
     name: 'PPR inondation',
     description: 'Zonage réglementaire des plans de prévention du risque inondation.',
@@ -421,7 +451,7 @@ export function mapLayerLegendEntries(layer, drawn) {
   if (layer.styles) {
     return Object.entries(layer.styles)
       .filter(([name]) => !drawn || drawn.has(name))
-      .map(([, style]) => ({ label: style.label, color: style.fill, shape: 'polygon' }));
+      .map(([, style]) => ({ label: style.label, color: style.fill ?? style.color, shape: style.shape ?? 'polygon' }));
   }
   // A layer added by the user has no list of levels to draw from: its legend is what its tiles hold. When they
   // name nothing, the layer gets a single line under its own name, which is still better than no legend.

@@ -109,10 +109,13 @@ async function generate({
   // at once.
   const warnings = [];
   const urbanPlans = new Map();
+  // The labels of the zoning are placed first, those of the prescriptions around them.
+  const placedLabels = [];
   for (const layer of chosen.filter(isUrbanismLayer)) {
-    const plan = await readUrbanPlan(boundary.inseeCode, extentBbox(extent));
-    const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name);
-    if (drawing.warning) warnings.push(drawing.warning);
+    const plan = await readUrbanPlan(boundary.inseeCode, extentBbox(extent), { content: layer.content });
+    const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name, { avoid: placedLabels });
+    placedLabels.push(...drawing.labels.map(({ box }) => box));
+    if (drawing.warning && !warnings.includes(drawing.warning)) warnings.push(drawing.warning);
     urbanPlans.set(layer.id, drawing);
   }
   const wmsImages = new Map();

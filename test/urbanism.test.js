@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { MAP_LAYERS } from '../src/core/maplayers.js';
-import { attributionText } from '../src/core/overlays.js';
+import { MAP_LAYERS, mapLayerLegendEntries } from '../src/core/maplayers.js';
+import { attributionText, expandBox } from '../src/core/overlays.js';
 import { extentFromBbox } from '../src/core/tiles.js';
 import {
   UrbanismError,
   extentBbox,
+  prescriptionCategory,
+  prescriptionShapes,
   readUrbanPlan,
   urbanPlanDrawing,
   urbanPlanShapes,
@@ -257,3 +259,140 @@ describe('the zoning in the catalog', () => {
     }
   });
 });
+
+const PRESCRIPTIONS = MAP_LAYERS['plu-prescriptions'];
+
+describe('prescriptionCategory', () => {
+  it('tells apart the prescriptions a town hall meets most, and gathers the others by shape', () => {
+    const cases = [
+      [['01', '00', 'polygon'], 'boise'],
+      [['5', '00', 'polygon'], 'reserve'],
+      [['05', '01', 'line'], 'reserve'],
+      [['07', '01', 'polygon'], 'bati-protege'],
+      [['07', '04', 'polygon'], 'paysage-protege'],
+      [['07', '00', 'line'], 'lineaire-protege'],
+      [['07', '00', 'point'], 'element-protege'],
+      [['15', '01', 'line'], 'recul'],
+      [['16', '01', 'point'], 'changement-destination'],
+      [['99', '00', 'line'], 'autre-line'],
+      [['38', '02', 'polygon'], 'autre-polygon'],
+      [[undefined, undefined, 'point'], 'autre-point'],
+    ];
+    for (const [[type, subtype, shape], category] of cases) {
+      assert.equal(prescriptionCategory(type, subtype, shape), category, `${type} ${subtype} ${shape}`);
+    }
+  });
+
+  it('has a style and a legend line, with its shape, for every category', () => {
+    const categories = ['boise', 'reserve', 'bati-protege', 'paysage-protege', 'lineaire-protege', 'element-protege', 'recul', 'changement-destination'];
+    for (const category of [...categories, 'autre-polygon', 'autre-line', 'autre-point']) {
+      const style = PRESCRIPTIONS.styles[category];
+      assert.ok(style?.color && style.label && style.shape, category);
+    }
+    assert.deepEqual(
+      mapLayerLegendEntries(PRESCRIPTIONS, new Set(['recul', 'reserve'])).map(({ shape }) => shape),
+      ['polygon', 'line'],
+    );
+  });
+});
+
+describe('readUrbanPlan, for the prescriptions', () => {
+  it('reads the surfaces, lines and points of the document, with the number of a reserved site', async () => {
+    const { asked, fetchJson } = wfs({
+      'wfs_du:doc_urba_com': { features: [{ properties: { partition: 'DU_86081' } }] },
+      'wfs_du:doc_urba': { features: [{ properties: { typedoc: 'PLU', datappro: '20200123' } }] },
+      'wfs_du:prescription_surf': {
+        features: [
+          { properties: { typepsc: '05', stypepsc: '00', libelle: 'Emplacements réservés', txt: '12' }, geometry: { type: 'Polygon', coordinates: square(0.43, 46.78, 0.001) } },
+        ],
+      },
+      'wfs_du:prescription_lin': {
+        features: [
+          { properties: { typepsc: '07', libelle: 'Haies' }, geometry: { type: 'MultiLineString', coordinates: [[[0.43, 46.78], [0.431, 46.781]]] } },
+        ],
+      },
+      'wfs_du:prescription_pct': {
+        features: [{ properties: { typepsc: '16', stypepsc: '01' }, geometry: { type: 'Point', coordinates: [0.432, 46.782] } }],
+      },
+    });
+
+    const plan = await readUrbanPlan('86081', BBOX, { fetchJson, content: 'prescriptions' });
+
+    assert.deepEqual(
+      asked.slice(2).map(({ TYPENAMES }) => TYPENAMES),
+      ['wfs_du:prescription_surf', 'wfs_du:prescription_lin', 'wfs_du:prescription_pct'],
+    );
+    assert.deepEqual(
+      plan.prescriptions.map(({ category, shape, label, parts }) => [category, shape, label, parts.length]),
+      [
+        ['reserve', 'polygon', '12', 1],
+        ['lineaire-protege', 'line', undefined, 1],
+        ['changement-destination', 'point', undefined, 1],
+      ],
+    );
+    assert.equal(plan.zones, undefined);
+  });
+
+  it('asks nothing more of a carte communale, which has no prescriptions', async () => {
+    const { asked, fetchJson } = wfs({
+      'wfs_du:doc_urba_com': { features: [{ properties: { partition: 'DU_86130' } }] },
+      'wfs_du:doc_urba': { features: [{ properties: { typedoc: 'CC', datappro: '20100120' } }] },
+    });
+    const plan = await readUrbanPlan('86130', BBOX, { fetchJson, content: 'prescriptions' });
+    assert.equal(asked.length, 2);
+    assert.deepEqual(plan.prescriptions, []);
+  });
+});
+
+describe('prescriptionShapes', () => {
+  const extent = extentFromBbox(BBOX, 16, 0);
+  const options = { styles: PRESCRIPTIONS.styles, opacity: PRESCRIPTIONS.opacity, fontSize: 20 };
+
+  it('draws the surfaces, then the lines, then the dots, so that none hides another', () => {
+    const prescriptions = [
+      { category: 'element-protege', shape: 'point', parts: [[0.432, 46.782]] },
+      { category: 'recul', shape: 'line', parts: [[[0.43, 46.78], [0.44, 46.785]]] },
+      { category: 'boise', shape: 'polygon', parts: [square(0.425, 46.775, 0.01)] },
+    ];
+    const { paths, categories } = prescriptionShapes(prescriptions, extent, options);
+    assert.deepEqual(
+      paths.map(({ fill, color }) => [fill, color]),
+      [
+        [PRESCRIPTIONS.styles.boise.color, PRESCRIPTIONS.styles.boise.color],
+        [undefined, PRESCRIPTIONS.styles.recul.color],
+        [PRESCRIPTIONS.styles['element-protege'].color, '#ffffff'],
+      ],
+    );
+    // The dashes follow the width of the line, to keep their look at every size of map.
+    assert.deepEqual(paths[1].dash, PRESCRIPTIONS.styles.recul.dash.map((length) => length * paths[1].strokeWidth));
+    // A surface is a light wash under its outline.
+    assert.ok(paths[0].fillOpacity > 0 && paths[0].fillOpacity < 0.5);
+    assert.deepEqual([...categories].sort(), ['boise', 'element-protege', 'recul']);
+  });
+
+  it('writes the number of a reserved strip across it, but never over a label of the zoning', () => {
+    // A strip 20 m wide, to widen a road: far narrower than its number.
+    const strip = [[[0.425, 46.78], [0.44, 46.78], [0.44, 46.7802], [0.425, 46.7802], [0.425, 46.78]]];
+    const prescriptions = [{ category: 'reserve', shape: 'polygon', label: '12', parts: [strip] }];
+    const { labels } = prescriptionShapes(prescriptions, extent, options);
+    assert.deepEqual(labels.map(({ text }) => text), ['12']);
+
+    const { labels: avoided } = prescriptionShapes(prescriptions, extent, { ...options, avoid: [expandBox(labels[0].box, 1)] });
+    assert.deepEqual(avoided, []);
+  });
+
+  it('writes the number of a reserved site on it, in its color', () => {
+    const prescriptions = [{ category: 'reserve', shape: 'polygon', label: '12', parts: [square(0.425, 46.775, 0.01)] }];
+    const { labels } = prescriptionShapes(prescriptions, extent, options);
+    assert.deepEqual(labels.map(({ text, color }) => [text, color]), [['12', PRESCRIPTIONS.styles.reserve.color]]);
+  });
+});
+
+describe('the attribution of the two layers of a PLU', () => {
+  it('credits the document once, when the zoning and the prescriptions are both on the map', () => {
+    const source = urbanPlanSource(PLU, [{ kind: 'PLU', approvedOn: '2020-01-23' }], 'Colombiers');
+    const text = attributionText({ sources: [source, { ...source, id: 'plu-prescriptions' }], date: new Date('2026-09-24') });
+    assert.equal(text.match(/PLU de Colombiers/g).length, 1);
+  });
+});
+
