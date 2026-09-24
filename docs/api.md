@@ -120,15 +120,27 @@ Quelques particularités à connaître :
 
 ### Quelle taille d'instance ?
 
-Mesuré sur Clever Cloud en septembre 2026, avec la carte de Colombiers (Vienne), une commune de taille moyenne. La première durée est celle d'une instance qui vient de démarrer, sans tuile en cache ; la seconde, celle de la même carte redemandée.
+Mesuré sur Clever Cloud en septembre 2026, avec la carte de Colombiers (Vienne), une commune de taille moyenne, en PNG. Chaque case donne deux durées : la première sans aucune tuile de ce zoom en cache ; la seconde pour la même carte redemandée, les tuiles déjà en cache.
 
-| Taille | Mémoire | Zoom 16 | Zoom 17 | Zoom 18 |
-| --- | --- | --- | --- | --- |
-| XS | 1 Go | 13 s | 157 s, instance sans réponse une minute et demie | |
-| S | 2 Go | 10 s, puis 2 s | 39 s, puis 5 s | |
-| M | 4 Go | | | 156 s, puis 20 s |
+| Zoom | Image | Mémoire | XS (1 Go) | S (2 Go) | M (4 Go) |
+| --- | --- | --- | --- | --- | --- |
+| 15 | 2 553 × 1 953 px | 15 Mo | 17 s, puis 2 s | 33 s, puis 5 s | 8 s, puis 3 s |
+| 16 | 5 104 × 3 904 px | 60 Mo | 13 à 27 s, puis 5 s | 10 à 41 s, puis 2 à 5 s | 20 s, puis 4 s |
+| 17 | 10 207 × 7 807 px | 239 Mo | ✗ instance figée | 39 à 92 s, puis 5 à 6 s | 59 s, puis 7 s |
+| 18 | 20 413 × 15 614 px | 956 Mo | non essayé | ✗ instance figée | 156 à 216 s, puis 20 à 23 s |
+| 19 | 40 824 × 31 227 px | 3,8 Go | non essayé | non essayé | non essayé |
 
-Une XS suffit donc jusqu'au zoom 16 : réglez `CARTES_ZOOM_MAX` à 16. Au zoom 17, la carte finit par sortir, mais l'instance, à la limite de sa mémoire, cesse de répondre le temps de la produire. Une S tient le zoom 17 sans peine, une M le zoom 18. Le zoom 19 n'a pas été essayé : son image seule pèse 3,8 Go pour la même commune. Pour une commune plus étendue, comparez la mémoire que donne `POST /estimations` à celle de Colombiers.
+« Mémoire » est celle de l'image seule, non compressée : l'instance en consomme davantage pendant l'assemblage et l'encodage. « ✗ instance figée » : l'instance, à court de mémoire, cesse de répondre. Sur une XS au zoom 17, la carte est une fois sortie au bout de 157 s ; une autre fois, Clever Cloud a jugé l'instance injoignable et l'a redémarrée, et la carte a été perdue. Sur une S au zoom 18, rien n'était sorti après dix minutes.
+
+Les durées sans cache dépendent surtout de la Géoplateforme, qui sert les tuiles plus ou moins vite selon l'heure : d'une série de mesures à l'autre, elles ont varié du simple au quadruple. Les durées avec cache, elles, sont stables.
+
+En résumé, réglez `CARTES_ZOOM_MAX` d'après la taille choisie :
+
+- **XS** : zoom 16 au plus ;
+- **S** : zoom 17 ;
+- **M** : zoom 18.
+
+Pour une commune plus étendue que Colombiers, comparez la mémoire que donne `POST /estimations` à celle du tableau.
 
 ## Aller plus loin : une passerelle d'API
 
