@@ -7,6 +7,7 @@ import { layersSource } from './core/layers.js';
 import {
   checkMapLayer,
   chooseMapLayers,
+  drawnAtZoom,
   isTileLayer,
   isUrbanismLayer,
   isVectorLayer,
@@ -71,7 +72,7 @@ async function estimate({ basemapId, bbox, zoom, margin, format, grayscale, mapL
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
   // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
-  for (const layer of chooseMapLayers(mapLayers).filter(isTileLayer)) {
+  for (const layer of chooseMapLayers(mapLayers).filter((each) => isTileLayer(each) && drawnAtZoom(each, zoom))) {
     layers.push({ layer, sampleSizes: await sizesOf(layer) });
   }
   return {
@@ -104,7 +105,8 @@ async function generate({
     );
   }
 
-  const chosen = chooseMapLayers(mapLayers);
+  // A layer whose service publishes nothing at this zoom is left out, and not credited.
+  const chosen = chooseMapLayers(mapLayers).filter((layer) => drawnAtZoom(layer, zoom));
   // The zoning and the images of a WMS are read before the tiles: a service that does not answer fails the map
   // at once.
   const warnings = [];

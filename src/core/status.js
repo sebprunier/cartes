@@ -120,6 +120,16 @@ export const SERVICES = [
     expect: 'image',
   },
   {
+    id: 'courbes',
+    group: 'Couches',
+    name: 'Courbes de niveau',
+    provider: 'Géoplateforme (IGN)',
+    use: 'la couche des courbes de niveau',
+    layers: ['courbes'],
+    url: tileOf(MAP_LAYERS.courbes, 16),
+    expect: 'image',
+  },
+  {
     id: 'urbanisme',
     group: 'Couches',
     name: 'Documents d’urbanisme',

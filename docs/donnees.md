@@ -20,6 +20,7 @@ Elles ne demandent aucun fichier : elles sont téléchargées au moment de la g�
 | Risques | Cavités souterraines | carrières, caves et ouvrages souterrains abandonnés |
 | Risques | Canalisations de matières dangereuses | gaz, hydrocarbures et produits chimiques |
 | Risques | Retrait-gonflement des argiles | aléa faible, moyen ou fort, millésime 2026 |
+| Territoire et environnement | Courbes de niveau | le relief, en lignes de même altitude ; jusqu'au zoom 18, le service ne publiant rien au-delà |
 
 Chaque couche a une **opacité** réglable, pour laisser lire le fond de carte en dessous. Certaines ne sont dessinées qu'à partir d'un certain zoom : l'outil le signale avant de télécharger quoi que ce soit.
 

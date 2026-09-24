@@ -210,6 +210,21 @@ describe('generateMap, with the zoning of the PLU', () => {
   });
 });
 
+describe('generateMap, with a layer above its last zoom level', () => {
+  it('leaves it out, without asking the service for a single tile, nor crediting it', async (t) => {
+    const asked = [];
+    t.mock.method(globalThis, 'fetch', async (url) => {
+      asked.push(String(url));
+      throw new Error('Pas de réseau pendant les tests.');
+    });
+    // The contour lines stop at zoom 18, and a map at 19 is generated without them: here, the map of the tests is
+    // at zoom 14, and the layer made to stop at 13.
+    const courbes = { ...MAP_LAYERS.courbes, maxZoom: 13 };
+    await generateMap(request({ outputPath: path.join(tempDir, 'sans-courbes.png'), mapLayers: [courbes] }));
+    assert.ok(!asked.some((url) => url.includes('ELEVATION.CONTOUR.LINE')), asked.join('\n'));
+  });
+});
+
 describe('generateMap, with a layer of a WMS', () => {
   it('fails at once, before the tiles, when the service answers an error page, and names the layer', async (t) => {
     // Géorisques on 24 September 2026: a page of MapServer where the image was expected.

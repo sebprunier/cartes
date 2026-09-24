@@ -43,6 +43,8 @@ export function estimateFileSize({
 const BELOW_MIN_ZOOM_SHARE = 0.35;
 
 function drawnShare(source, zoom) {
+  // Above the last level its service publishes, a layer is left out of the map.
+  if (zoom !== undefined && zoom > source.maxZoom) return 0;
   return zoom !== undefined && source.minZoom !== undefined && zoom < source.minZoom ? BELOW_MIN_ZOOM_SHARE : 1;
 }
 

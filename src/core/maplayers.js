@@ -20,7 +20,8 @@ export const MAP_LAYER_THEMES = [
 // to extend when a service needs something else than a template, a WMS asking for the bounds of each tile.
 // `url` is a template with {z}, {x} and {y}, as for a basemap. `opacity` fades the layer over the map, the
 // tiles carrying their own transparency. `minZoom`, when a layer has one, is the level from which it shows
-// what it promises, and `zoomNote` says what is missing below it.
+// what it promises, and `zoomNote` says what is missing below it. `maxZoom` is the last level the service
+// publishes: above it the layer is left out, and `maxZoomNote` says so.
 // `dataMaxZoom` caps the resolution asked for: above it the drawing is stretched, which spares a service and
 // suits data that has no more detail to give — and, for some services, keeps them drawing at all.
 const MAP_LAYER_LIST = [
@@ -100,6 +101,27 @@ const MAP_LAYER_LIST = [
       'element-protege': { color: '#2e7d32', shape: 'point', label: 'Arbre ou élément ponctuel protégé' },
       'changement-destination': { color: '#e8710a', shape: 'point', label: 'Bâtiment pouvant changer de destination' },
       'autre-point': { color: '#5d6b79', shape: 'point', label: 'Autre prescription (ponctuelle)' },
+    },
+  },
+  {
+    id: 'courbes',
+    name: 'Courbes de niveau',
+    description: 'Le relief, en lignes de même altitude, calculées à partir du RGE ALTI.',
+    theme: 'territoire',
+    provider: 'IGN',
+    url: geoplateformeWmts('ELEVATION.CONTOUR.LINE', 'image/png'),
+    // The service publishes zoom levels 6 to 18: at 19 it answers 404 for every tile.
+    maxZoom: 18,
+    maxZoomNote: 'Au zoom 19, le service n’en publie pas : la carte est générée sans elles.',
+    // Lines one pixel wide, in a pale orange: any less and they vanish over aerial photographs.
+    opacity: 1,
+    attribution: '© IGN – Courbes de niveau',
+    metadataId: 'IGNF_COURBES-DE-NIVEAU',
+    // Measured on Colombiers at zoom 16, as for the cadastre — whose ratios the same measure finds again, within
+    // 0.03. Thin lines over mostly transparent tiles: 1.1 MB of tiles add 0.2 MB to a PNG.
+    fileSizeRatios: {
+      color: { png: 0.19, pngPalette: 0.06, jpg: 0.21, tif: 0.37 },
+      grayscale: { png: 0.31, pngPalette: 0.11, jpg: 0.28, tif: 0.87 },
     },
   },
   {
@@ -462,7 +484,14 @@ export function mapLayerLegendEntries(layer, drawn) {
 
 /** What the layer does not show at this zoom level, or undefined when it shows everything. */
 export function mapLayerZoomWarning(layer, zoom) {
-  return zoom < layer.minZoom ? `${layer.name} : ${layer.zoomNote}` : undefined;
+  if (zoom < layer.minZoom) return `${layer.name} : ${layer.zoomNote}`;
+  if (zoom > layer.maxZoom) return `${layer.name} : ${layer.maxZoomNote}`;
+  return undefined;
+}
+
+/** Whether a layer has something to draw at this zoom level: nothing above the last level its service publishes. */
+export function drawnAtZoom(layer, zoom) {
+  return !(zoom > layer.maxZoom);
 }
 
 export class MapLayerError extends Error {}

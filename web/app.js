@@ -365,6 +365,17 @@ function layerCard(layer) {
     needed.title = layer.zoomNote ?? '';
     badges.append(needed);
   }
+  // And the last level a service publishes, when one of the zoom levels offered goes beyond it.
+  if (layer.maxZoom < Math.max(...zoomLevels())) {
+    const zoom = Number(zoomChoice.value);
+    const beyond = zoomChoice.value !== '' && zoom > layer.maxZoom;
+    const limit = badge(
+      beyond ? `Jusqu’au zoom ${layer.maxZoom}, vous avez choisi le ${zoom}` : `Jusqu’au zoom ${layer.maxZoom}`,
+      beyond ? 'warning' : '',
+    );
+    limit.title = layer.maxZoomNote ?? '';
+    badges.append(limit);
+  }
   text.append(name, description, badges);
 
   const plus = document.createElement('span');

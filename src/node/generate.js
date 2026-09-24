@@ -7,6 +7,7 @@ import { estimateFileSize } from '../core/estimates.js';
 import { layerWarning, layersSource } from '../core/layers.js';
 import {
   checkMapLayer,
+  drawnAtZoom,
   isCustomLayer,
   isTileLayer,
   isUrbanismLayer,
@@ -106,7 +107,7 @@ export async function generateMap(
     extent,
     boundary,
     layers = [],
-    mapLayers = [],
+    mapLayers: chosenLayers = [],
     outline = true,
     legend = true,
     grayscale = false,
@@ -119,6 +120,8 @@ export async function generateMap(
   { onStep = () => {}, onProgress = () => {}, signal } = {},
 ) {
   const { zoom } = extent;
+  // A layer whose service publishes nothing at this zoom is left out, and not credited: its warning said so.
+  const mapLayers = chosenLayers.filter((layer) => drawnAtZoom(layer, zoom));
   // Checked between the steps, and not only while tiles download: a map canceled once its tiles are there
   // would otherwise be drawn and written to the end, for nothing.
   const stopIfAborted = () => {
@@ -269,8 +272,8 @@ export async function estimateMapFileSize({ basemap, extent, mapLayers = [], for
 
   const sampleSizes = await sizesOf(basemap);
   const layers = [];
-  // A layer we draw ourselves has no tiles to sample, and adds nothing to the file.
-  for (const layer of mapLayers.filter(isTileLayer)) {
+  // A layer we draw ourselves has no tiles to sample, and adds nothing to the file; nor does one left out.
+  for (const layer of mapLayers.filter((each) => isTileLayer(each) && drawnAtZoom(each, extent.zoom))) {
     layers.push({ layer, sampleSizes: await sizesOf(layer) });
   }
   return estimateFileSize({

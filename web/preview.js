@@ -6,6 +6,7 @@ import { BASEMAPS } from './core/basemaps.js';
 import { layersSource } from './core/layers.js';
 import {
   chooseMapLayers,
+  drawnAtZoom,
   isTileLayer,
   isUrbanismLayer,
   isVectorLayer,
@@ -151,6 +152,8 @@ async function paint({
 }) {
   const { canvas, context } = createCanvas(area.width, area.height);
   const tiles = [...tilesInExtent(area)];
+  // As on the map: a layer whose service publishes nothing at this zoom is left out.
+  mapLayers = mapLayers.filter((layer) => drawnAtZoom(layer, sizedFor.zoom));
   // Layers drawn from vector tiles are read once from their archive, not downloaded tile by tile.
   const legendExtra = [];
   const vectors = [];

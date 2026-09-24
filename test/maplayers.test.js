@@ -9,6 +9,7 @@ import {
   checkMapLayer,
   chooseMapLayers,
   customMapLayer,
+  drawnAtZoom,
   isCustomLayer,
   isTileLayer,
   isUrbanismLayer,
@@ -49,6 +50,8 @@ describe('MAP_LAYERS', () => {
         }
       }
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);
+      // A layer whose service stops before the last zoom level of the maps says what then happens.
+      if (layer.maxZoom < 19) assert.ok(layer.maxZoomNote, `${id} maxZoomNote`);
       // A layer that shows less below its minimum zoom says what is missing.
     }
   });
@@ -137,6 +140,15 @@ describe('mapLayerZoomWarning', () => {
     const { cadastre } = MAP_LAYERS;
     assert.match(mapLayerZoomWarning(cadastre, cadastre.minZoom - 1), /sections/);
     assert.equal(mapLayerZoomWarning(cadastre, cadastre.minZoom), undefined);
+  });
+
+  it('says that a layer is left out above the last zoom level its service publishes', () => {
+    const { courbes } = MAP_LAYERS;
+    assert.equal(mapLayerZoomWarning(courbes, 18), undefined);
+    assert.match(mapLayerZoomWarning(courbes, 19), /^Courbes de niveau : Au zoom 19, le service n’en publie pas/);
+    assert.ok(drawnAtZoom(courbes, 18));
+    assert.ok(!drawnAtZoom(courbes, 19));
+    assert.ok(drawnAtZoom(MAP_LAYERS.cadastre, 19));
   });
 });
 

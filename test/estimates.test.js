@@ -48,6 +48,14 @@ describe('estimateFileSize', () => {
     assert.ok(below < above, `${below} < ${above}`);
   });
 
+  it('counts nothing for a layer above the last zoom level its service publishes', () => {
+    const layer = { maxZoom: 18, fileSizeRatios: { color: { png: 0.5 }, grayscale: { png: 0.5 } } };
+    const request = { basemap, format: 'png', tileCount: 100, sampleSizes, layers: [{ layer, sampleSizes: [2000] }] };
+    const without = estimateFileSize({ ...request, layers: [], zoom: 19 });
+    assert.equal(estimateFileSize({ ...request, zoom: 19 }), without);
+    assert.ok(estimateFileSize({ ...request, zoom: 18 }) > without);
+  });
+
   it('ignores a layer whose sample could not be downloaded', () => {
     const layer = { fileSizeRatios: { color: { png: 0.5 }, grayscale: { png: 0.5 } } };
     assert.equal(
