@@ -24,6 +24,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Corrigé
 
+- Sur la page de génération et dans l'application, changer un réglage efface la carte générée avec les précédents : son lien « Télécharger » restait affiché, et donnait l'ancienne carte, facile à prendre pour la nouvelle. Une carte garde aussi le nom des réglages avec lesquels elle a été demandée, même si on en change pendant qu'elle se dessine.
 - La recherche d'une commune et la lecture de son contour réessaient quand la Géoplateforme tarde ou refuse un instant, et disent en français qu'elle ne répond pas, au lieu de « The operation was aborted due to timeout », qui arrêtait toute une carte.
 - La génération ne reste plus « en attente » avant de télécharger les tuiles : elle attendait les dates des données dans le catalogue de la Géoplateforme, qui mettait de 5 à 22 secondes à répondre. Ces dates sont maintenant demandées pendant le téléchargement, et gardées une heure pour l'aperçu et les cartes suivantes. Sur la page web, les tuiles de Colombiers démarrent au bout de 3 secondes au lieu de 15.
 - La recherche d'une commune n'affiche plus « Recherche impossible : HTTP 400 » quand on a saisi moins de trois lettres : le service de géocodage refuse ces recherches. Les 14 communes au nom d'une ou deux lettres — Y, Eu, By, Bû, Oô, Us… — sont désormais trouvées, dès la première lettre, et `cartes generer Y` fonctionne.

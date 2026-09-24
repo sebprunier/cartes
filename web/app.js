@@ -924,6 +924,7 @@ function geocodingReport(layer, index) {
  * image at all. The weight shown is forgotten the same way, for the same reason.
  */
 function clearPreview() {
+  clearResult();
   previewViews.hidden = true;
   previewOverview.replaceChildren();
   previewOverviewCaption.textContent = '';
@@ -931,6 +932,17 @@ function clearPreview() {
   previewDetailCaption.textContent = '';
   previewButton.textContent = "Afficher l'aperçu";
   estimateResult.textContent = '';
+}
+
+/**
+ * Forgets the map generated with the previous settings. Its link stayed on the page once a setting had changed,
+ * and downloading it gave the former map, easy to take for the new one.
+ */
+function clearResult() {
+  const link = result.querySelector('a[href^="blob:"]');
+  if (link) URL.revokeObjectURL(link.href);
+  result.replaceChildren();
+  result.hidden = true;
 }
 
 /** The map request behind the preview shown, to redraw its detail elsewhere without asking everything again. */
@@ -1193,10 +1205,12 @@ async function generate() {
   if (!municipality) return;
   generateButton.disabled = true;
   cancelButton.hidden = false;
-  result.hidden = true;
+  clearResult();
   clearErrors();
   showProgressSources();
   const start = performance.now();
+  // Named after the settings it was asked with: one changed while it is drawn does not rename it.
+  const fileName = defaultFileName();
 
   try {
     const map = await engine.generate(
@@ -1212,11 +1226,11 @@ async function generate() {
         mapLayers: chosenMapLayers(),
         layers,
         legend: legendBox.checked,
-        fileName: defaultFileName(),
+        fileName,
       },
       showProgress,
     );
-    if (!map.canceled) showMap(map, Math.round((performance.now() - start) / 1000));
+    if (!map.canceled) showMap(map, fileName, Math.round((performance.now() - start) / 1000));
   } catch (error) {
     showError(error.message);
   } finally {
@@ -1270,11 +1284,11 @@ function defaultFileName() {
   );
 }
 
-function showMap(map, seconds) {
+function showMap(map, name, seconds) {
+  clearResult();
   // The web page offers the image as a download; the desktop application has already written the file.
   const delivery = document.createElement(map.blob ? 'a' : 'span');
   if (map.blob) {
-    const name = defaultFileName();
     delivery.href = URL.createObjectURL(map.blob);
     delivery.download = name;
     delivery.textContent = `Télécharger ${name} (${formatBytes(map.blob.size)})`;
