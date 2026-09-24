@@ -47,10 +47,29 @@ export async function gunzip(bytes) {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
-export async function requestJson(url) {
-  const response = await request(url);
-  if (!response.ok) throw new HttpError(url, response.status);
-  return response.json();
+/**
+ * JSON answered by a service: the search of a municipality, its boundary. A service slow or under load — no
+ * answer in 30 s, 429, 5xx — is asked again, twice, after a pause; what still fails is said in French, where a
+ * browser would say « The operation was aborted due to timeout », as it did for a whole map on 24 September 2026.
+ */
+export async function requestJson(url, { retryDelayMs = 1500 } = {}) {
+  const host = new URL(url).host;
+  for (let attempt = 1; ; attempt++) {
+    let failure;
+    try {
+      const response = await request(url);
+      if (response.ok) return await response.json();
+      if (![429, 500, 502, 503, 504].includes(response.status)) throw new HttpError(url, response.status);
+      failure = `erreur ${response.status}`;
+    } catch (error) {
+      if (error instanceof HttpError) throw error;
+      failure = error?.name === 'TimeoutError' ? `pas de réponse en ${TIMEOUT_MS / 1000} s` : 'service injoignable';
+    }
+    if (attempt === 3) {
+      throw new Error(`Le service ${host} ne répond pas (${failure}) : réessayez dans quelques minutes.`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * retryDelayMs));
+  }
 }
 
 /**
