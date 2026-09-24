@@ -3,7 +3,7 @@
 // for instead — two requests cover a municipality — which is faster and gentler on a public service.
 
 import { HttpError } from './http.js';
-import { STATUS_PAGE_URL } from './status.js';
+import { STATUS_PAGE_URL } from './links.js';
 import { TILE_SIZE, fetchTile } from './tiles.js';
 
 // Bounds of the Web Mercator world, in metres: the projection squares the globe between these values.

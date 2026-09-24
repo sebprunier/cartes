@@ -178,21 +178,47 @@
 
         <dialog id="custom-layer-form">
           <h3>Ajouter une couche personnalisée</h3>
-          <p class="note">
-            Pour afficher les tuiles que publie une intercommunalité, un département ou un syndicat. L'adresse
-            est un gabarit qui désigne une tuile, avec <code>{z}</code>, <code>{x}</code> et <code>{y}</code> à la
-            place du zoom et des coordonnées : des images, ou des tuiles vectorielles (<code>.pbf</code>) que
-            l'outil dessine lui-même.
-          </p>
-          <p>
-            <label for="custom-layer-url">Adresse des tuiles</label>
-            <input
-              id="custom-layer-url"
-              type="url"
-              placeholder="https://exemple.fr/tuiles/{z}/{x}/{y}.pbf"
-              spellcheck="false"
-            />
-          </p>
+          <fieldset class="custom-layer-kind">
+            <legend>Ce que publie le service</legend>
+            <label><input type="radio" name="custom-layer-kind" value="tiles" checked /> Des tuiles</label>
+            <label><input type="radio" name="custom-layer-kind" value="wms" /> Un service WMS</label>
+          </fieldset>
+          <div id="custom-layer-tiles">
+            <p class="note">
+              Pour afficher les tuiles que publie une intercommunalité, un département ou un syndicat. L'adresse
+              est un gabarit qui désigne une tuile, avec <code>{z}</code>, <code>{x}</code> et <code>{y}</code> à la
+              place du zoom et des coordonnées : des images, ou des tuiles vectorielles (<code>.pbf</code>) que
+              l'outil dessine lui-même.
+            </p>
+            <p>
+              <label for="custom-layer-url">Adresse des tuiles</label>
+              <input
+                id="custom-layer-url"
+                type="url"
+                placeholder="https://exemple.fr/tuiles/{z}/{x}/{y}.pbf"
+                spellcheck="false"
+              />
+            </p>
+          </div>
+          <div id="custom-layer-wms" hidden>
+            <p class="note">
+              Beaucoup de services publics publient leurs couches par un WMS, qui dessine l'image demandée. Donnez
+              l'adresse du service : l'outil lit les couches qu'il annonce, et vous choisissez la vôtre.
+            </p>
+            <p>
+              <label for="custom-layer-service">Adresse du service</label>
+              <span class="custom-layer-service">
+                <input id="custom-layer-service" type="url" placeholder="https://exemple.fr/wms" spellcheck="false" />
+                <button id="read-capabilities" type="button" class="secondary">Lire les couches</button>
+              </span>
+            </p>
+            <p id="custom-layer-wms-choice" hidden>
+              <label for="custom-layer-wms-search">Couche</label>
+              <input id="custom-layer-wms-search" type="search" placeholder="Rechercher une couche…" />
+              <select id="custom-layer-wms-list" size="7" aria-label="Couches du service"></select>
+              <span id="custom-layer-wms-count" class="note"></span>
+            </p>
+          </div>
           <p>
             <label for="custom-layer-name">Nom de la couche</label>
             <input id="custom-layer-name" type="text" placeholder="Zones humides" />

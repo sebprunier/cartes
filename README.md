@@ -39,7 +39,7 @@ Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient s
 4. **Fait** : ajouter les données de la commune sur les cartes (points, zones, tracés), avec leurs catégories, leur légende et un aperçu avant génération.
 5. **Fait** : un catalogue de couches ouvertes à superposer — cadastre, zonage et prescriptions des PLU, courbes de niveau, bandes tampons des cours d'eau, artificialisation des sols, PPR inondation et mouvements de terrain, cavités souterraines, canalisations de matières dangereuses, aléa retrait-gonflement des argiles.
 6. **Fait** : une documentation utilisateur en ligne, et une aide dans les outils eux-mêmes.
-7. **Fait** : ouvrir le catalogue aux couches que la commune fournit elle-même, par l'adresse de leurs tuiles.
+7. **Fait** : ouvrir le catalogue aux couches que la commune fournit elle-même, par l'adresse de leurs tuiles ou d'un service WMS.
 8. **Fait** : une API HTTP, pour intégrer cartes à d'autres logiciels, et son déploiement sur Clever Cloud.
 9. **Fait** : géocoder une liste d'adresses, pour placer sur la carte les données qu'une mairie a sans coordonnées.
 

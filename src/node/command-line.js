@@ -24,7 +24,11 @@ Options de « generer » :
                             par défaut, celle du catalogue (0.6 pour le cadastre)
       --couche-perso <adresse>
                             couche à superposer, par l'adresse de ses tuiles : un gabarit contenant {z}, {x}
-                            et {y}, servant des images ou des tuiles vectorielles (.pbf) ; répétable
+                            et {y}, servant des images ou des tuiles vectorielles (.pbf) ; ou l'adresse d'un
+                            service WMS, avec --couche-perso-couche ; répétable
+      --couche-perso-couche <nom>
+                            nom de la couche d'un service WMS, tel que le service l'annonce ; répétable, dans
+                            l'ordre des services WMS parmi les couches ajoutées
       --couche-perso-nom <nom>
                             nom de la couche ajoutée, tel qu'il apparaîtra ; répétable, dans l'ordre des
                             couches ajoutées
@@ -89,7 +93,7 @@ https://sebprunier.github.io/cartes/zoom-et-impression.html
 
 Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, geocode, serve,
 --department, --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name,
---custom-layer-source, --custom-layer-opacity, --data, --data-title, --data-category, --data-color,
+--custom-layer-source, --custom-layer-opacity, --custom-layer-wms, --data, --data-title, --data-category, --data-color,
 --data-unverified, --municipality, --output, --margin, --grayscale, --no-outline, --no-legend, --estimate,
 --max-tiles, --concurrency, --help.`;
 
@@ -118,6 +122,7 @@ export const OPTIONS = {
   'custom-layer-name': { type: 'string', french: 'couche-perso-nom', multiple: true, default: [] },
   'custom-layer-source': { type: 'string', french: 'couche-perso-source', multiple: true, default: [] },
   'custom-layer-opacity': { type: 'string', french: 'couche-perso-opacite', multiple: true, default: [] },
+  'custom-layer-wms': { type: 'string', french: 'couche-perso-couche', multiple: true, default: [] },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
   'data-title': { type: 'string', french: 'donnees-titre', multiple: true, default: [] },
   'data-category': { type: 'string', french: 'donnees-categorie' },

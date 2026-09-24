@@ -52,6 +52,10 @@ cartes generer 86081 --donnees points.geojson --donnees-titre "Points d'apport v
 cartes generer 86081 --couche-perso "https://exemple.fr/tuiles/{z}/{x}/{y}.pbf" \
   --couche-perso-nom "Zones humides" --couche-perso-source "© Syndicat de bassin"
 
+# Avec la couche d'un service WMS, par l'adresse du service et le nom de sa couche
+cartes generer 86081 --couche-perso "https://www.georisques.gouv.fr/services" \
+  --couche-perso-couche CAVITE_LOCALISEE --couche-perso-nom "Cavités" --couche-perso-source "© BRGM"
+
 # Estimer avant de générer : dimensions, mémoire et poids par niveau de zoom
 cartes generer 86081 --estimer
 ```

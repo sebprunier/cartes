@@ -6,6 +6,7 @@ import path from 'node:path';
 import { BrowserWindow, Menu, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS } from '../src/core/basemaps.js';
+import { readCapabilities } from '../src/core/capabilities.js';
 import { request } from '../src/core/http.js';
 import { checkMapLayer, chooseMapLayers, customMapLayer } from '../src/core/maplayers.js';
 import { extentFromBbox } from '../src/core/tiles.js';
@@ -146,6 +147,15 @@ ipcMain.handle('tile', async (event, url, { basemapId, zoom, x, y }) => {
 // A layer added by its address is tried on one tile here, not in the interface: a page is bound by the rules
 // a service sets for other sites, and the application is not. The error crosses as a message, a class not
 // surviving the trip between the two processes.
+// The capabilities of a WMS are read here too, free of the rules a service sets for other sites.
+ipcMain.handle('capabilities', async (event, address) => {
+  try {
+    return await readCapabilities(address);
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
 ipcMain.handle('check-layer', async (event, definition, place) => {
   try {
     return await checkMapLayer(customMapLayer(definition), place);

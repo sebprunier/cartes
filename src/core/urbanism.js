@@ -5,7 +5,7 @@
 
 import { HttpError, request } from './http.js';
 import { labelFontSize } from './layers.js';
-import { STATUS_PAGE_URL } from './status.js';
+import { STATUS_PAGE_URL } from './links.js';
 import { mapLayerLegendEntries } from './maplayers.js';
 import { box, boxesOverlap, expandBox, mergeBoxes, pathData } from './overlays.js';
 import { TILE_SIZE, lonLatToPixel } from './tiles.js';

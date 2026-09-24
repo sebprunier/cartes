@@ -2,8 +2,9 @@
 // image of a tile, so that the download, the cache and the retries written for the basemaps serve it too.
 
 import { geoplateformeWmts, tileUrl } from './basemaps.js';
-import { requestBytes } from './http.js';
+import { request, requestBytes } from './http.js';
 import { TILE_SIZE, lonLatToPixel } from './tiles.js';
+import { wmsRequests } from './wms.js';
 
 // Themes the catalog is sorted into, in the order they are offered. They are named for a town hall, not for the
 // services: a PPR and the clays are both a risk, whoever publishes them. The order is that of the list
@@ -334,13 +335,17 @@ function partition(items, matches) {
  * adding it, so everything is verified before a single tile travels.
  *
  * `url` is a template in {z}/{x}/{y}, serving either images or vector tiles — which the tool draws itself,
- * from the colors the tiles carry. `name` is what the interface shows, and `attribution` what the map credits:
- * it is required, because a layer whose source is not cited has no place on a map that is handed around.
+ * from the colors the tiles carry. Or, with `wmsLayers`, the address of a WMS and the name of one of its layers
+ * — `minZoom` and `dataMaxZoom` then say the scales the service draws it at, read in its capabilities.
+ * `name` is what the interface shows, and `attribution` what the map credits: it is required, because a layer
+ * whose source is not cited has no place on a map that is handed around.
  */
 export function customMapLayer(definition = {}) {
   const url = String(definition.url ?? '').trim();
   const name = String(definition.name ?? '').trim();
   const attribution = String(definition.attribution ?? '').trim();
+  const wmsLayers = String(definition.wmsLayers ?? '').trim();
+  if (wmsLayers) return customWmsLayer({ ...definition, url, name, attribution, wmsLayers });
 
   const missing = ['{z}', '{x}', '{y}'].filter((placeholder) => !url.includes(placeholder));
   if (missing.length > 0) {
@@ -376,6 +381,47 @@ export function customMapLayer(definition = {}) {
     dataMaxZoom: numberOrUndefined(definition.dataMaxZoom, 'zoom maximal', name),
     maxZoom: 19,
     // The map credits the day the layer was read: a service reachable by its address alone says no more.
+    datedByConsultation: true,
+  };
+}
+
+/** A layer of a WMS added by whoever generates the map: the service draws it, as it does those of Géorisques. */
+function customWmsLayer({ url, name, attribution, wmsLayers, wmsStyle, opacity, minZoom, dataMaxZoom, id }) {
+  let address;
+  try {
+    address = new URL(url);
+  } catch {
+    throw new MapLayerError(`Adresse de service invalide : ${url}. Attendu par exemple https://exemple.fr/wms.`);
+  }
+  if (address.protocol !== 'https:' && address.protocol !== 'http:') {
+    throw new MapLayerError(`Adresse de service invalide : ${url}. Attendu une adresse en https.`);
+  }
+  if (!name) throw new MapLayerError(`Nom de couche manquant pour ${wmsLayers} : c’est ce que l’interface affichera.`);
+  if (!attribution) {
+    throw new MapLayerError(
+      `Source manquante pour la couche « ${name} » : elle est écrite sur la carte, à côté de celles de l’IGN. ` +
+        'La plupart des licences l’imposent, et une carte qui circule sans ses sources ne vaut rien.',
+    );
+  }
+  const lowest = numberOrUndefined(minZoom, 'zoom minimal', name);
+  return {
+    id: id || customId(name),
+    name,
+    description: `Couche « ${wmsLayers} » du service ${address.host}.`,
+    provider: address.host,
+    kind: 'wms',
+    url,
+    wmsLayers,
+    ...(wmsStyle ? { wmsStyle } : {}),
+    custom: true,
+    opacity: checkOpacity(opacity ?? 0.6, { id: id || name }),
+    attribution,
+    minZoom: lowest,
+    ...(lowest === undefined
+      ? {}
+      : { zoomNote: `En dessous du zoom ${lowest}, le service ne dessine pas cette couche.` }),
+    dataMaxZoom: numberOrUndefined(dataMaxZoom, 'zoom maximal', name),
+    maxZoom: 19,
     datedByConsultation: true,
   };
 }
@@ -432,7 +478,8 @@ const LOWEST_PROBE_ZOOM = 8;
  * a service answers an empty tile past its own detail. So the check walks down a few levels before saying the
  * layer shows nothing here, and it never concludes anything about where the data stops: one tile cannot.
  */
-export async function checkMapLayer(layer, { lon, lat, zoom }, { fetchBytes = requestBytes } = {}) {
+export async function checkMapLayer(layer, { lon, lat, zoom }, { fetchBytes = requestBytes, fetchResponse = request } = {}) {
+  if (isWmsLayer(layer)) return checkWmsLayer(layer, { lon, lat, zoom }, fetchResponse);
   const lowest = Math.min(zoom, LOWEST_PROBE_ZOOM);
   let answered = false;
   for (let probe = zoom; probe >= lowest; probe--) {
@@ -453,6 +500,39 @@ export async function checkMapLayer(layer, { lon, lat, zoom }, { fetchBytes = re
     if (bytes !== null) answered = true;
   }
   return { empty: true, missing: !answered };
+}
+
+/**
+ * A layer of a WMS, tried on one image over the place: the service answers an image, or says in a document of
+ * its own why it will not — a layer name it does not know, a projection it refuses. That is read and said.
+ */
+async function checkWmsLayer(layer, { lon, lat, zoom }, fetchResponse) {
+  const probe = Math.min(Math.max(zoom, layer.minZoom ?? 0), 19);
+  const [x, y] = lonLatToPixel(lon, lat, probe);
+  const around = { zoom: probe, xMin: Math.round(x) - 128, yMin: Math.round(y) - 128, width: 256, height: 256 };
+  const [{ url }] = wmsRequests(layer, around);
+  let response;
+  try {
+    response = await fetchResponse(url);
+  } catch (error) {
+    throw new MapLayerError(
+      `La couche « ${layer.name} » n’a pas répondu : ${error.message}. Vérifiez l’adresse, et que le service ` +
+        'est bien ouvert à tous.',
+    );
+  }
+  if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+    await response.body?.cancel();
+    return { empty: false, missing: false };
+  }
+  const answer = await response.text();
+  // Not <ServiceExceptionReport>, which holds it.
+  const reason = answer
+    .match(/<ServiceException(?:\s[^>]*)?>([\s\S]*?)<\/ServiceException>/)?.[1]
+    ?.trim()
+    .replace(/\.$/, '');
+  throw new MapLayerError(
+    `Le service refuse la couche « ${layer.name} » : ${reason ?? `réponse ${response.status}, et pas une image`}.`,
+  );
 }
 
 /** An opacity is a share of 1: 1 hides the basemap, and 0 would draw nothing at all. */

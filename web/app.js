@@ -22,6 +22,7 @@ import {
   readLayer,
 } from './core/layers.js';
 import { geocodeCsv } from './core/geocoding.js';
+import { serviceAddress } from './core/capabilities.js';
 import { SERVICES, STATUS_PAGE_URL, checkService, serviceOfLayer } from './core/status.js';
 import {
   boundaryBbox,
@@ -82,6 +83,14 @@ const customLayerSource = element('custom-layer-source');
 const customLayerPrivacy = element('custom-layer-privacy');
 const customLayerError = element('custom-layer-error');
 const checkCustomLayer = element('check-custom-layer');
+const customLayerTiles = element('custom-layer-tiles');
+const customLayerWms = element('custom-layer-wms');
+const customLayerService = element('custom-layer-service');
+const readCapabilitiesButton = element('read-capabilities');
+const customLayerWmsChoice = element('custom-layer-wms-choice');
+const customLayerWmsSearch = element('custom-layer-wms-search');
+const customLayerWmsList = element('custom-layer-wms-list');
+const customLayerWmsCount = element('custom-layer-wms-count');
 const closeCustomLayer = element('close-custom-layer');
 const estimatesTable = element('estimates');
 const estimateResult = element('estimate-result');
@@ -166,7 +175,14 @@ function forgetLayer(layer) {
 
 function writeRemembered() {
   try {
-    const kept = remembered.map(({ id, url, name, attribution }) => ({ id, url, name, attribution }));
+    const kept = remembered.map(({ id, url, name, attribution, wmsLayers, minZoom, dataMaxZoom }) => ({
+      id,
+      url,
+      name,
+      attribution,
+      // A layer of a WMS keeps the name of its layer, and the scales its service draws it at.
+      ...(wmsLayers ? { wmsLayers, minZoom, dataMaxZoom } : {}),
+    }));
     localStorage.setItem(REMEMBERED_LAYERS, JSON.stringify(kept));
   } catch {
     // A browser that refuses to store anything is not a reason to refuse the layer for this map.
@@ -488,7 +504,115 @@ function showCustomLayerForm() {
   hideError(customLayerError);
   forgetDoubt();
   customLayerForm.showModal();
-  customLayerUrl.focus();
+  (customLayerKind() === 'wms' ? customLayerService : customLayerUrl).focus();
+}
+
+/** What the service publishes: tiles, given by a template, or a WMS, whose layer is chosen in its list. */
+function customLayerKind() {
+  return customLayerForm.querySelector('input[name="custom-layer-kind"]:checked').value;
+}
+
+for (const choice of customLayerForm.querySelectorAll('input[name="custom-layer-kind"]')) {
+  choice.addEventListener('change', () => {
+    customLayerTiles.hidden = customLayerKind() !== 'tiles';
+    customLayerWms.hidden = customLayerKind() !== 'wms';
+    hideError(customLayerError);
+    forgetDoubt();
+  });
+}
+
+// The capabilities of the service read last: the layers it can draw for a map, and where it was asked.
+let capabilities;
+// What the form wrote in the name and the source, from the layer chosen: replaced when another is chosen,
+// unless it was changed by hand.
+let suggested = {};
+
+readCapabilitiesButton.addEventListener('click', async () => {
+  hideError(customLayerError);
+  forgetDoubt();
+  readCapabilitiesButton.disabled = true;
+  readCapabilitiesButton.textContent = 'Lecture…';
+  try {
+    const read = await engine.readCapabilities(customLayerService.value);
+    // The desktop application answers from its main process, where an error crosses as a message.
+    if (read.error) throw new Error(read.error);
+    if (read.layers.length === 0) {
+      throw new Error(
+        read.withoutWebMercator > 0
+          ? `Le service annonce ${read.withoutWebMercator} couche(s), mais aucune en Web Mercator, la projection des cartes.`
+          : 'Le service n’annonce aucune couche à dessiner.',
+      );
+    }
+    capabilities = { ...read, service: serviceAddress(customLayerService.value) };
+    customLayerWmsSearch.value = '';
+    customLayerWmsSearch.placeholder = `Rechercher parmi les ${read.layers.length} couches…`;
+    showWmsLayers();
+    customLayerWmsChoice.hidden = false;
+    customLayerWmsSearch.focus();
+  } catch (error) {
+    capabilities = undefined;
+    customLayerWmsChoice.hidden = true;
+    showError(error.message, customLayerError);
+  } finally {
+    readCapabilitiesButton.disabled = false;
+    readCapabilitiesButton.textContent = 'Lire les couches';
+  }
+});
+
+/** The layers of the service matching the search, by their title, with their name for those who know it. */
+function showWmsLayers() {
+  const wanted = customLayerWmsSearch.value.trim().toLowerCase();
+  const shown = capabilities.layers.filter(({ name, title }) => `${title} ${name}`.toLowerCase().includes(wanted));
+  const selected = customLayerWmsList.value;
+  customLayerWmsList.replaceChildren(
+    ...shown.map(({ name, title }) => new Option(title === name ? name : `${title} — ${name}`, name, false, name === selected)),
+  );
+  customLayerWmsCount.textContent =
+    shown.length === capabilities.layers.length
+      ? `${shown.length} couche(s) proposée(s) par ${capabilities.title ?? 'le service'}.`
+      : `${shown.length} couche(s) sur ${capabilities.layers.length}.`;
+}
+
+customLayerWmsSearch.addEventListener('input', showWmsLayers);
+
+customLayerWmsList.addEventListener('change', () => {
+  forgetDoubt();
+  const layer = chosenWmsLayer();
+  if (!layer) return;
+  // The name and the source are suggested from what the service says, and stay yours to change.
+  const host = new URL(capabilities.service).host;
+  if (!customLayerName.value || customLayerName.value === suggested.name) customLayerName.value = suggested.name = layer.title;
+  const source = layer.attribution ? `© ${layer.attribution}` : host;
+  if (!customLayerSource.value || customLayerSource.value === suggested.source) {
+    customLayerSource.value = suggested.source = source;
+  }
+});
+
+function chosenWmsLayer() {
+  return capabilities?.layers.find(({ name }) => name === customLayerWmsList.value);
+}
+
+/** The layer described by the form, as typed or as chosen in the list of the service. */
+function customLayerFromForm() {
+  if (customLayerKind() === 'tiles') {
+    return customMapLayer({ url: customLayerUrl.value, name: customLayerName.value, attribution: customLayerSource.value });
+  }
+  const chosen = chosenWmsLayer();
+  if (!chosen) {
+    throw new MapLayerError(
+      capabilities
+        ? 'Choisissez une couche dans la liste des couches du service.'
+        : 'Donnez l’adresse du service, puis lisez ses couches pour choisir la vôtre.',
+    );
+  }
+  return customMapLayer({
+    url: capabilities.service,
+    wmsLayers: chosen.name,
+    minZoom: chosen.minZoom,
+    dataMaxZoom: chosen.dataMaxZoom,
+    name: customLayerName.value,
+    attribution: customLayerSource.value,
+  });
 }
 
 function forgetDoubt() {
@@ -496,7 +620,7 @@ function forgetDoubt() {
   checkCustomLayer.textContent = 'Vérifier et ajouter';
 }
 
-for (const field of [customLayerUrl, customLayerName, customLayerSource]) {
+for (const field of [customLayerUrl, customLayerService, customLayerName, customLayerSource]) {
   field.addEventListener('input', forgetDoubt);
 }
 
@@ -513,11 +637,7 @@ checkCustomLayer.addEventListener('click', async () => {
   hideError(customLayerError);
   let layer;
   try {
-    layer = customMapLayer({
-      url: customLayerUrl.value,
-      name: customLayerName.value,
-      attribution: customLayerSource.value,
-    });
+    layer = customLayerFromForm();
   } catch (error) {
     showError(error instanceof MapLayerError ? error.message : `Couche refusée : ${error.message}`, customLayerError);
     return;

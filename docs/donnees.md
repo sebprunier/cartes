@@ -36,7 +36,7 @@ Une couche vide n'est pas une panne : beaucoup de communes ne sont traversées p
 
 ### Ajouter sa propre couche
 
-Le catalogue ne couvre pas tout. Une communauté de communes, un département, un syndicat d'eau publient souvent leurs propres tuiles : le bouton « Ajouter une couche personnalisée », dans le catalogue, permet de les afficher par l'adresse de leurs tuiles. En ligne de commande, c'est `--couche-perso`.
+Le catalogue ne couvre pas tout. Une communauté de communes, un département, un syndicat d'eau publient souvent leurs propres tuiles, ou un service WMS : le bouton « Ajouter une couche personnalisée », dans le catalogue, permet de les afficher. Le formulaire demande d'abord ce que publie le service. En ligne de commande, c'est `--couche-perso`.
 
 ![Le formulaire « Ajouter une couche personnalisée », rempli : l'adresse des tuiles en gabarit {z}/{x}/{y}, le nom de la couche et la source à citer](images/captures/donnees-couche-adresse.png)
 
@@ -48,12 +48,20 @@ Trois choses sont demandées :
 
 L'adresse est essayée sur une tuile avant d'être acceptée. Si le service ne connaît aucune des tuiles demandées, c'est presque toujours que l'adresse est inexacte ; s'il répond sans rien donner, la couche ne couvre peut-être simplement pas votre commune. Dans les deux cas l'outil le dit, et vous laisse ajouter la couche quand même.
 
+#### Un service WMS
+
+Beaucoup de services publics publient leurs couches par un **WMS**, qui dessine l'image qu'on lui demande plutôt que de servir des tuiles toutes faites — Géorisques, la Géoplateforme, bien des départements. Choisissez « Un service WMS », donnez l'**adresse du service** (`https://exemple.fr/wms`, ou l'adresse complète de ses capacités, `…?SERVICE=WMS&REQUEST=GetCapabilities`, que l'outil ramène au service), puis cliquez sur « Lire les couches » : l'outil lit la liste des couches que le service annonce, et vous choisissez la vôtre, en la cherchant par son titre. Le nom et la source se remplissent d'après ce que dit le service ; vérifiez-les, la source surtout.
+
+Le service dit aussi à quelles échelles il dessine chaque couche : l'outil en tient compte, et demande l'image à une échelle que le service accepte. La légende que publie le service est ajoutée à celle de la carte.
+
+En ligne de commande, l'adresse du service va dans `--couche-perso`, et le nom exact de la couche dans `--couche-perso-couche` ; un nom inexact est refusé, avec les noms qui s'en approchent.
+
 Les adresses saisies sont retenues pour vos prochaines cartes — dans votre navigateur, ou sur votre ordinateur pour l'application — et le catalogue les propose ensuite sous « Vos couches », avec de quoi les oublier.
 
 #### Ce qu'il faut savoir
 
 - **Le service voit passer vos requêtes** et apprend quelle commune vous cartographiez. C'est la seule chose qui sort de votre navigateur.
-- **Depuis la page web**, un service qui n'autorise pas les autres sites à le lire (ce qu'on appelle CORS) reste inaccessible. La ligne de commande et l'application de bureau n'ont pas cette limite.
+- **Depuis la page web**, un service qui n'autorise pas les autres sites à le lire (ce qu'on appelle CORS) reste inaccessible. Donnez son adresse exacte : une adresse qui redirige ailleurs — `georisques.gouv.fr` au lieu de `www.georisques.gouv.fr` — échoue aussi, la redirection ne portant pas l'autorisation. La ligne de commande et l'application de bureau n'ont pas cette limite.
 - **Ménagez les services que vous ne payez pas** : un zoom élevé, c'est des milliers de tuiles. Certains limitent le nombre de requêtes et l'outil s'arrête alors en vous conseillant de baisser le zoom.
 - **Une couche vectorielle ne dit pas où s'arrête sa donnée.** L'outil cherche le niveau de détail qu'elle contient vraiment ; au-delà, les mêmes contours sont dessinés en plus grand, nets mais pas plus précis.
 

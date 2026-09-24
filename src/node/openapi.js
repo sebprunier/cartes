@@ -40,12 +40,13 @@ const MAP_REQUEST = {
     },
     couchesPerso: {
       type: 'array',
-      description: 'Couches ajoutées par l’adresse de leurs tuiles.',
+      description: 'Couches ajoutées par l’adresse de leurs tuiles, ou par celle d’un service WMS et le nom de sa couche.',
       items: {
         type: 'object',
         required: ['adresse', 'source'],
         properties: {
-          adresse: { type: 'string', examples: ['https://exemple.fr/tuiles/{z}/{x}/{y}.pbf'] },
+          adresse: { type: 'string', examples: ['https://exemple.fr/tuiles/{z}/{x}/{y}.pbf', 'https://exemple.fr/wms'] },
+          couche: { type: 'string', description: 'Pour un service WMS : le nom de la couche, tel que le service l’annonce.' },
           nom: { type: 'string' },
           source: { type: 'string', description: 'Mention de la source, écrite sur la carte.' },
           opacite: { type: 'number', minimum: 0, maximum: 1, default: 0.6 },

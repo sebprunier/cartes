@@ -8,6 +8,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- Une couche personnalisée peut venir d'un service WMS, et plus seulement de tuiles : le formulaire demande ce que publie le service, lit les couches qu'il annonce et les propose dans une liste, avec leur titre, leur source et les échelles auxquelles il les dessine. En ligne de commande : `--couche-perso <adresse du service> --couche-perso-couche <nom>` ; dans l'API : `couche` dans `couchesPerso`.
 - L'application de bureau annonce une nouvelle version : au lancement, elle demande à GitHub quelle est la dernière publiée, et un bandeau propose de la télécharger et d'en lire les nouveautés. Elle ne se met pas à jour d'elle-même — ses installeurs ne sont pas signés — et ne dit rien quand elle est hors ligne.
 - Une couche « Artificialisation des sols » : les surfaces artificialisées ou non selon l'OCS GE de l'IGN, dans le dernier millésime dont dispose la commune — la Vienne a 2021-2023 —, nommé dans la mention des sources. En ligne de commande : `--couches artificialisation`.
 - Une couche dont le service s'arrête avant les derniers niveaux de zoom est dessinée plus grande au-delà, au lieu de manquer : l'OCS GE à partir du zoom 17, les bandes tampons à partir du 18, les courbes de niveau au 19.

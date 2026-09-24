@@ -8,8 +8,8 @@ import { request } from './http.js';
 import { MAP_LAYERS } from './maplayers.js';
 import { lonLatToPixel } from './tiles.js';
 
-// Address of the page of the site that runs these checks, for the messages of a service that fails.
-export const STATUS_PAGE_URL = 'https://sebprunier.github.io/cartes/etat-des-services.html';
+// The page of the site that runs these checks, for the messages of a service that fails.
+export { STATUS_PAGE_URL } from './links.js';
 
 // Colombiers, where every service has something to answer: its town hall, and its INSEE code.
 const PLACE = { lon: 0.426713, lat: 46.772149, inseeCode: '86081' };

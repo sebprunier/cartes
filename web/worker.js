@@ -18,6 +18,7 @@ import {
 } from './core/maplayers.js';
 import { extentBbox, readUrbanPlan, urbanPlanDrawing } from './core/urbanism.js';
 import { fetchWmsImages, wmsLegendUrl, wmsRequests } from './core/wms.js';
+import { readCapabilities } from './core/capabilities.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
@@ -49,6 +50,8 @@ const TASKS = {
   generate,
   // The address of a layer is tried here rather than in the page: the fetch belongs where the tiles are read.
   'check-layer': ({ layer, place }) => checkMapLayer(layer, place),
+  // The layers a WMS can draw, read from its capabilities: in the worker too, where the fetches belong.
+  capabilities: ({ address }) => readCapabilities(address),
 };
 
 onmessage = async ({ data: message }) => {

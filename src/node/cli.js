@@ -22,6 +22,7 @@ import { extentFromBbox, groundResolution } from '../core/tiles.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import { DATES_PROGRESS, SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
 import { createApiServer } from './server.js';
+import { CapabilitiesError, completeWmsDefinitions } from '../core/capabilities.js';
 import { SERVICES, checkService, describeCheck } from '../core/status.js';
 
 const { version: VERSION } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
@@ -264,17 +265,30 @@ async function generate(input, options) {
 
   let mapLayers;
   try {
+    // The n-th layer name goes to the n-th address that is not a template of tiles: a WMS is given by its
+    // service and the name of one of its layers, and both kinds can be mixed.
+    const wmsNames = [...options['custom-layer-wms']];
+    const custom = options['custom-layer'].map((url, index) => ({
+      url,
+      name: options['custom-layer-name'][index],
+      attribution: options['custom-layer-source'][index],
+      opacity: options['custom-layer-opacity'][index],
+      ...(url.includes('{z}') ? {} : { wmsLayers: wmsNames.shift() }),
+    }));
+    const missingName = custom.find((definition) => 'wmsLayers' in definition && !definition.wmsLayers);
+    if (missingName) {
+      throw new UsageError(
+        `${missingName.url} n'est pas un gabarit de tuiles en {z}/{x}/{y} : si c'est un service WMS, donnez le nom ` +
+          'de sa couche avec --couche-perso-couche.',
+      );
+    }
     mapLayers = chooseMapLayers([
       ...options.maplayers.map((id, index) => ({ id, opacity: options['maplayers-opacity'][index] })),
-      ...options['custom-layer'].map((url, index) => ({
-        url,
-        name: options['custom-layer-name'][index],
-        attribution: options['custom-layer-source'][index],
-        opacity: options['custom-layer-opacity'][index],
-      })),
+      // A layer of a WMS takes the scales its service draws it at from its capabilities.
+      ...(await completeWmsDefinitions(custom)),
     ]);
   } catch (error) {
-    throw error instanceof MapLayerError ? new UsageError(error.message) : error;
+    throw error instanceof MapLayerError || error instanceof CapabilitiesError ? new UsageError(error.message) : error;
   }
 
   let plan;

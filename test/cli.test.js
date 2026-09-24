@@ -31,6 +31,17 @@ describe('cartes', () => {
     });
   });
 
+  it('asks for the layer of a WMS given by its address alone, before calling anything', async () => {
+    await assert.rejects(
+      run('generer', '86081', '--couche-perso', 'https://exemple.fr/wms', '--couche-perso-nom', 'Zonage', '--couche-perso-source', '© Exemple'),
+      (error) => {
+        assert.equal(error.code, 1);
+        assert.match(error.stderr, /^https:\/\/exemple\.fr\/wms n'est pas un gabarit de tuiles .* --couche-perso-couche\./);
+        return true;
+      },
+    );
+  });
+
   describe('geocoder', () => {
     const withFile = async (content, test) => {
       const dir = await mkdtemp(path.join(tmpdir(), 'cartes-cli-'));

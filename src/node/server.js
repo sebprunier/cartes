@@ -13,6 +13,7 @@ import { BASEMAPS } from '../core/basemaps.js';
 import { formatBytes, imageMemory } from '../core/estimates.js';
 import { LayerError, readLayer } from '../core/layers.js';
 import { MAP_LAYERS, MapLayerError, chooseMapLayers } from '../core/maplayers.js';
+import { CapabilitiesError, completeWmsDefinitions } from '../core/capabilities.js';
 import { MunicipalityNotFound, searchMunicipalities } from '../core/municipalities.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
@@ -36,7 +37,7 @@ const ROUTES = {
 const FRENCH_ROUTES = Object.fromEntries(Object.entries(ROUTES).map(([french, english]) => [english, french]));
 
 const LAYER_FIELDS = { id: 'id', opacite: 'opacity' };
-const CUSTOM_LAYER_FIELDS = { adresse: 'url', nom: 'name', source: 'attribution', opacite: 'opacity' };
+const CUSTOM_LAYER_FIELDS = { adresse: 'url', nom: 'name', source: 'attribution', opacite: 'opacity', couche: 'wmsLayers' };
 const DATA_FIELDS = { fichier: 'fileName', titre: 'title', contenu: 'content' };
 
 /** An error of the request, told to the client as is, with its HTTP status. */
@@ -427,16 +428,18 @@ export async function resolveRequest(body, { maxZoom = Infinity } = {}) {
 
   let mapLayers;
   try {
+    const custom = listField(fields.customLayers, 'couchesPerso').map((layer) =>
+      normalizeFields(layer, CUSTOM_LAYER_FIELDS, 'une couche ajoutée par son adresse'),
+    );
     mapLayers = chooseMapLayers([
       ...listField(fields.maplayers, 'couches').map((layer) =>
         typeof layer === 'string' ? { id: layer } : normalizeFields(layer, LAYER_FIELDS, 'une couche'),
       ),
-      ...listField(fields.customLayers, 'couchesPerso').map((layer) =>
-        normalizeFields(layer, CUSTOM_LAYER_FIELDS, 'une couche ajoutée par son adresse'),
-      ),
+      // A layer of a WMS takes the scales its service draws it at from its capabilities.
+      ...(await completeWmsDefinitions(custom)),
     ]);
   } catch (error) {
-    throw error instanceof MapLayerError ? new ApiError(400, error.message) : error;
+    throw error instanceof MapLayerError || error instanceof CapabilitiesError ? new ApiError(400, error.message) : error;
   }
 
   const layers = listField(fields.data, 'donnees').map((entry, index) => {
