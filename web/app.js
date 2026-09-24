@@ -161,7 +161,7 @@ function showMapLayers() {
   const catalogAdded = mapLayers.filter(({ id }) => MAP_LAYERS[id]).length;
   addMapLayerButton.disabled = false;
   addMapLayerButton.textContent =
-    catalogAdded === Object.keys(MAP_LAYERS).length ? 'Ajouter une couche par son adresse' : 'Ajouter une couche';
+    catalogAdded === Object.keys(MAP_LAYERS).length ? 'Ajouter une couche personnalisée' : 'Ajouter une couche';
 }
 
 function mapLayerItem(chosen) {

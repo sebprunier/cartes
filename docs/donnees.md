@@ -25,9 +25,9 @@ Une couche vide n'est pas une panne : beaucoup de communes ne sont traversées p
 
 ### Ajouter sa propre couche
 
-Le catalogue ne couvre pas tout. Une communauté de communes, un département, un syndicat d'eau publient souvent leurs propres tuiles : le bouton « Ajouter une couche par son adresse », dans le catalogue, permet de les afficher. En ligne de commande, c'est `--couche-perso`.
+Le catalogue ne couvre pas tout. Une communauté de communes, un département, un syndicat d'eau publient souvent leurs propres tuiles : le bouton « Ajouter une couche personnalisée », dans le catalogue, permet de les afficher par l'adresse de leurs tuiles. En ligne de commande, c'est `--couche-perso`.
 
-![Le formulaire « Ajouter une couche par son adresse », rempli : l'adresse des tuiles en gabarit {z}/{x}/{y}, le nom de la couche et la source à citer](images/captures/donnees-couche-adresse.png)
+![Le formulaire « Ajouter une couche personnalisée », rempli : l'adresse des tuiles en gabarit {z}/{x}/{y}, le nom de la couche et la source à citer](images/captures/donnees-couche-adresse.png)
 
 Trois choses sont demandées :
 
