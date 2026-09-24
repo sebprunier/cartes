@@ -12,14 +12,15 @@ export function imageMemory(extent) {
  * tiles, and from the file size ratio of the basemap for the output format, in color or in grayscale.
  * `layers` are the layers laid over the basemap, each with its own sample: a layer drawn over the whole map
  * weighs as much as the basemap itself, and ignoring it made the estimate meaningless. `palette` tells that
- * the PNG will be written with a color palette, which the platforms do not all support.
- * Returns undefined when the sample of the basemap is empty.
+ * the PNG will be written with a color palette, which the platforms do not all support; `browser`, that a
+ * browser encodes the image, not sharp. Returns undefined when the sample of the basemap is empty.
  */
 export function estimateFileSize({
   basemap,
   format,
   grayscale,
   palette = false,
+  browser = false,
   zoom,
   tileCount,
   sampleSizes,
@@ -29,7 +30,8 @@ export function estimateFileSize({
   const weight = (source, sizes) => {
     const ratios = source.fileSizeRatios[grayscale ? 'grayscale' : 'color'];
     const average = sizes.reduce((total, size) => total + size, 0) / sizes.length;
-    return average * tileCount * ((palette && ratios.pngPalette) || ratios[format]) * drawnShare(source, zoom);
+    const encoder = browser ? BROWSER_ENCODERS[grayscale ? 'grayscale' : 'color'][format] : 1;
+    return average * tileCount * ((palette && ratios.pngPalette) || ratios[format]) * encoder * drawnShare(source, zoom);
   };
   return layers.reduce(
     (total, { layer, sampleSizes: layerSizes }) =>
@@ -37,6 +39,16 @@ export function estimateFileSize({
     weight(basemap, sampleSizes),
   );
 }
+
+// The ratios of the catalogs were measured with sharp. A browser encodes otherwise: the weight of its file,
+// divided by that of sharp, for the same image — Colombiers, Plan IGN, at zoom 15 and 16, the same factor at both
+// within 0.01 (#5). An average of Chrome 153, Firefox 156 and Safari 18.6; each is within 17 % of it. In color:
+// PNG ×1.37 to ×1.57, JPEG ×1.00 to ×1.35. In grayscale, of Chrome and Firefox only: Safari ignored the filter
+// that turned its canvas gray, and encoded the map in color.
+const BROWSER_ENCODERS = {
+  color: { png: 1.48, jpg: 1.21 },
+  grayscale: { png: 1.18, jpg: 1.05 },
+};
 
 // Below the zoom level where a layer shows everything, it draws much less — the cadastre only its sections —
 // and weighs about a third of what its tiles suggest. Measured on Colombiers between zoom 15 and zoom 16.

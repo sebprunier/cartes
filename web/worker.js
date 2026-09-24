@@ -89,7 +89,16 @@ async function estimate({ basemapId, bbox, zoom, margin, format, grayscale, mapL
   }
   return {
     zoom,
-    size: estimateFileSize({ basemap, format, grayscale, zoom, tileCount: extent.tileCount, sampleSizes, layers }),
+    size: estimateFileSize({
+      basemap,
+      format,
+      grayscale,
+      browser: true,
+      zoom,
+      tileCount: extent.tileCount,
+      sampleSizes,
+      layers,
+    }),
   };
 }
 

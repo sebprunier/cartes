@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import sharp from 'sharp';
 
-import { CHANNELS, assemblePixels, blendPixels, copyPixels } from '../core/image.js';
+import { CHANNELS, LUMINANCE, assemblePixels, blendPixels, copyPixels } from '../core/image.js';
 import { layersShapes } from '../core/layers.js';
 import { legendEntries, legendTitle } from '../core/layers.js';
 import {
@@ -23,8 +23,6 @@ import {
 import { TILE_SIZE } from '../core/tiles.js';
 import { removeTile } from './cache.js';
 
-// Luminance coefficients (Rec. 601): grayscale stays on 3 channels so overlays keep their colors.
-const LUMINANCE = [0.299, 0.587, 0.114];
 // librsvg rejects SVGs larger than 32,767 px on a side: overlays are drawn block by block.
 const BLOCK_SIZE = 4096;
 

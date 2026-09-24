@@ -69,6 +69,15 @@ describe('estimateFileSize', () => {
     assert.equal(estimateFileSize({ basemap, format: 'png', palette: true, tileCount: 100, sampleSizes }), 90_000);
   });
 
+  it('corrects the ratios of sharp for the encoders of the browsers', () => {
+    const request = { basemap, format: 'jpg', tileCount: 100, sampleSizes };
+    assert.equal(estimateFileSize({ ...request, browser: true }), estimateFileSize(request) * 1.21);
+    assert.equal(
+      estimateFileSize({ ...request, format: 'png', grayscale: true, browser: true }),
+      estimateFileSize({ ...request, format: 'png', grayscale: true }) * 1.18,
+    );
+  });
+
   it('returns undefined when the sample is empty', () => {
     assert.equal(estimateFileSize({ basemap, format: 'png', tileCount: 100, sampleSizes: [] }), undefined);
   });

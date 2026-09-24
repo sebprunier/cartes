@@ -60,6 +60,7 @@ node src/node/cli.js --aide
 | `scripts/build-web.js` | construit le site dans `dist/` : la documentation à la racine, la page de génération dans `dist/generer/` (avec `--serve`, sert le tout en local) |
 | `scripts/build-docs.js` | construit le site de la documentation à la racine de `dist/`, à partir de `docs/` ; lancé seul, liste les captures d'écran à venir |
 | `scripts/build-electron.js` | construit l'interface de l'application dans `dist-electron/` |
+| `scripts/mesure-navigateurs.js` | sert une page qui mesure le canevas d'un navigateur — taille maximale, échec au-delà, poids de ses encodeurs — à partir des tuiles de Colombiers en cache (`npm run mesure:navigateurs`) |
 | `scripts/illustrations.js` | redessine les illustrations de la documentation à partir de vraies cartes de Colombiers (`npm run illustrations`, demande le réseau ou le cache des tuiles) |
 | `test/` | tests unitaires (`node:test`) |
 

@@ -34,7 +34,8 @@
     "build:electron": "node scripts/build-electron.js",
     "electron": "node scripts/build-electron.js && electron .",
     "package:electron": "node scripts/build-electron.js && electron-builder",
-    "illustrations": "node scripts/illustrations.js"
+    "illustrations": "node scripts/illustrations.js",
+    "mesure:navigateurs": "node scripts/mesure-navigateurs.js"
   },
   "engines": {
     "node": ">=22"

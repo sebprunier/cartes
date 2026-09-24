@@ -11,6 +11,7 @@ import {
   legendLayout,
   outlineStrokeWidth,
 } from './core/overlays.js';
+import { grayscaleRgba } from './core/image.js';
 import { TILE_SIZE } from './core/tiles.js';
 
 /** White canvas of the size of the extent, with its 2D context. */
@@ -41,14 +42,29 @@ export function canRender(width, height) {
 }
 
 /**
+ * The tile made gray pixel by pixel, with the coefficients of the Node engine: the filter of the canvas is
+ * ignored by Safari, and applies other coefficients elsewhere.
+ */
+async function grayBitmap(bitmap) {
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const context = canvas.getContext('2d');
+  context.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  grayscaleRgba(image.data);
+  context.putImageData(image, 0, 0);
+  return canvas.transferToImageBitmap();
+}
+
+/**
  * Draws a downloaded tile at its place in the image, with the opacity of its layer. With `detect`, also tells
  * whether the tile holds anything visible — a layer that draws nothing gets no line in the legend. Reading its
  * pixels back costs a little, and is asked only for the layers that have a legend.
  */
 export async function drawTile(context, extent, tile, { grayscale = false, opacity = 1, detect = false, scale = 1 } = {}) {
-  const bitmap = await createImageBitmap(new Blob([tile.content]));
+  let bitmap = await createImageBitmap(new Blob([tile.content]));
+  if (grayscale) bitmap = await grayBitmap(bitmap);
   context.save();
-  if (grayscale) context.filter = 'grayscale(1)';
   context.globalAlpha = opacity;
   // A tile of a lower zoom level, drawn larger pixel by pixel, as the Node engine does: smoothed, it looked no
   // better and weighed more.

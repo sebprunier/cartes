@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { CHANNELS, blendPixels } from '../src/core/image.js';
+import { CHANNELS, blendPixels, grayscaleRgba } from '../src/core/image.js';
 
 // A white image of 4 × 2 pixels, on which layers are laid.
 const whiteImage = () => new Uint8Array(4 * 2 * CHANNELS).fill(255);
@@ -48,5 +48,13 @@ describe('blendPixels', () => {
 
   it('refuses pixels that are not RGBA', () => {
     assert.throws(() => blendPixels({ data: new Uint8Array(3), width: 1, height: 1 }, whiteImage(), 0, 0, 4, 2), /RGBA/);
+  });
+});
+
+describe('grayscaleRgba', () => {
+  it('turns pixels gray with the coefficients of sharp, keeping their transparency', () => {
+    const data = new Uint8ClampedArray([255, 0, 0, 255, 0, 255, 0, 128, 0, 0, 255, 0, 200, 200, 200, 255]);
+    grayscaleRgba(data);
+    assert.deepEqual([...data], [76, 76, 76, 255, 150, 150, 150, 128, 29, 29, 29, 0, 200, 200, 200, 255]);
   });
 });

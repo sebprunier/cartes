@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Mesure du canevas</title>
+<style>
+  body { font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; color: #17232f; }
+  button { font: inherit; padding: 0.45rem 0.9rem; margin: 0.25rem 0.5rem 0.25rem 0; border: 1px solid #cfd7df; border-radius: 8px; background: #fff; cursor: pointer; }
+  button.primary { background: #15814f; border-color: #15814f; color: #fff; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  pre { background: #f5f7f9; border: 1px solid #e2e7ec; border-radius: 8px; padding: 1rem; white-space: pre-wrap; min-height: 6rem; }
+  .note { color: #5d6b79; font-size: 0.9rem; }
+  .warning { color: #8a4b00; }
+</style>
+</head>
+<body>
+<h1>Mesure du canevas</h1>
+<p class="note">Aucun service n'est appelé : les tuiles viennent de ce serveur local. Les mesures se font dans un worker, avec un <code>OffscreenCanvas</code>, comme sur la page de génération.</p>
+
+<p>
+  <button id="etapes-1-2" class="primary">1 et 2 — Limites et encodage</button>
+  <button id="etape-3">3 — Grandes images</button>
+  <button id="copier">Copier le résultat</button>
+</p>
+<p class="note warning">L'étape 3 encode des images de 80 et 164 millions de pixels : l'onglet peut se figer une minute, ou planter. Si c'est le cas, copiez d'abord le résultat des étapes 1 et 2.</p>
+
+<pre id="resultat"></pre>
+<div id="fichiers"></div>
+
+<script>
+  const output = document.getElementById('resultat');
+  const files = document.getElementById('fichiers');
+  const buttons = [...document.querySelectorAll('button:not(#copier)')];
+  const line = (text) => (output.textContent += `${text}\n`);
+
+  line(`Navigateur : ${navigator.userAgent}`);
+  line(`Cœurs : ${navigator.hardwareConcurrency ?? '?'} · écran ${screen.width} × ${screen.height} · densité ${devicePixelRatio}`);
+  line(`OffscreenCanvas dans un worker : ${typeof OffscreenCanvas === 'function' ? 'oui' : 'non'}`);
+
+  function run(task, extra = {}) {
+    return new Promise((resolve) => {
+      const worker = new Worker('mesure.js');
+      const start = performance.now();
+      buttons.forEach((button) => (button.disabled = true));
+      line(`\n— ${task} —`);
+      worker.onmessage = ({ data }) => {
+        if (data.type === 'ligne') line(data.text);
+        if (data.type === 'fichier') {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(data.blob);
+          link.download = data.name;
+          link.textContent = `Télécharger ${data.name} (${(data.blob.size / 1e6).toFixed(0)} Mo)`;
+          files.append(link, document.createElement('br'));
+        }
+        if (data.type === 'erreur') line(`ERREUR : ${data.message}`);
+        if (data.type === 'fin' || data.type === 'erreur') {
+          line(`(${((performance.now() - start) / 1000).toFixed(1)} s)`);
+          worker.terminate();
+          buttons.forEach((button) => (button.disabled = false));
+          resolve();
+        }
+      };
+      worker.onerror = (event) => {
+        line(`ERREUR du worker : ${event.message}`);
+        worker.terminate();
+        buttons.forEach((button) => (button.disabled = false));
+        resolve();
+      };
+      worker.postMessage({ task, ...extra });
+    });
+  }
+
+  document.getElementById('etapes-1-2').addEventListener('click', async () => {
+    await run('limites');
+    await run('encodage');
+  });
+  document.getElementById('etape-3').addEventListener('click', () =>
+    // Colombiers at zoom 17, then an image as large as Chrome allows.
+    run('grandes', { sizes: [[10207, 7807], [16384, 10000]] }),
+  );
+  document.getElementById('copier').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(output.textContent);
+    document.getElementById('copier').textContent = 'Copié ✓';
+  });
+</script>
+</body>
+</html>
