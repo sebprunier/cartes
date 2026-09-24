@@ -49,14 +49,23 @@ Ce qui déborde est rogné au pixel près. Il reste 639 × 489 pixels : les dime
 
 ## Les calques
 
-Sur ce fond, l'outil pose ensuite ses calques, du dessous vers le dessus :
+Sur ce fond, l'outil pose ensuite ses calques, du dessous vers le dessus. Voici la même carte de Colombiers au zoom 14, calque après calque.
 
-1. **Le fond de carte**, assemblé à partir des tuiles.
-2. **Les couches** que vous avez choisies. Certaines sont servies comme des images : le cadastre en tuiles, les plans de prévention des risques demandés à Géorisques en quelques grandes images. D'autres sont dessinées par l'outil à partir de données vectorielles, comme l'aléa retrait-gonflement des argiles, et restent nettes à tous les niveaux de zoom.
-3. **Le contour de la commune et vos données**, avec leurs étiquettes, placées pour ne pas se recouvrir.
-4. **La légende**, en bas à gauche, et **la mention des sources**, en bas à droite, avec la date de chaque donnée.
+**Le fond de carte**, assemblé à partir des tuiles.
 
-![La même carte de Colombiers au zoom 14, calque après calque : le fond de carte, l'aléa argiles, le contour et les points d'apport volontaire, puis la légende et la mention des sources](images/comment-calques.png "Quatre étapes de la même carte, au zoom 14.")
+![Le Plan IGN de Colombiers au zoom 14, seul](images/comment-calques-1-fond.png "1. Le fond de carte.")
+
+**Les couches** que vous avez choisies. Certaines sont servies comme des images : le cadastre en tuiles, les plans de prévention des risques demandés à Géorisques en quelques grandes images. D'autres sont dessinées par l'outil à partir de données vectorielles, comme ici l'aléa retrait-gonflement des argiles : elles restent nettes à tous les niveaux de zoom.
+
+![La même carte, recouverte de l'aléa retrait-gonflement des argiles, en orange là où il est moyen, en rose là où il est fort](images/comment-calques-2-couche.png "2. Une couche : l'aléa argiles, dessiné par l'outil.")
+
+**Le contour de la commune et vos données**, avec leurs étiquettes, placées pour ne pas se recouvrir.
+
+![La même carte, avec en plus le contour rouge de la commune et les points d'apport volontaire, chacun avec son étiquette](images/comment-calques-3-contour-donnees.png "3. Le contour de la commune et les points d'apport volontaire.")
+
+**La légende**, en bas à gauche, et **la mention des sources**, en bas à droite, avec la date de chaque donnée.
+
+![La carte terminée, avec la légende en bas à gauche et la mention des sources en bas à droite](images/comment-calques-4-legende-sources.png "4. La légende et la mention des sources : la carte est terminée.")
 
 Le contour, les données, la légende et la mention des sources sont écrits à la taille de l'image, pour rester lisibles une fois la carte imprimée : ils grandissent avec le zoom, là où le texte des tuiles ne change pas.
 

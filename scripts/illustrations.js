@@ -72,11 +72,6 @@ function write(image, name) {
   return image.png({ palette: true, quality: 95, effort: 10 }).toFile(file);
 }
 
-/** Text of an SVG, escaped. */
-function text(value) {
-  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-}
-
 /**
  * The whole tiles downloaded for the map at `zoom`, with their grid; the extent they are cut to, and outside it,
  * what is downloaded but dropped; the boundary of the municipality. Beside it, the image once cut.
@@ -187,24 +182,23 @@ async function assemblyFigure(extent, tiles, { x0, y0, columns, rows, mosaic }) 
   );
 }
 
-/** The same map at `zoom`, layer after layer: the basemap, a layer, the boundary and the data, the legend. */
+/**
+ * The same map at `zoom`, layer after layer, one image each: the basemap, a layer, the boundary and the data, the
+ * legend and the sources.
+ */
 async function layersFigure(zoom) {
   const extent = extentFromBbox(bbox, zoom, MARGIN);
   const { pixels } = await assembleTiles(extent, await tilesOf(extent));
-  const stages = [];
-  const snapshot = () =>
-    sharp(Buffer.from(pixels), { raw: { width: extent.width, height: extent.height, channels: CHANNELS } })
-      .resize({ width: 620 })
-      .png()
-      .toBuffer();
+  const snapshot = (name) =>
+    write(sharp(Buffer.from(pixels), { raw: { width: extent.width, height: extent.height, channels: CHANNELS } }), name);
 
-  stages.push(await snapshot());
+  await snapshot('comment-calques-1-fond.png');
   const [clay] = chooseMapLayers([{ id: 'argiles' }]);
   const vectorTiles = await readVectorLayer(clay, extent);
   await drawOverlays(pixels, extent, vectorOverlays(vectorTileShapes(vectorTiles, extent, { styleOf: vectorStyleOf(clay) })));
-  stages.push(await snapshot());
+  await snapshot('comment-calques-2-couche.png');
   await drawOverlays(pixels, extent, [boundaryOutline(boundary, extent), ...layerOverlays([data], extent)]);
-  stages.push(await snapshot());
+  await snapshot('comment-calques-3-contour-donnees.png');
   const legendExtra = mapLayerLegendEntries(clay, categoriesInTiles(clay, vectorTiles));
   const sources = await withUpdateDates([BASEMAP, clay, BOUNDARY_SOURCE]);
   sources.push(layersSource([data]));
@@ -212,36 +206,7 @@ async function layersFigure(zoom) {
     await legendOverlay([data], extent, legendExtra),
     await attributionLabel(attributionText({ sources }), extent),
   ]);
-  stages.push(await snapshot());
-
-  const titles = [
-    '1. Les tuiles du fond de carte, assemblées',
-    "2. Une couche : l'aléa argiles, dessinée par l'outil",
-    '3. Le contour de la commune et vos données',
-    '4. La légende et la mention des sources',
-  ];
-  const { height: stageHeight } = await sharp(stages[0]).metadata();
-  const gap = 24;
-  const title = 34;
-  const width = 2 * 620 + gap;
-  const height = 2 * (title + stageHeight) + gap;
-  const at = (index) => ({ left: (index % 2) * (620 + gap), top: Math.floor(index / 2) * (title + stageHeight + gap) });
-  const frames = stages
-    .map((_, index) => {
-      const { left, top } = at(index);
-      return (
-        `<text x="${left}" y="${top + 22}" font-family="${FONT}" font-size="17" font-weight="600" fill="${INK}">${text(titles[index])}</text>` +
-        `<rect x="${left + 0.5}" y="${top + title + 0.5}" width="619" height="${stageHeight - 1}" fill="none" stroke="#cfd7df"/>`
-      );
-    })
-    .join('');
-  await write(
-    sharp({ create: { width, height, channels: 3, background: '#ffffff' } }).composite([
-      ...stages.map((input, index) => ({ input, left: at(index).left, top: at(index).top + title })),
-      { input: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${frames}</svg>`) },
-    ]),
-    'comment-calques.png',
-  );
+  await snapshot('comment-calques-4-legende-sources.png');
 }
 
 /** A map of Colombiers at `zoom`, written by the tool into the working folder: its path. */
