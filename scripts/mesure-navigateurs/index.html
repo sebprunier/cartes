@@ -79,8 +79,18 @@
     run('grandes', { sizes: [[10207, 7807], [16384, 10000]] }),
   );
   document.getElementById('copier').addEventListener('click', async () => {
-    await navigator.clipboard.writeText(output.textContent);
-    document.getElementById('copier').textContent = 'Copié ✓';
+    const button = document.getElementById('copier');
+    try {
+      // The clipboard is open to secure pages only: not to this one, opened from another machine of the network.
+      await navigator.clipboard.writeText(output.textContent);
+      button.textContent = 'Copié ✓';
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(output);
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      button.textContent = document.execCommand('copy') ? 'Copié ✓' : 'Texte sélectionné : Ctrl+C pour le copier';
+    }
   });
 </script>
 </body>

@@ -81,7 +81,7 @@ Colombiers au zoom 16 mesure 5 104 × 3 904 pixels. À 150 dpi, la valeur par d�
 
 Une image se dessine en mémoire : 3 octets par pixel, un par couleur. Colombiers au zoom 17 — 10 207 × 7 807 pixels — demande ainsi 239 Mo pour l'image seule, et la génération en occupe environ quatre fois plus, le temps de décoder les tuiles et de dessiner les calques.
 
-- **La page web** dessine dans un canevas du navigateur, qui a une taille maximale : environ 268 millions de pixels sur Chrome et Safari, 537 millions sur Firefox (mesuré sur macOS en septembre 2026). Avant de télécharger quoi que ce soit, la page essaie de dessiner un pixel dans le coin de l'image demandée : si le navigateur refuse, elle le dit, et renvoie vers l'application ou la ligne de commande.
+- **La page web** dessine dans un canevas du navigateur, qui a une taille maximale : environ 268 millions de pixels sur Chrome, Edge et Safari, 537 millions sur Firefox (mesuré sur macOS et Windows en septembre 2026). Avant de télécharger quoi que ce soit, la page essaie de dessiner un pixel dans le coin de l'image demandée : si le navigateur refuse, elle le dit, et renvoie vers l'application ou la ligne de commande.
 - **L'application, la ligne de commande et l'API** dessinent avec la bibliothèque sharp, sans limite de taille — seulement celle de la mémoire de l'ordinateur. Les calques y sont dessinés par blocs de 4 096 pixels : la bibliothèque qui les trace refuse les images de plus de 32 767 pixels de côté.
 
 ## Un seul moteur, quatre outils
