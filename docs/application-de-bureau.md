@@ -73,9 +73,36 @@ Les fois suivantes, la seconde commande suffit.
 
 ## Les nouvelles versions
 
-L'application ne se met pas à jour d'elle-même : ses installeurs ne sont pas signés, et macOS refuse qu'une application non signée se remplace. Elle vous prévient en revanche quand une nouvelle version est publiée : un bandeau « La version … de cartes est disponible » s'affiche en haut de la fenêtre, avec un lien vers cette page et un autre vers ses nouveautés. Installez-la comme la première fois ; vos réglages et le cache des tuiles sont conservés.
+L'application ne se met pas à jour d'elle-même : ses installeurs ne sont pas signés, et macOS refuse qu'une application non signée se remplace. Elle vous prévient en revanche quand une nouvelle version est publiée : un bandeau « La version … de cartes est disponible » s'affiche en haut de la fenêtre, avec un lien vers cette page et un autre vers ses nouveautés.
 
 Pour le savoir, l'application demande à GitHub, à chaque lancement, quelle est la dernière version publiée. C'est la seule requête qu'elle fait d'elle-même : elle n'envoie rien, ni sur vous, ni sur vos cartes. Hors ligne, rien ne s'affiche.
+
+## Mettre à jour
+
+Téléchargez l'installeur de la nouvelle version, comme la première fois, depuis la [page des versions](https://github.com/sebprunier/cartes/releases). Inutile de désinstaller l'ancienne : la nouvelle la remplace. Vos couches ajoutées par leur adresse et le cache des tuiles sont conservés.
+
+### macOS
+
+1. **Quittez l'application** (menu cartes, puis « Quitter cartes ») : macOS ne remplace pas une application ouverte.
+2. **Ouvrez le nouveau `.dmg`**, glissez l'application dans le dossier Applications, et cliquez sur « Remplacer ».
+3. **Au premier lancement**, macOS peut refuser de nouveau de l'ouvrir : la nouvelle version est un nouveau fichier, qu'il n'a pas encore vu. Refaites alors les étapes du [premier lancement](#macos), ou la commande `xattr` qui les remplace.
+
+### Windows
+
+1. **Lancez le nouvel installeur.** Si SmartScreen affiche de nouveau « Windows a protégé votre ordinateur », passez-le comme au [premier lancement](#windows) : sa confiance s'attache à chaque fichier, pas à l'application.
+2. **Si l'application est ouverte**, l'installeur propose de la fermer : acceptez.
+3. **L'installation remplace l'ancienne version**, au même endroit ; l'application se lance comme avant.
+
+### Linux
+
+1. **Téléchargez la nouvelle AppImage**, et lancez-la avec les deux mêmes commandes, où seul le numéro de version change :
+
+   ```sh
+   chmod +x cartes-1.0.0-linux-x86_64.AppImage
+   ./cartes-1.0.0-linux-x86_64.AppImage
+   ```
+
+2. **Supprimez l'ancien fichier** : il n'y a rien d'autre à désinstaller.
 
 ## Depuis les sources
 
