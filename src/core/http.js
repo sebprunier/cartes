@@ -11,10 +11,10 @@ export class HttpError extends Error {
   }
 }
 
-export function request(url, headers = {}) {
+export function request(url, headers = {}, { timeoutMs = TIMEOUT_MS } = {}) {
   return fetch(url, {
     headers: { ...(isNode ? { 'User-Agent': USER_AGENT } : {}), ...headers },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 }
 

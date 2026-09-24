@@ -3,6 +3,7 @@
 // for instead — two requests cover a municipality — which is faster and gentler on a public service.
 
 import { HttpError } from './http.js';
+import { STATUS_PAGE_URL } from './status.js';
 import { TILE_SIZE, fetchTile } from './tiles.js';
 
 // Bounds of the Web Mercator world, in metres: the projection squares the globe between these values.
@@ -68,7 +69,8 @@ export function wmsFailure(layer, error) {
     error instanceof HttpError ? ` (erreur ${error.status})` : ' (il renvoie une page d’erreur au lieu d’une image)';
   return new Error(
     `${layer.provider ?? 'Le service'} ne répond pas pour la couche « ${layer.name} »${reason}. C’est une panne ` +
-      'du service, en général passagère : relancez la génération plus tard, ou retirez cette couche.',
+      `du service, en général passagère : relancez la génération plus tard, ou retirez cette couche. État des ` +
+      `services : ${STATUS_PAGE_URL}`,
   );
 }
 

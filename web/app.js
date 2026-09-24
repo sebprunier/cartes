@@ -14,6 +14,7 @@ import {
   readLayer,
 } from './core/layers.js';
 import { geocodeCsv } from './core/geocoding.js';
+import { SERVICES, STATUS_PAGE_URL, checkService, serviceOfLayer } from './core/status.js';
 import {
   boundaryBbox,
   describeMunicipality,
@@ -195,6 +196,22 @@ function mapLayerItem(chosen) {
     warning.textContent = message;
     item.append(warning);
   }
+  const down = serviceDown(layer);
+  if (down) {
+    const warning = document.createElement('p');
+    warning.className = 'map-layer-warning map-layer-down';
+    const status = document.createElement('a');
+    status.href = STATUS_PAGE_URL;
+    status.target = '_blank';
+    status.rel = 'noopener';
+    status.textContent = 'État des services';
+    warning.append(
+      `${providerOf(layer)} ne répond pas en ce moment (${down.detail}) : la génération échouera tant que la ` +
+        'couche est là. Retirez-la, ou réessayez plus tard. ',
+      status,
+    );
+    item.append(warning);
+  }
   return item;
 }
 
@@ -221,6 +238,31 @@ function opacityChoice(chosen, layer) {
   label.append('Opacité ', slider, ' ', share);
   line.append(label);
   return line;
+}
+
+// The state of the services of the catalog layers, checked when the catalog opens and kept a few minutes: a
+// layer whose service is down says so before the map is asked for, rather than failing it.
+const SERVICE_CHECK_KEPT_MS = 5 * 60 * 1000;
+const serviceChecks = new Map();
+let servicesCheckedAt = 0;
+
+function checkLayerServices() {
+  if (Date.now() - servicesCheckedAt < SERVICE_CHECK_KEPT_MS) return;
+  servicesCheckedAt = Date.now();
+  for (const service of SERVICES.filter(({ layers }) => layers)) {
+    checkService(service).then((check) => {
+      serviceChecks.set(service.id, check);
+      if (check.state !== 'down') return;
+      if (layerChooser.open) showLayerChoices();
+      showMapLayers();
+    });
+  }
+}
+
+/** The check of the service of a layer, when it was found down; nothing otherwise, or for a layer added by address. */
+function serviceDown(layer) {
+  const check = serviceChecks.get(serviceOfLayer(layer.id)?.id);
+  return check?.state === 'down' ? check : undefined;
 }
 
 // The icon of each theme of the catalog, and of the layers added by address: drawn strokes, in the color of
@@ -303,6 +345,12 @@ function layerCard(layer) {
   const badges = document.createElement('span');
   badges.className = 'layer-choice-badges';
   badges.append(badge(providerOf(layer)));
+  const down = serviceDown(layer);
+  if (down) {
+    const broken = badge('Service en panne', 'danger');
+    broken.title = down.detail;
+    badges.append(broken);
+  }
   // The zoom a layer needs is said only when one of the zoom levels offered falls short of it.
   if (layer.minZoom > Math.min(...zoomLevels())) {
     const zoom = Number(zoomChoice.value);
@@ -377,6 +425,7 @@ function chosenMapLayers() {
 }
 
 addMapLayerButton.addEventListener('click', () => {
+  checkLayerServices();
   layerSearch.value = '';
   showLayerChoices();
   layerChooser.showModal();

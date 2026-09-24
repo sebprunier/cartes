@@ -45,6 +45,7 @@ export const DOCUMENTATION_SECTIONS = [
     pages: [
       { file: 'donnees-et-licences.md', title: 'Sources et licences' },
       { file: 'problemes-courants.md', title: 'Problèmes courants' },
+      { file: 'etat-des-services.md', title: 'État des services' },
     ],
   },
 ];

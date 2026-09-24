@@ -81,7 +81,7 @@ describe('fetchWmsImages', () => {
         error.message,
         'Géorisques ne répond pas pour la couche « PPR mouvements de terrain » (il renvoie une page d’erreur au ' +
           'lieu d’une image). C’est une panne du service, en général passagère : relancez la génération plus tard, ' +
-          'ou retirez cette couche.',
+          'ou retirez cette couche. État des services : https://sebprunier.github.io/cartes/etat-des-services.html',
       );
       return true;
     });

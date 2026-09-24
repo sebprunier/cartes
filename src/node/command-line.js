@@ -13,6 +13,7 @@ Usage :
   cartes geocoder <fichier.csv> --commune <commune>
                                              placer les adresses d'un fichier CSV, pour l'ajouter à une carte
   cartes serveur [--port <n>]                servir l'API HTTP, pour intégrer cartes à d'autres logiciels
+  cartes etat                                vérifier que les services des fonds et des couches répondent
 
 Options de « generer » :
   -d, --departement <code>  département, pour lever une homonymie, ex. 86
@@ -102,6 +103,8 @@ export const FRENCH_COMMANDS = {
   serveur: 'serve',
   geocoder: 'geocode',
   géocoder: 'geocode',
+  etat: 'status',
+  état: 'status',
 };
 
 // Options are keyed by their English name (used in code), with their French name shown to users.

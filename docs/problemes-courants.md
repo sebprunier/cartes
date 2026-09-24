@@ -57,7 +57,7 @@ Si le fichier est vraiment trop gros pour être envoyé par courriel, depuis la 
 
 Le service qui publie la couche est en panne : l'outil lui a redemandé ses images plusieurs fois, sans succès. Cela arrive, et se règle en général dans la journée. Le 24 septembre 2026, par exemple, le service de Géorisques a renvoyé une page d'erreur pour toutes ses couches — les PPR, les cavités, les canalisations.
 
-La génération s'arrête avant de télécharger le fond de carte, pour ne pas vous faire attendre pour rien. Relancez plus tard, ou retirez la couche en question pour générer la carte sans elle. Le zonage du PLU, lu sur le Géoportail de l'urbanisme, se comporte de la même façon.
+La page [État des services](etat-des-services.md) dit lequel répond, et lequel non. La génération s'arrête avant de télécharger le fond de carte, pour ne pas vous faire attendre pour rien. Relancez plus tard, ou retirez la couche en question pour générer la carte sans elle. Le zonage du PLU, lu sur le Géoportail de l'urbanisme, se comporte de la même façon.
 
 ## Des tuiles manquent, laissées en blanc
 

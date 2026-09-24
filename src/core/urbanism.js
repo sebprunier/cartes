@@ -5,6 +5,7 @@
 
 import { HttpError, request } from './http.js';
 import { labelFontSize } from './layers.js';
+import { STATUS_PAGE_URL } from './status.js';
 import { mapLayerLegendEntries } from './maplayers.js';
 import { box, boxesOverlap, expandBox, mergeBoxes, pathData } from './overlays.js';
 import { TILE_SIZE, lonLatToPixel } from './tiles.js';
@@ -451,7 +452,7 @@ async function requestWfs(url, { retryDelayMs = 1500 } = {}) {
       if (attempt === ATTEMPTS) {
         throw new UrbanismError(
           `Le Géoportail de l’urbanisme ne répond pas (${error.message}) : relancez la génération plus tard, ` +
-            'ou générez la carte sans le zonage du PLU.',
+            `ou générez la carte sans le zonage du PLU. État des services : ${STATUS_PAGE_URL}`,
         );
       }
       await new Promise((resolve) => setTimeout(resolve, attempt * retryDelayMs));

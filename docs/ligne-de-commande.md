@@ -24,9 +24,12 @@ cartes couches                    # lister les couches superposables
 cartes generer 86081              # générer la carte d'une commune
 cartes geocoder lieux.csv --commune 86081   # placer les adresses d'un fichier CSV
 cartes serveur                    # servir l'API HTTP, pour d'autres logiciels
+cartes etat                       # vérifier que les services des fonds et des couches répondent
 ```
 
 La commande `cartes serveur` a sa propre page : [API](api.md).
+
+`cartes etat` interroge chaque service dont dépendent les cartes, et dit lequel est lent ou en panne : utile avant une série de cartes. Elle se termine en erreur (code 1) si un service est en panne, ce qui permet de l'appeler depuis un script. La même vérification est sur le site : [État des services](etat-des-services.md).
 
 Une commune se désigne par son nom ou par son code INSEE. En cas d'homonymes, précisez le département avec `-d 86`.
 

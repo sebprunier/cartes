@@ -107,7 +107,8 @@ describe('documentation site', () => {
     for (const { page } of DOCUMENTATION_PAGES) {
       const html = await readFile(path.join(output, page), 'utf8');
       for (const [, target] of html.matchAll(/(?:href|src)="(?!https?:|mailto:|#)([^"#]+)/g)) {
-        if (target === GENERATOR_PATH) continue;
+        // The page that generates the maps, and the scripts it serves to others — the state of the services.
+        if (target.startsWith(GENERATOR_PATH)) continue;
         assert.ok(existsSync(path.join(output, target)), `${page} → ${target}`);
       }
     }

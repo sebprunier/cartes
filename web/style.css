@@ -712,6 +712,15 @@ tr.selected td:first-child {
   color: var(--warning);
 }
 
+#map-layers .map-layer-down {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+#map-layers .map-layer-down a {
+  color: inherit;
+}
+
 #map-layers .map-layer-opacity {
   display: flex;
   gap: 0.6rem;
@@ -1114,6 +1123,11 @@ dialog h3 {
 .layer-badge.warning {
   background: var(--warning-soft);
   color: var(--warning);
+}
+
+.layer-badge.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .layer-choice-plus {

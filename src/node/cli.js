@@ -22,6 +22,7 @@ import { extentFromBbox, groundResolution } from '../core/tiles.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
 import { SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
 import { createApiServer } from './server.js';
+import { SERVICES, checkService, describeCheck } from '../core/status.js';
 
 const { version: VERSION } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
@@ -47,6 +48,8 @@ async function main() {
     await serve(options);
   } else if (command === 'geocode' && argument) {
     await geocode(argument, options);
+  } else if (command === 'status') {
+    await status();
   } else {
     throw new UsageError(`Commande invalide.\n\n${HELP}`);
   }
@@ -190,6 +193,29 @@ function listBasemaps() {
         ` — ${basemap.attribution}`,
     );
   }
+}
+
+/**
+ * Checks every service the maps depend on, all at once, and prints them by group as they answer: a service down
+ * is worth knowing before a long series of maps, rather than in the middle of it.
+ */
+async function status() {
+  const checks = await Promise.all(SERVICES.map(async (service) => ({ service, check: await checkService(service) })));
+  let group;
+  for (const { service, check } of checks) {
+    if (service.group !== group) {
+      console.log(`${group ? '\n' : ''}${(group = service.group)}`);
+    }
+    const mark = { ok: '✓', slow: '~', down: '✗' }[check.state];
+    console.log(`  ${mark} ${service.name.padEnd(38)} ${describeCheck(check)}`);
+  }
+  const down = checks.filter(({ check }) => check.state === 'down');
+  console.log(
+    down.length === 0
+      ? '\nTous les services répondent.'
+      : `\n${down.length} service(s) en panne : les cartes qui en ont besoin échoueront. Réessayez plus tard.`,
+  );
+  if (down.length > 0) process.exitCode = 1;
 }
 
 function listMapLayers() {
