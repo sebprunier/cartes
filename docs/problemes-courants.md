@@ -12,7 +12,7 @@ L'image demandée dépasse ce que le navigateur sait dessiner. Trois solutions, 
 
 Le message apparaît avant tout téléchargement : rien n'a été consommé.
 
-## Une couche cochée n'apparaît pas sur la carte
+## Une couche ajoutée n'apparaît pas sur la carte
 
 Trois causes possibles, dans l'ordre de fréquence :
 
@@ -51,7 +51,7 @@ Si beaucoup d'étiquettes manquent, c'est que les objets sont trop serrés pour 
 
 L'estimation est donnée à ±30 % environ, et elle repose sur un échantillon de tuiles. Une couche superposée ajoute son poids ; une carte en PNG depuis le navigateur pèse plus lourd que la même en ligne de commande, qui sait réduire la palette de couleurs.
 
-Si le fichier est vraiment trop gros pour être envoyé par courriel, le format JPEG le divise par deux environ, au prix d'un léger flou sur le texte.
+Si le fichier est vraiment trop gros pour être envoyé par courriel, depuis la page web, le format JPEG le divise par deux environ, au prix d'un léger flou sur le texte. Dans l'application et en ligne de commande, c'est inutile : le PNG d'un plan y est déjà léger, et le JPEG pèse même un peu plus — 3,1 Mo contre 2,6 Mo pour Colombiers au zoom 16. Baissez plutôt d'un niveau de zoom, qui divise le poids par deux environ : 1,5 Mo au zoom 15 contre 2,9 Mo au zoom 16, pour la même commune.
 
 ## Des tuiles manquent, laissées en blanc
 

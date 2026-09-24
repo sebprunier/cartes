@@ -1,6 +1,6 @@
 # Ajouter des données
 
-Deux façons d'ajouter des informations sur une carte, qui se combinent : cocher des **données publiques** déjà en ligne, ou fournir **vos propres fichiers**.
+Deux façons d'ajouter des informations sur une carte, qui se combinent : choisir des **données publiques** déjà en ligne, dans un catalogue, ou fournir **vos propres fichiers**.
 
 Dans les deux cas, ce que vous ajoutez est cité dans la mention des sources en bas de la carte : personne ne pourra croire que ces données viennent de l'IGN.
 

@@ -26,7 +26,7 @@ L'outil est libre et gratuit. Les données viennent de services publics — IGN,
 
 ## Ce que vous obtenez
 
-Une image — PNG ou JPEG — qui porte :
+Une image — PNG ou JPEG, et TIFF dans l'application de bureau et en ligne de commande — qui porte :
 
 - le **contour de la commune**, tracé d'après les limites officielles d'ADMIN EXPRESS ;
 - les **données ajoutées**, avec leurs étiquettes et une **légende** en bas à gauche ;

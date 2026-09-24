@@ -54,7 +54,7 @@ Le champ « Résolution visée » ne change pas l'image : il change la taille à
 | --- | --- | --- |
 | **PNG** | les plans | du texte et des traits nets, sans artefact de compression |
 | **JPEG** | les photographies aériennes | une photo pèse environ huit fois plus lourd en PNG |
-| **TIFF** | pour un imprimeur qui le demande | disponible seulement dans l'application de bureau |
+| **TIFF** | pour un imprimeur qui le demande | disponible dans l'application de bureau et en ligne de commande, pas sur la page web |
 
 En ligne de commande et dans l'application, le PNG d'un plan est écrit avec une palette de 256 couleurs : le fichier pèse environ moitié moins, sans perte visible. Le navigateur ne sait pas le faire, et produit donc des fichiers plus lourds à qualité égale.
 

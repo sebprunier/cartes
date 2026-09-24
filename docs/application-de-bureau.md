@@ -6,7 +6,7 @@ L'application reprend l'interface de la page web, mais génère les cartes avec 
 
 ## Ce qu'elle apporte
 
-- **Les zooms 18 et 19**, que le navigateur refuse de dessiner sur une commune de taille moyenne.
+- **Les zooms 18 et 19**, que le navigateur refuse de dessiner sur une commune de taille moyenne — la page [Zoom et impression](zoom-et-impression.md) dit à quel format papier ils correspondent.
 - **Le format TIFF**, que certains imprimeurs demandent.
 - **Un cache des tuiles sur disque** : regénérer la même commune ne retélécharge rien.
 - **Un PNG plus léger** : les plans sont écrits avec une palette de 256 couleurs, ce que le navigateur ne sait pas faire.
@@ -79,3 +79,9 @@ cd cartes
 npm install
 npm run electron
 ```
+
+## Pour aller plus loin
+
+- [Prise en main](prise-en-main.md) — l'interface est la même que celle de la page web
+- [Ajouter des données](donnees.md) — couches publiques, fichiers de la commune et géocodage d'adresses
+- [Problèmes courants](problemes-courants.md)

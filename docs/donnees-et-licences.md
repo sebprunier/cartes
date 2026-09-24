@@ -2,13 +2,13 @@
 
 Ce document explique d'où viennent les données utilisées par `cartes`, sous quelles conditions elles peuvent être réutilisées, et comment l'outil respecte ces conditions.
 
-> Analyse réalisée le 17 septembre 2026 à partir des fiches du catalogue de la Géoplateforme et du texte officiel de la licence. Ce n'est pas un avis juridique. Les licences et les fiches peuvent évoluer : elles sont à revérifier avant tout changement d'usage important, par exemple le lancement d'un service en ligne.
+> Analyse réalisée le 17 septembre 2026 à partir des fiches du catalogue de la Géoplateforme et du texte officiel de la licence, complétée le 23 septembre pour le géocodage des adresses. Ce n'est pas un avis juridique. Les licences et les fiches peuvent évoluer : elles sont à revérifier avant tout changement d'usage important, par exemple le lancement d'un service en ligne.
 
 ## En résumé
 
-- Toutes les données affichées sur les cartes viennent de l'IGN et sont diffusées sous la **licence ouverte 2.0 d'Etalab**.
+- Les données que l'outil affiche de lui-même viennent de services publics — l'IGN, Géorisques et le BRGM, la Base Adresse Nationale — et sont toutes diffusées sous la **licence ouverte 2.0 d'Etalab**. Celles que vous ajoutez, fichiers ou couches par leur adresse, restent sous votre responsabilité.
 - Cette licence autorise la réutilisation **libre et gratuite, y compris commerciale**, avec modification et redistribution.
-- Deux conditions : **mentionner la source et la date de dernière mise à jour** des données, et **ne pas laisser penser** que l'IGN cautionne la carte ou son auteur.
+- Deux conditions : **mentionner la source et la date de dernière mise à jour** des données, et **ne pas laisser penser** que leur producteur cautionne la carte ou son auteur.
 - L'outil ajoute automatiquement cette mention sur chaque carte, avec les dates lues dans le catalogue de la Géoplateforme.
 - Les fonds de carte Esri ont été retirés : leurs conditions d'utilisation ne permettent pas l'usage qu'en fait l'outil.
 
@@ -22,15 +22,18 @@ Ce document explique d'où viennent les données utilisées par `cartes`, sous q
 | Risques naturels et technologiques | couches `ppr-inondation`, `ppr-mouvements`, `cavites` et `canalisations` | WMS de Géorisques, couches `PPRN_ZONE_INOND`, `PPRN_ZONE_MVT`, `CAVITE_LOCALISEE` et `CANALISATIONS` | [Géorisques](https://www.georisques.gouv.fr/) | Licence Ouverte (mentions légales du site) |
 | Retrait-gonflement des argiles, millésime 2026 | couche `argiles`, dessinée à partir de tuiles vectorielles | archive PMTiles publiée sur data.gouv.fr | [Carte des risques retrait-gonflement des argiles – 2026](https://www.data.gouv.fr/datasets/carte-des-risques-retrait-gonflement-des-argiles-2026) | Licence Ouverte 2.0 (déclarée par le jeu de données) |
 | ADMIN EXPRESS | contour de la commune | WFS, couche `ADMINEXPRESS-COG.LATEST:commune` | [IGNF_ADMIN-EXPRESS](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_ADMIN-EXPRESS) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0), avec un lien vers la licence ouverte 2.0 d'Etalab |
-| Géocodage | recherche d'une commune par son nom | API de géocodage | – | non analysée |
+| Base Adresse Nationale | position des adresses d'un fichier géocodé | API de géocodage, recherche par lot (`search/csv`) | [Base Adresse Nationale](https://www.data.gouv.fr/datasets/base-adresse-nationale/) | Licence Ouverte 2.0 (déclarée par le jeu de données) |
+| Recherche des communes | code INSEE d'une commune cherchée par son nom | API de géocodage (`type=municipality`) | – | non analysée : rien n'en apparaît sur les cartes |
 
-Le géocodage sert uniquement à retrouver le code INSEE d'une commune : ses résultats n'apparaissent pas sur les cartes. Sa licence n'a donc pas été analysée.
+La recherche d'une commune par son nom sert seulement à retrouver son code INSEE : son résultat n'apparaît pas sur les cartes, et sa licence n'a donc pas été analysée.
+
+Le géocodage des adresses, lui, place des points sur la carte : leurs positions viennent de la Base Adresse Nationale, sous licence ouverte 2.0. La carte cite donc la Base Adresse Nationale, à côté du nom des données qu'elle a placées, avec la date du géocodage — la base étant mise à jour en continu, c'est la date à laquelle elle a été consultée.
 
 Les fiches du Plan IGN et de la BD ORTHO nomment la licence sans préciser sa version. Celles d'ADMIN EXPRESS et du Parcellaire Express renvoient vers le [texte de la licence ouverte 2.0](https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf), analysé ci-dessous.
 
 Les mentions légales de Géorisques indiquent que « la Licence Ouverte / Open Licence s'applique à l'ensemble des réutilisations libres gratuites de données publiques » et que, sauf mention contraire, les contenus du site sont sous licence Etalab 2.0. Le service ne publie pas de date de mise à jour pour ses couches : la carte les crédite donc de la date à laquelle elles ont été consultées, qui est celle de la génération.
 
-Chaque couche de Géorisques n'est dessinée par le service que dans une plage d'échelles, qui lui est propre : les zonages de PPR disparaissent au-delà du 1:100 000, les cavités en deçà du 1:2 000, les canalisations en deçà du 1:20 000. L'outil demande donc chaque image à une échelle que le service accepte, puis l'agrandit ou la réduit — sans quoi une couche cochée serait tout simplement absente de la carte.
+Chaque couche de Géorisques n'est dessinée par le service que dans une plage d'échelles, qui lui est propre : les zonages de PPR disparaissent au-delà du 1:100 000, les cavités en deçà du 1:2 000, les canalisations en deçà du 1:20 000. L'outil demande donc chaque image à une échelle que le service accepte, puis l'agrandit ou la réduit — sans quoi une couche ajoutée serait tout simplement absente de la carte.
 
 La carte des argiles est publiée par la Direction interministérielle du numérique à partir de la donnée de Géorisques, produite par le BRGM. Elle est déclarée sous licence ouverte 2.0 sur data.gouv.fr, et la carte la crédite avec la date de sa publication (1er avril 2026). Attention à ce qu'elle dit : cet aléa est cartographié à l'échelle départementale et **ne vaut pas étude de sol**. Une carte communale sert à situer les secteurs concernés, pas à conclure pour une parcelle donnée.
 
@@ -77,8 +80,9 @@ L'IGN ne garantit ni l'absence d'erreurs dans les données, ni leur mise à disp
 
 - **Mention des sources.** Chaque carte porte en bas à droite une mention qui cite :
   - le fond de carte ;
+  - chaque couche superposée ;
   - ADMIN EXPRESS quand le contour est tracé ;
-  - la date de dernière mise à jour de chaque donnée ;
+  - la date de dernière mise à jour de chaque donnée — ou, pour un service qui n'en publie pas comme Géorisques, la date à laquelle il a été consulté ;
   - la date de génération de la carte.
 
   Par exemple : « Sources : © IGN – Plan IGN (mise à jour du 05/08/2026) ; © IGN – ADMIN EXPRESS (mise à jour du 27/08/2026) · Carte générée le 17/09/2026 ».
@@ -86,15 +90,16 @@ L'IGN ne garantit ni l'absence d'erreurs dans les données, ni leur mise à disp
 - **Mention toujours présente.** Aucune option ne permet de la retirer. Sa taille est proportionnelle à l'image, pour rester lisible une fois la carte imprimée.
 - **Pas de caution de l'IGN.** La mention indique seulement les sources, sans logo ni formulation qui laisserait penser que la carte est un produit de l'IGN.
 
-- **Données ajoutées.** Les fichiers ajoutés à une carte (`--donnees`, glisser-déposer) sont cités eux aussi, sous leur nom : « Données ajoutées : Points d'apport volontaire ». Ils ne sont donc pas confondus avec les données de l'IGN.
+- **Données ajoutées.** Les fichiers ajoutés à une carte (`--donnees`, glisser-déposer) sont cités eux aussi, sous leur nom : « Données ajoutées : Points d'apport volontaire ». Ils ne sont donc pas confondus avec les données de l'IGN. Un fichier géocodé ajoute la Base Adresse Nationale et la date du géocodage : « Données ajoutées : Défibrillateurs (géocodage : Base Adresse Nationale, 23/09/2026) ».
+- **Couches ajoutées par leur adresse.** Leur source est obligatoire : l'outil refuse la couche tant qu'elle n'est pas renseignée, et l'écrit sur la carte avec les autres.
 
 Si vous recadrez ou retouchez une carte générée, conservez la mention des sources.
 
 ## Les données que vous ajoutez
 
-L'outil affiche les fichiers que vous lui donnez sans rien vérifier de leurs droits : c'est à vous de vous assurer que vous pouvez les diffuser, et d'adapter le nom du jeu de données qui apparaît dans la mention des sources. Les données produites par la commune elle-même ne posent en général pas de difficulté ; celles récupérées ailleurs (intercommunalité, département, opérateur) sont à vérifier auprès de leur producteur.
+La page [Ajouter des données](donnees.md) décrit comment les ajouter. L'outil affiche les fichiers que vous lui donnez sans rien vérifier de leurs droits : c'est à vous de vous assurer que vous pouvez les diffuser, et d'adapter le nom du jeu de données qui apparaît dans la mention des sources. Les données produites par la commune elle-même ne posent en général pas de difficulté ; celles récupérées ailleurs (intercommunalité, département, opérateur) sont à vérifier auprès de leur producteur.
 
-Le dossier [`exemples/`](../exemples/) contient les points d'apport volontaire de Colombiers, relevés le 18 septembre 2026 sur le service cartographique de [Grand Châtellerault](https://www.grand-chatellerault.fr/connaitre/points-d-apport-volontaire). Aucune mention de licence n'accompagne ce service : ces treize points, factuels et publics, servent uniquement d'exemple, et seront retirés du dépôt à la demande de Grand Châtellerault.
+Le dossier [`exemples/`](../exemples/) contient les points d'apport volontaire de Colombiers, relevés le 18 septembre 2026 sur le service cartographique de [Grand Châtellerault](https://www.grand-chatellerault.fr/connaitre/points-d-apport-volontaire), avec leurs coordonnées et, pour essayer le géocodage, sans elles. Aucune mention de licence n'accompagne ce service : ces treize points, factuels et publics, servent uniquement d'exemple, et seront retirés du dépôt à la demande de Grand Châtellerault.
 
 ## Conditions d'accès aux services de la Géoplateforme
 
