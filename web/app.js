@@ -592,8 +592,9 @@ cancelButton.addEventListener('click', cancel);
 
 async function search() {
   const input = searchField.value.trim();
-  searchResults.hidden = input.length < 2;
-  if (input.length < 2) return;
+  // One letter is enough: Y is a municipality of the Somme.
+  searchResults.hidden = input.length === 0;
+  if (input.length === 0) return;
 
   const currentSearch = (pendingSearch = searchMunicipalities(input));
   try {

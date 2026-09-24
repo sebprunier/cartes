@@ -56,6 +56,43 @@ describe('searchMunicipalities', () => {
   });
 });
 
+describe('searchMunicipalities, with fewer than 3 letters', () => {
+  // The geocoding API refuses them: the municipalities of one or two letters are read from ADMIN EXPRESS.
+  const SHORT = [
+    ['80829', 'Y', '80', '80190', 94],
+    ['76255', 'Eu', '76', '76260', 6499],
+    ['28064', 'Bû', '28', '28410', 2041],
+    ['95625', 'Us', '95', '95450', 1343],
+  ].map(([code_insee, nom_officiel, code_insee_du_departement, code_postal, population]) => ({
+    properties: { code_insee, nom_officiel, code_insee_du_departement, code_postal, population },
+  }));
+
+  it('finds them by the start of their name, accents aside, reading their list once', async (t) => {
+    const fetch = mockFetch(t, { features: SHORT });
+    const names = async (input, department) => (await searchMunicipalities(input, department)).map((m) => m.name);
+
+    assert.deepEqual(await names('Y'), ['Y']);
+    assert.deepEqual(await names('eu'), ['Eu']);
+    assert.deepEqual(await names('bu'), ['Bû']);
+    assert.deepEqual(await names('U'), ['Us']);
+    assert.deepEqual(await names('E', '28'), []);
+    // Two letters of a longer name find nothing yet, rather than an error: the search starts at three.
+    assert.deepEqual(await names('Ar'), []);
+
+    assert.equal(fetch.mock.callCount(), 1);
+    const url = new URL(fetch.mock.calls[0].arguments[0]);
+    assert.equal(url.hostname, 'data.geopf.fr');
+    assert.equal(url.searchParams.get('CQL_FILTER'), 'strLength(nom_officiel)<3');
+    const [eu] = await searchMunicipalities('Eu');
+    assert.deepEqual(eu, { inseeCode: '76255', name: 'Eu', postcode: '76260', department: '76', context: '76', population: 6499 });
+  });
+
+  it('resolves a municipality of one letter by its name, for the command line', async (t) => {
+    mockFetch(t, { features: SHORT });
+    assert.equal(await resolveMunicipality('Y'), '80829');
+  });
+});
+
 describe('resolveMunicipality', () => {
   it('returns an INSEE code as is, without calling the API', async (t) => {
     const fetch = mockFetch(t, { features: [] });
