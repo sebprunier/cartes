@@ -14,6 +14,7 @@ import {
   assembleTiles,
   attributionLabel,
   boundaryOutline,
+  drawMapLayer,
   drawOverlays,
   layerOverlays,
   legendOverlay,
@@ -320,3 +321,22 @@ describe('saveImage', () => {
     await assert.rejects(saveImage(pixels, extent, path.join(tempDir, 'carte.gif'), { dpi: 150 }), /non géré/);
   });
 });
+
+describe('drawMapLayer', () => {
+  it('tells whether the layer drew anything, for its line in the legend', async () => {
+    const extent = extentFromBbox([0.42, 46.77, 0.43, 46.78], 14, 0);
+    const [x, y] = [Math.floor(extent.xMin / 256), Math.floor(extent.yMin / 256)];
+    const pixels = new Uint8Array(extent.width * extent.height * 3).fill(255);
+
+    // A layer with nothing on this map: its tiles are entirely transparent, as the BCAE of most municipalities.
+    const empty = await solidTile('vide', { r: 128, g: 187, b: 218, alpha: 0 });
+    assert.deepEqual(await drawMapLayer(pixels, extent, [{ x, y, content: empty }]), { missing: 0, drawn: false });
+
+    const line = await solidTile('trait', { r: 128, g: 187, b: 218, alpha: 1 });
+    assert.deepEqual(await drawMapLayer(pixels, extent, [{ x, y, content: line }, { x: x + 1, y, content: null }]), {
+      missing: 1,
+      drawn: true,
+    });
+  });
+});
+

@@ -125,6 +125,30 @@ const MAP_LAYER_LIST = [
     },
   },
   {
+    id: 'bcae',
+    name: 'Bandes tampons des cours d’eau',
+    description:
+      'Cours d’eau le long desquels la PAC impose une bande enherbée (BCAE 4), dans leur dernière édition.',
+    theme: 'territoire',
+    provider: 'IGN',
+    // The latest edition, rather than a year: the tool does not have to follow the campaigns of the PAC, and the
+    // date of the catalog record, written in the attribution, says which edition the map shows.
+    url: geoplateformeWmts('HYDROGRAPHY.BCAE.LATEST', 'image/png'),
+    maxZoom: 17,
+    maxZoomNote: 'Au-delà du zoom 17, le service n’en publie pas : la carte est générée sans elles.',
+    opacity: 1,
+    attribution: '© IGN – Cours d’eau BCAE',
+    metadataId: 'IGNF_BCAE',
+    // The service draws them as plain blue lines, darker and thicker than the streams of the Plan IGN, but blue
+    // still: without a line in the legend, a reader takes them for rivers. Its color, read in the tiles.
+    legend: [{ label: 'Cours d’eau BCAE, bordés d’une bande enherbée', color: '#80bbda', shape: 'line' }],
+    // Measured on Colombiers at zoom 16, as the contour lines: 0.6 MB of mostly empty tiles.
+    fileSizeRatios: {
+      color: { png: 0.16, pngPalette: 0.02, jpg: 0.09, tif: 0.25 },
+      grayscale: { png: 0.22, pngPalette: 0.09, jpg: 0.15, tif: 0.55 },
+    },
+  },
+  {
     id: 'ppr-inondation',
     name: 'PPR inondation',
     description: 'Zonage réglementaire des plans de prévention du risque inondation.',

@@ -130,6 +130,16 @@ export const SERVICES = [
     expect: 'image',
   },
   {
+    id: 'bcae',
+    group: 'Couches',
+    name: 'Bandes tampons des cours d’eau',
+    provider: 'Géoplateforme (IGN)',
+    use: 'la couche des cours d’eau BCAE',
+    layers: ['bcae'],
+    url: tileOf(MAP_LAYERS.bcae, 13),
+    expect: 'image',
+  },
+  {
     id: 'urbanisme',
     group: 'Couches',
     name: 'Documents d’urbanisme',

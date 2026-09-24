@@ -174,6 +174,7 @@ async function paint({
 
   // The basemap first, then the image layers laid over it, in the order of the catalog.
   for (const source of [basemap, ...mapLayers.filter(isTileLayer)]) {
+    let drawn = false;
     await downloadTiles(source, area.zoom, tiles, {
       loadTile: async (url, tile) => {
         // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
@@ -183,12 +184,16 @@ async function paint({
         // Only the basemap goes gray: a layer laid over it keeps its colors, as the boundary does.
         const isBasemap = source === basemap;
         if (content) {
-          await drawTile(context, area, { ...tile, content }, { grayscale: grayscale && isBasemap, opacity: source.opacity });
+          const detect = Boolean(source.legend) && !drawn;
+          const options = { grayscale: grayscale && isBasemap, opacity: source.opacity, detect };
+          drawn ||= Boolean(await drawTile(context, area, { ...tile, content }, options));
         }
         return content ? true : null;
       },
       concurrency: CONCURRENCY,
     });
+    // As on the map: a layer of tiles shows its legend when it drew something.
+    if (drawn) legendExtra.push(...source.legend);
   }
 
   // A WMS draws the area asked for: the preview asks only for what it shows.

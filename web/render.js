@@ -40,15 +40,28 @@ export function canRender(width, height) {
   }
 }
 
-/** Draws a downloaded tile at its place in the image, with the opacity of its layer. */
-export async function drawTile(context, extent, tile, { grayscale = false, opacity = 1 } = {}) {
+/**
+ * Draws a downloaded tile at its place in the image, with the opacity of its layer. With `detect`, also tells
+ * whether the tile holds anything visible — a layer that draws nothing gets no line in the legend. Reading its
+ * pixels back costs a little, and is asked only for the layers that have a legend.
+ */
+export async function drawTile(context, extent, tile, { grayscale = false, opacity = 1, detect = false } = {}) {
   const bitmap = await createImageBitmap(new Blob([tile.content]));
   context.save();
   if (grayscale) context.filter = 'grayscale(1)';
   context.globalAlpha = opacity;
   context.drawImage(bitmap, tile.x * TILE_SIZE - extent.xMin, tile.y * TILE_SIZE - extent.yMin);
   context.restore();
+  let visible;
+  if (detect) {
+    const probe = new OffscreenCanvas(bitmap.width, bitmap.height).getContext('2d');
+    probe.drawImage(bitmap, 0, 0);
+    const { data } = probe.getImageData(0, 0, bitmap.width, bitmap.height);
+    visible = false;
+    for (let index = 3; index < data.length && !visible; index += 4) visible = data[index] > 0;
+  }
   bitmap.close();
+  return visible;
 }
 
 /** A legend published by a map service, as an entry the legend can draw: the image and its natural size. */

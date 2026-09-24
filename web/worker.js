@@ -182,15 +182,21 @@ async function generate({
       continue;
     }
 
+    let drawn = false;
     await downloadTiles(layer, zoom, tiles, {
       loadTile: async (url, tile) => {
         const content = await fetchTile(url);
-        if (content) await drawTile(context, extent, { ...tile, content }, { opacity: layer.opacity });
+        if (content) {
+          const detect = Boolean(layer.legend) && !drawn;
+          drawn ||= Boolean(await drawTile(context, extent, { ...tile, content }, { opacity: layer.opacity, detect }));
+        }
         return content ? true : null;
       },
       concurrency: CONCURRENCY,
       onProgress: (done, total) => postMessage({ progress: { sourceId: layer.id, done, total } }),
     });
+    // A layer of tiles can declare its legend; it is shown only when the layer drew something on this map.
+    if (drawn) legendExtra.push(...layer.legend);
   }
 
   if (outline) drawBoundary(context, boundary, extent);

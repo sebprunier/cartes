@@ -50,6 +50,10 @@ describe('MAP_LAYERS', () => {
         }
       }
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);
+      // A legend declared by a layer of tiles says what its lines stand for, in their color.
+      for (const entry of layer.legend ?? []) {
+        assert.ok(entry.label && /^#[0-9a-f]{6}$/.test(entry.color) && ['line', 'point', 'polygon'].includes(entry.shape), id);
+      }
       // A layer whose service stops before the last zoom level of the maps says what then happens.
       if (layer.maxZoom < 19) assert.ok(layer.maxZoomNote, `${id} maxZoomNote`);
       // A layer that shows less below its minimum zoom says what is missing.

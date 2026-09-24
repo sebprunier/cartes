@@ -52,10 +52,12 @@ export function assembleTiles(extent, tiles, { grayscale = false } = {}) {
  * Draws the tiles of a layer over the assembled image, keeping what shows through their transparent parts.
  * A layer keeps its colors over a grayscale basemap, as the boundary and the added data do: `--gris` turns
  * the basemap gray so that what is laid over it stands out. Returns the number of tiles that could not be
- * drawn, which leave the basemap visible.
+ * drawn, which leave the basemap visible, and whether any tile had something to show — a layer that draws
+ * nothing on the map gets no line in the legend.
  */
 export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) {
   let missing = 0;
+  let drawn = false;
   for (const tile of tiles) {
     if (!tile.content) {
       missing++;
@@ -63,6 +65,7 @@ export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) 
     }
     try {
       const { data, info } = await sharp(tile.content).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      drawn ||= hasVisiblePixel(data);
       blendPixels(
         { data, width: info.width, height: info.height },
         pixels,
@@ -78,7 +81,13 @@ export async function drawMapLayer(pixels, extent, tiles, { opacity = 1 } = {}) 
       missing++;
     }
   }
-  return missing;
+  return { missing, drawn };
+}
+
+/** Whether RGBA pixels hold anything visible, or are all transparent. */
+export function hasVisiblePixel(data) {
+  for (let index = 3; index < data.length; index += 4) if (data[index] > 0) return true;
+  return false;
 }
 
 /** A legend published by a map service, as an entry the legend can draw: its bytes and its natural size. */

@@ -223,7 +223,9 @@ export async function generateMap(
 
     onStep(`Téléchargement de ${extent.tileCount} tuiles pour « ${layer.name} »…`);
     const layerTiles = await download(layer);
-    const missingLayerTiles = await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
+    const { missing: missingLayerTiles, drawn } = await drawMapLayer(pixels, extent, layerTiles, { opacity: layer.opacity });
+    // A layer of tiles can declare its legend; it is shown only when the layer drew something on this map.
+    if (drawn) legendExtra.push(...(layer.legend ?? []));
     if (missingLayerTiles > 0) {
       onStep(`  ${missingLayerTiles} tuile(s) de la couche indisponible(s) : le fond reste visible.`);
     }
