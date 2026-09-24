@@ -210,6 +210,22 @@ describe('generateMap, with the zoning of the PLU', () => {
   });
 });
 
+describe('generateMap, with a layer of a WMS', () => {
+  it('fails at once, before the tiles, when the service answers an error page, and names the layer', async (t) => {
+    // Géorisques on 24 September 2026: a page of MapServer where the image was expected.
+    t.mock.method(globalThis, 'fetch', async () => new Response('<HTML>loadLayer(): Unknown identifier.</HTML>', { headers: { 'content-type': 'text/html' } }));
+    t.mock.method(globalThis, 'setTimeout', (callback) => callback());
+    const steps = [];
+    await assert.rejects(
+      generateMap(request({ outputPath: path.join(tempDir, 'ppr.png'), mapLayers: [MAP_LAYERS['ppr-mouvements']] }), {
+        onStep: (message) => steps.push(message),
+      }),
+      /^Error: Géorisques ne répond pas pour la couche « PPR mouvements de terrain »/,
+    );
+    assert.ok(!steps.some((message) => message.startsWith('Téléchargement de') && message.includes('tuiles')), steps.join('\n'));
+  });
+});
+
 describe('estimateMapFileSize', () => {
   it('estimates the size of the file from a sample of the cached tiles', async () => {
     const { basemap, extent, format, cacheDir: dir, concurrency } = request({ extent: extentFromBbox(BBOX, 13, 0) });

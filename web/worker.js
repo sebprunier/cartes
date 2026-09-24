@@ -15,7 +15,7 @@ import {
   vectorStyleOf,
 } from './core/maplayers.js';
 import { extentBbox, readUrbanPlan, urbanPlanDrawing } from './core/urbanism.js';
-import { wmsLegendUrl, wmsRequests } from './core/wms.js';
+import { fetchWmsImages, wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
 import { attributionText } from './core/overlays.js';
@@ -105,7 +105,8 @@ async function generate({
   }
 
   const chosen = chooseMapLayers(mapLayers);
-  // The zoning is read before the tiles: a service that does not answer fails the map at once.
+  // The zoning and the images of a WMS are read before the tiles: a service that does not answer fails the map
+  // at once.
   const warnings = [];
   const urbanPlans = new Map();
   for (const layer of chosen.filter(isUrbanismLayer)) {
@@ -113,6 +114,14 @@ async function generate({
     const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name);
     if (drawing.warning) warnings.push(drawing.warning);
     urbanPlans.set(layer.id, drawing);
+  }
+  const wmsImages = new Map();
+  for (const layer of chosen.filter(isWmsLayer)) {
+    const blocks = wmsRequests(layer, extent);
+    const images = await fetchWmsImages(layer, blocks, {
+      onImage: (done, total) => postMessage({ progress: { sourceId: layer.id, done, total } }),
+    });
+    wmsImages.set(layer.id, blocks.map((block, index) => ({ block, content: images[index] })));
   }
   const sources = await withUpdateDates([
     basemap,
@@ -159,11 +168,8 @@ async function generate({
     }
 
     if (isWmsLayer(layer)) {
-      const blocks = wmsRequests(layer, extent);
-      for (const [index, block] of blocks.entries()) {
-        const content = await fetchTile(block.url);
+      for (const { block, content } of wmsImages.get(layer.id)) {
         if (content) await drawWmsBlock(context, block, content, { opacity: layer.opacity });
-        postMessage({ progress: { sourceId: layer.id, done: index + 1, total: blocks.length } });
       }
       // The service styles its own zoning: its legend is the only one that tells the truth about it.
       const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);

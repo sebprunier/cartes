@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { HttpError } from '../src/core/http.js';
 import { extentFromBbox } from '../src/core/tiles.js';
-import { wmsRequests } from '../src/core/wms.js';
+import { fetchWmsImages, wmsRequests } from '../src/core/wms.js';
 
 const CHATELLERAULT_BBOX = [0.5, 46.78, 0.59, 46.85];
 const layer = { url: 'https://example.org/wxs', wmsLayers: 'PPRN_ZONE_INOND', dataMaxZoom: 16 };
@@ -53,3 +54,44 @@ describe('wmsRequests', () => {
     assert.ok(minY > 5_800_000 && maxY < 6_000_000, asked.BBOX);
   });
 });
+
+describe('fetchWmsImages', () => {
+  const layer = { name: 'PPR mouvements de terrain', provider: 'Géorisques' };
+  const blocks = [{ url: 'https://exemple.fr/wms?a' }, { url: 'https://exemple.fr/wms?b' }];
+
+  it('downloads the image of each request, in order, and counts them', async () => {
+    const counted = [];
+    const images = await fetchWmsImages(layer, blocks, {
+      load: async (url) => new TextEncoder().encode(url),
+      onImage: (done, total) => counted.push([done, total]),
+    });
+    assert.deepEqual(images.map((bytes) => new TextDecoder().decode(bytes)), blocks.map(({ url }) => url));
+    assert.deepEqual(counted, [
+      [1, 2],
+      [2, 2],
+    ]);
+  });
+
+  it('names the layer and its service when the service answers an error page, rather than an address', async () => {
+    const load = async (url) => {
+      throw new Error(`La réponse n'est pas une image : ${url}`);
+    };
+    await assert.rejects(fetchWmsImages(layer, blocks, { load }), (error) => {
+      assert.equal(
+        error.message,
+        'Géorisques ne répond pas pour la couche « PPR mouvements de terrain » (il renvoie une page d’erreur au ' +
+          'lieu d’une image). C’est une panne du service, en général passagère : relancez la génération plus tard, ' +
+          'ou retirez cette couche.',
+      );
+      return true;
+    });
+  });
+
+  it('gives the status of a service that refuses', async () => {
+    const load = async (url) => {
+      throw new HttpError(url, 503);
+    };
+    await assert.rejects(fetchWmsImages(layer, blocks, { load }), /^Error: Géorisques ne répond pas .* \(erreur 503\)\./);
+  });
+});
+

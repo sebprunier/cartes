@@ -14,7 +14,7 @@ import {
   vectorStyleOf,
 } from './core/maplayers.js';
 import { extentBbox, readUrbanPlan, urbanPlanDrawing } from './core/urbanism.js';
-import { wmsLegendUrl, wmsRequests } from './core/wms.js';
+import { fetchWmsImages, wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { withUpdateDates } from './core/metadata.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
@@ -176,10 +176,13 @@ async function paint({
 
   // A WMS draws the area asked for: the preview asks only for what it shows.
   for (const layer of mapLayers.filter(isWmsLayer)) {
-    for (const block of wmsRequests(layer, area)) {
-      const load = engine.loadTile ?? ((url) => fetchTile(url));
-      const content = await load(block.url, { basemapId: layer.id, zoom: area.zoom, x: block.x, y: block.y });
-      if (content) await drawWmsBlock(context, block, content, { opacity: layer.opacity });
+    const blocks = wmsRequests(layer, area);
+    const load = engine.loadTile ?? ((url) => fetchTile(url));
+    const images = await fetchWmsImages(layer, blocks, {
+      load: (url, block) => load(url, { basemapId: layer.id, zoom: area.zoom, x: block.x, y: block.y }),
+    });
+    for (const [index, block] of blocks.entries()) {
+      if (images[index]) await drawWmsBlock(context, block, images[index], { opacity: layer.opacity });
     }
     const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
     if (legend) legendExtra.push(await legendImageEntry(legend));

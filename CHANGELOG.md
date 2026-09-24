@@ -20,6 +20,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Corrigé
 
+- La recherche d'une commune n'affiche plus « Recherche impossible : HTTP 400 » quand on a saisi moins de trois lettres : le service de géocodage refuse ces recherches. Les 14 communes au nom d'une ou deux lettres — Y, Eu, By, Bû, Oô, Us… — sont désormais trouvées, dès la première lettre, et `cartes generer Y` fonctionne.
+- Quand le service d'une couche est en panne, l'outil le dit en clair — « Géorisques ne répond pas pour la couche « PPR mouvements de terrain » (il renvoie une page d'erreur au lieu d'une image) » — plutôt que d'afficher une adresse. Et il le dit au début de la génération, avant de télécharger le fond de carte, plutôt qu'à la fin.
 - Sur une page courte — la page de génération à son ouverture, dans l'application comme dans le navigateur — le pied de page reste en bas de la fenêtre, au lieu de laisser une bande vide sous lui.
 - Sur un téléphone, la page Ajouter des données débordait de l'écran, à cause d'une adresse trop longue pour passer à la ligne, et l'accueil aussi sur les plus petits écrans. Plus aucune page ne déborde, de 320 à 1 440 pixels de large.
 - La documentation de l'application de bureau donne les deux commandes qui lancent l'AppImage sous Linux, plutôt qu'un simple « lancez-le », et ne présente plus ce lancement comme un avertissement à contourner : c'est seulement le cas sur macOS et Windows.

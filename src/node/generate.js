@@ -28,7 +28,7 @@ import { attributionText } from '../core/overlays.js';
 import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from '../core/tiles.js';
 import { extentBbox, readUrbanPlan, urbanPlanDrawing } from '../core/urbanism.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
-import { wmsLegendUrl, wmsRequests } from '../core/wms.js';
+import { fetchWmsImages, wmsLegendUrl, wmsRequests } from '../core/wms.js';
 import { cachedTileLoader, tileSizes } from './cache.js';
 import {
   assembleTiles,
@@ -132,8 +132,8 @@ export async function generateMap(
       onProgress: (done, total) => onProgress({ sourceId: source.id, done, total }),
     });
 
-  // The zoning is read before anything else: a service that does not answer fails the map at once, rather
-  // than once its thousands of tiles are downloaded.
+  // The zoning and the images of a WMS are read before anything else: a service that does not answer fails the
+  // map at once, rather than once its thousands of tiles are downloaded.
   const warnings = [];
   const urbanPlans = new Map();
   for (const layer of mapLayers.filter(isUrbanismLayer)) {
@@ -143,6 +143,17 @@ export async function generateMap(
     if (drawing.warning) warnings.push(drawing.warning);
     else onStep(`  ${plan.zones.length} zone(s), ${drawing.labels.length} étiquette(s).`);
     urbanPlans.set(layer.id, drawing);
+  }
+  const wmsBlocks = new Map();
+  for (const layer of mapLayers.filter(isWmsLayer)) {
+    stopIfAborted();
+    const blocks = wmsRequests(layer, extent);
+    onStep(`Téléchargement de ${blocks.length} image(s) pour « ${layer.name} »…`);
+    const images = await fetchWmsImages(layer, blocks, {
+      onImage: (done, total) => onProgress({ sourceId: layer.id, done, total }),
+    });
+    blocks.forEach((block, index) => (block.content = images[index]));
+    wmsBlocks.set(layer.id, blocks);
   }
 
   onStep(`Téléchargement de ${extent.tileCount} tuiles pour « ${basemap.name} » (zoom ${zoom})…`);
@@ -186,13 +197,7 @@ export async function generateMap(
     }
 
     if (isWmsLayer(layer)) {
-      const blocks = wmsRequests(layer, extent);
-      onStep(`Téléchargement de ${blocks.length} image(s) pour « ${layer.name} »…`);
-      for (const [index, block] of blocks.entries()) {
-        stopIfAborted();
-        block.content = await fetchTile(block.url);
-        onProgress({ sourceId: layer.id, done: index + 1, total: blocks.length });
-      }
+      const blocks = wmsBlocks.get(layer.id);
       const missingBlocks = await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
       if (missingBlocks > 0) onStep(`  ${missingBlocks} image(s) indisponible(s) : le fond reste visible.`);
       // The service styles its own zoning: its legend is the only one that tells the truth about it.

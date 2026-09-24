@@ -2,7 +2,8 @@
 // Asking it tile by tile would mean hundreds of requests for one map, so whole blocks of the image are asked
 // for instead — two requests cover a municipality — which is faster and gentler on a public service.
 
-import { TILE_SIZE } from './tiles.js';
+import { HttpError } from './http.js';
+import { TILE_SIZE, fetchTile } from './tiles.js';
 
 // Bounds of the Web Mercator world, in metres: the projection squares the globe between these values.
 const WORLD_LIMIT = 20037508.342789244;
@@ -39,6 +40,36 @@ export function wmsRequests(layer, extent, { maxSide = MAX_SIDE } = {}) {
     }
   }
   return requests;
+}
+
+/**
+ * The images of the requests, downloaded one after the other — the service draws each of them, and is not to be
+ * rushed. A service that keeps failing is said in words a town hall understands, instead of an address.
+ * `load(url, block)` downloads an image; `onImage(done, total)` counts them.
+ */
+export async function fetchWmsImages(layer, blocks, { load = (url) => fetchTile(url), onImage = () => {} } = {}) {
+  const images = [];
+  for (const [index, block] of blocks.entries()) {
+    try {
+      images.push(await load(block.url, block));
+    } catch (error) {
+      throw wmsFailure(layer, error);
+    }
+    onImage(index + 1, blocks.length);
+  }
+  return images;
+}
+
+/** The error to show when the service of a layer fails, even after its images were asked for again. */
+export function wmsFailure(layer, error) {
+  // A service whose configuration is broken answers with an error page where an image is expected: Géorisques did
+  // so for all its layers on 24 September 2026 (« loadLayer(): Unknown identifier »).
+  const reason =
+    error instanceof HttpError ? ` (erreur ${error.status})` : ' (il renvoie une page d’erreur au lieu d’une image)';
+  return new Error(
+    `${layer.provider ?? 'Le service'} ne répond pas pour la couche « ${layer.name} »${reason}. C’est une panne ` +
+      'du service, en général passagère : relancez la génération plus tard, ou retirez cette couche.',
+  );
 }
 
 /**

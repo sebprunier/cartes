@@ -53,6 +53,12 @@ L'estimation est donnée à ±30 % environ, et elle repose sur un échantillon d
 
 Si le fichier est vraiment trop gros pour être envoyé par courriel, depuis la page web, le format JPEG le divise par deux environ, au prix d'un léger flou sur le texte. Dans l'application et en ligne de commande, c'est inutile : le PNG d'un plan y est déjà léger, et le JPEG pèse même un peu plus — 3,1 Mo contre 2,6 Mo pour Colombiers au zoom 16. Baissez plutôt d'un niveau de zoom, qui divise le poids par deux environ : 1,5 Mo au zoom 15 contre 2,9 Mo au zoom 16, pour la même commune.
 
+## « … ne répond pas pour la couche … »
+
+Le service qui publie la couche est en panne : l'outil lui a redemandé ses images plusieurs fois, sans succès. Cela arrive, et se règle en général dans la journée. Le 24 septembre 2026, par exemple, le service de Géorisques a renvoyé une page d'erreur pour toutes ses couches — les PPR, les cavités, les canalisations.
+
+La génération s'arrête avant de télécharger le fond de carte, pour ne pas vous faire attendre pour rien. Relancez plus tard, ou retirez la couche en question pour générer la carte sans elle. Le zonage du PLU, lu sur le Géoportail de l'urbanisme, se comporte de la même façon.
+
 ## Des tuiles manquent, laissées en blanc
 
 Le service a refusé quelques tuiles, ce qui arrive. Relancez la même commande : les tuiles déjà téléchargées sont en cache, seules les manquantes seront redemandées.
