@@ -71,6 +71,12 @@ chmod +x cartes-0.6.0-linux-x86_64.AppImage
 
 Les fois suivantes, la seconde commande suffit.
 
+## Les nouvelles versions
+
+L'application ne se met pas à jour d'elle-même : ses installeurs ne sont pas signés, et macOS refuse qu'une application non signée se remplace. Elle vous prévient en revanche quand une nouvelle version est publiée : un bandeau « La version … de cartes est disponible » s'affiche en haut de la fenêtre, avec un lien vers cette page et un autre vers ses nouveautés. Installez-la comme la première fois ; vos réglages et le cache des tuiles sont conservés.
+
+Pour le savoir, l'application demande à GitHub, à chaque lancement, quelle est la dernière version publiée. C'est la seule requête qu'elle fait d'elle-même : elle n'envoie rien, ni sur vous, ni sur vos cartes. Hors ligne, rien ne s'affiche.
+
 ## Depuis les sources
 
 ```sh

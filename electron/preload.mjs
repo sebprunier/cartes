@@ -15,4 +15,5 @@ contextBridge.exposeInMainWorld('cartes', {
     return ipcRenderer.invoke('generate', request).finally(() => (onProgress = undefined));
   },
   cancel: () => ipcRenderer.invoke('cancel'),
+  newerVersion: () => ipcRenderer.invoke('newer-version'),
 });

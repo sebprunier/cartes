@@ -28,4 +28,7 @@ export const engine = {
   estimate: (request) => window.cartes.estimate(request),
   generate: (request, onProgress) => window.cartes.generate(request, onProgress),
   cancel: () => window.cartes.cancel(),
+
+  // The page is always up to date; an installed application may not be, and cannot update itself unsigned.
+  newerVersion: () => window.cartes.newerVersion(),
 };

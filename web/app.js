@@ -100,6 +100,21 @@ const MAX_ZOOM = engine.maxZoom;
 for (const [value, label] of engine.formats) formatChoice.append(new Option(label, value));
 if (engine.zoomNote) zoomNote.textContent = engine.zoomNote;
 else zoomNote.hidden = true;
+// An installed application learns that a newer version exists; the page, always up to date, asks nothing.
+if (engine.newerVersion) {
+  engine
+    .newerVersion()
+    .then((release) => {
+      if (!release) return;
+      element('update-version').textContent = `La version ${release.version} de cartes`;
+      element('update-download').href = release.downloadUrl;
+      element('update-notes').href = release.notesUrl;
+      element('update-banner').hidden = false;
+    })
+    .catch(() => {});
+  element('update-later').addEventListener('click', () => (element('update-banner').hidden = true));
+}
+
 // What only makes sense on the web page — such as a link to download the desktop application — is left out of it.
 if (engine.desktop) for (const link of document.querySelectorAll('[data-web-only]')) link.hidden = true;
 

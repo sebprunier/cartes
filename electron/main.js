@@ -6,8 +6,10 @@ import path from 'node:path';
 import { BrowserWindow, Menu, app, dialog, ipcMain, shell } from 'electron';
 
 import { BASEMAPS } from '../src/core/basemaps.js';
+import { request } from '../src/core/http.js';
 import { checkMapLayer, chooseMapLayers, customMapLayer } from '../src/core/maplayers.js';
 import { extentFromBbox } from '../src/core/tiles.js';
+import { LATEST_RELEASE_URL, newerRelease } from '../src/core/versions.js';
 import { cachedTileLoader } from '../src/node/cache.js';
 import { estimateMapFileSize, generateMap } from '../src/node/generate.js';
 
@@ -203,6 +205,21 @@ ipcMain.handle('generate', async (event, request) => {
 });
 
 ipcMain.handle('cancel', () => generation?.abort());
+
+// A version more recent than this one, asked of GitHub once the interface is shown: the only request the
+// application makes on its own. Offline, GitHub unavailable, its limit reached (60 requests an hour for an
+// address): nothing is said, finding the new version is no work of the town hall's.
+ipcMain.handle('newer-version', async () => {
+  // Run from its sources, the application can pretend to be older, to show what an installed one would.
+  const installed = (!app.isPackaged && process.env.CARTES_VERSION) || app.getVersion();
+  try {
+    const response = await request(LATEST_RELEASE_URL, { Accept: 'application/vnd.github+json' }, { timeoutMs: 10_000 });
+    if (!response.ok) return null;
+    return newerRelease(await response.json(), installed) ?? null;
+  } catch {
+    return null;
+  }
+});
 
 /** Basemap and pixel extent of a request coming from the interface. */
 function plan({ basemapId, bbox, zoom, margin = MARGIN_DEFAULT }) {

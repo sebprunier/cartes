@@ -8,6 +8,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Ajouté
 
+- L'application de bureau annonce une nouvelle version : au lancement, elle demande à GitHub quelle est la dernière publiée, et un bandeau propose de la télécharger et d'en lire les nouveautés. Elle ne se met pas à jour d'elle-même — ses installeurs ne sont pas signés — et ne dit rien quand elle est hors ligne.
 - Une couche « Artificialisation des sols » : les surfaces artificialisées ou non selon l'OCS GE de l'IGN, dans le dernier millésime dont dispose la commune — la Vienne a 2021-2023 —, nommé dans la mention des sources. En ligne de commande : `--couches artificialisation`.
 - Une couche dont le service s'arrête avant les derniers niveaux de zoom est dessinée plus grande au-delà, au lieu de manquer : l'OCS GE à partir du zoom 17, les bandes tampons à partir du 18, les courbes de niveau au 19.
 - Une couche « Bandes tampons des cours d'eau » : les cours d'eau le long desquels la PAC impose une bande enherbée (BCAE 4), dans leur dernière édition, que la date de la mention des sources situe. Une ligne de légende dit ce que sont ces traits bleus, qu'on prendrait sinon pour des rivières ; elle n'apparaît que si la commune en a. En ligne de commande : `--couches bcae`.

@@ -93,7 +93,7 @@ L'intégration continue (GitHub Actions) lance les tests sur Node.js 22, 24 et 2
 
 Pour travailler sur la page web : `npm run web`, puis <http://localhost:8000>. Le script recopie `src/core/` à côté des fichiers de `web/`, donc relancez-le après chaque modification.
 
-Pour l'application de bureau : `npm run electron`. Elle réutilise l'interface de `web/`, avec un moteur de rendu différent (`electron/engine.js` remplace `web/engine.js`) : la page web rend dans le navigateur, l'application rend dans son processus principal avec sharp.
+Pour l'application de bureau : `npm run electron`. Pour voir le bandeau qui annonce une nouvelle version, faites-la passer pour plus ancienne : `CARTES_VERSION=0.5.0 npm run electron` (sans effet sur une application installée). Elle réutilise l'interface de `web/`, avec un moteur de rendu différent (`electron/engine.js` remplace `web/engine.js`) : la page web rend dans le navigateur, l'application rend dans son processus principal avec sharp.
 
 ## Publier une version
 
