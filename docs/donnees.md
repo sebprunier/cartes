@@ -6,18 +6,18 @@ Dans les deux cas, ce que vous ajoutez est cité dans la mention des sources en 
 
 ## Données publiques
 
-Elles ne demandent aucun fichier : elles sont téléchargées au moment de la génération. Dans l'interface, le bouton « Ajouter une couche » ouvre le catalogue ; en ligne de commande, `cartes couches` en donne la liste.
+Elles ne demandent aucun fichier : elles sont téléchargées au moment de la génération. Dans l'interface, le bouton « Ajouter une couche » ouvre le catalogue, rangé par thème. Chaque couche y indique qui la publie et, s'il le faut, le zoom à partir duquel elle se dessine : le badge passe en orange quand le zoom choisi est trop petit. En ligne de commande, `cartes couches` en donne la liste.
 
-![Le catalogue des couches, ouvert par le bouton « Ajouter une couche » : le champ de recherche, puis chaque couche avec sa description et sa source](images/captures/donnees-catalogue.png)
+![Le catalogue des couches, ouvert par le bouton « Ajouter une couche » : le champ de recherche, puis les couches rangées par thème, « Foncier et urbanisme » et « Risques », chacune avec sa description, qui la publie et, pour le cadastre, le zoom à partir duquel elle se dessine](images/captures/donnees-catalogue.png)
 
-| Couche | Ce qu'elle montre |
-| --- | --- |
-| Parcelles cadastrales | limites et numéros des parcelles, à partir du zoom 16 |
-| PPR inondation | zonage réglementaire des plans de prévention du risque inondation |
-| PPR mouvements de terrain | zonage réglementaire, pour les glissements et effondrements |
-| Cavités souterraines | carrières, caves et ouvrages souterrains abandonnés |
-| Canalisations de matières dangereuses | gaz, hydrocarbures et produits chimiques |
-| Retrait-gonflement des argiles | aléa faible, moyen ou fort, millésime 2026 |
+| Thème | Couche | Ce qu'elle montre |
+| --- | --- | --- |
+| Foncier et urbanisme | Parcelles cadastrales | limites et numéros des parcelles, à partir du zoom 16 |
+| Risques | PPR inondation | zonage réglementaire des plans de prévention du risque inondation |
+| Risques | PPR mouvements de terrain | zonage réglementaire, pour les glissements et effondrements |
+| Risques | Cavités souterraines | carrières, caves et ouvrages souterrains abandonnés |
+| Risques | Canalisations de matières dangereuses | gaz, hydrocarbures et produits chimiques |
+| Risques | Retrait-gonflement des argiles | aléa faible, moyen ou fort, millésime 2026 |
 
 Chaque couche a une **opacité** réglable, pour laisser lire le fond de carte en dessous. Certaines ne sont dessinées qu'à partir d'un certain zoom : l'outil le signale avant de télécharger quoi que ce soit.
 
@@ -37,7 +37,7 @@ Trois choses sont demandées :
 
 L'adresse est essayée sur une tuile avant d'être acceptée. Si le service ne connaît aucune des tuiles demandées, c'est presque toujours que l'adresse est inexacte ; s'il répond sans rien donner, la couche ne couvre peut-être simplement pas votre commune. Dans les deux cas l'outil le dit, et vous laisse ajouter la couche quand même.
 
-Les adresses saisies sont retenues pour vos prochaines cartes — dans votre navigateur, ou sur votre ordinateur pour l'application — et le catalogue les propose ensuite à côté des couches connues, avec de quoi les oublier.
+Les adresses saisies sont retenues pour vos prochaines cartes — dans votre navigateur, ou sur votre ordinateur pour l'application — et le catalogue les propose ensuite sous « Vos couches », avec de quoi les oublier.
 
 #### Ce qu'il faut savoir
 

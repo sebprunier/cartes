@@ -48,7 +48,7 @@ Chaque chemin a un alias anglais, entre parenthèses.
 | --- | --- |
 | `GET /communes?nom=…&departement=…` (`/municipalities?name=…&department=…`) | chercher une commune par son nom |
 | `GET /fonds` (`/basemaps`) | lister les fonds de carte |
-| `GET /couches` (`/maplayers`) | lister les couches superposables |
+| `GET /couches` (`/maplayers`) | lister les couches superposables, avec leur thème, qui les publie et, s'il y en a un, le zoom à partir duquel elles se dessinent (`zoomMin`) |
 | `POST /estimations` (`/estimates`) | pour chaque zoom, les dimensions, le format papier et la mémoire ; pour le zoom demandé, le poids estimé du fichier |
 | `POST /cartes` (`/maps`) | demander une carte |
 | `GET /cartes/{id}` | suivre une carte : statut, avancement, avertissements |

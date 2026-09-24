@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { tileUrl } from '../src/core/basemaps.js';
 import {
   MAP_LAYERS,
+  MAP_LAYER_THEMES,
   MapLayerError,
   checkMapLayer,
   chooseMapLayers,
@@ -14,6 +15,7 @@ import {
   isWmsLayer,
   mapLayerLegendEntries,
   mapLayerZoomWarning,
+  mapLayersByTheme,
   vectorStyleOf,
 } from '../src/core/maplayers.js';
 
@@ -44,6 +46,16 @@ describe('MAP_LAYERS', () => {
       }
       assert.ok(layer.opacity > 0 && layer.opacity <= 1, id);
       // A layer that shows less below its minimum zoom says what is missing.
+    }
+  });
+
+  it('sorts every layer into a theme, and names who publishes it', () => {
+    const themes = MAP_LAYER_THEMES.map(({ id }) => id);
+    for (const layer of Object.values(MAP_LAYERS)) {
+      assert.ok(themes.includes(layer.theme), `${layer.id} theme`);
+      assert.ok(layer.provider, `${layer.id} provider`);
+      // The zoom a layer needs is shown apart, beside the description: it is not repeated in it.
+      assert.doesNotMatch(layer.description, /zoom/i, layer.id);
     }
   });
 
@@ -133,6 +145,7 @@ describe('customMapLayer', () => {
     assert.equal(layer.name, 'Zones humides');
     assert.equal(layer.attribution, '© Syndicat de bassin');
     assert.equal(layer.opacity, 0.6);
+    assert.equal(layer.provider, 'exemple.fr');
     assert.ok(isCustomLayer(layer));
     assert.equal(tileUrl(layer, 14, 8210, 5780), 'https://exemple.fr/tuiles/14/8210/5780.pbf');
   });
@@ -238,5 +251,22 @@ describe('checkMapLayer', () => {
       assert.match(error.message, /Zones humides.*403/s);
       return true;
     });
+  });
+});
+
+describe('mapLayersByTheme', () => {
+  it('groups the layers in the order of the themes, keeping their own order and leaving empty themes out', () => {
+    const layers = [
+      { id: 'a', theme: 'risques' },
+      { id: 'b', theme: 'urbanisme' },
+      { id: 'c', theme: 'risques' },
+    ];
+    assert.deepEqual(
+      mapLayersByTheme(layers).map(({ theme, layers: inTheme }) => [theme.id, inTheme.map(({ id }) => id)]),
+      [
+        ['urbanisme', ['b']],
+        ['risques', ['a', 'c']],
+      ],
+    );
   });
 });

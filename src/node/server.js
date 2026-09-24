@@ -194,6 +194,9 @@ function mapLayers() {
     id: layer.id,
     nom: layer.name,
     description: layer.description,
+    theme: layer.theme,
+    fournisseur: layer.provider,
+    zoomMin: layer.minZoom,
     opacite: layer.opacity,
     source: layer.attribution,
   }));

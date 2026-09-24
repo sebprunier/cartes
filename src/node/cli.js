@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import path, { basename } from 'node:path';
 
 import { BASEMAPS } from '../core/basemaps.js';
-import { MAP_LAYERS, MapLayerError, chooseMapLayers } from '../core/maplayers.js';
+import { MAP_LAYERS, MapLayerError, chooseMapLayers, mapLayersByTheme } from '../core/maplayers.js';
 import { formatBytes, imageMemory } from '../core/estimates.js';
 import {
   MunicipalityNotFound,
@@ -193,11 +193,16 @@ function listBasemaps() {
 }
 
 function listMapLayers() {
-  for (const layer of Object.values(MAP_LAYERS)) {
-    console.log(
-      `${layer.id.padEnd(16)} ${layer.name} — ${layer.attribution}\n${' '.repeat(16)} ${layer.description}`,
-    );
-  }
+  const groups = mapLayersByTheme(Object.values(MAP_LAYERS));
+  groups.forEach(({ theme, layers }, index) => {
+    console.log(`${index > 0 ? '\n' : ''}${theme.name}`);
+    for (const layer of layers) {
+      const zoom = layer.minZoom === undefined ? '' : ` À partir du zoom ${layer.minZoom}.`;
+      console.log(
+        `  ${layer.id.padEnd(16)} ${layer.name} — ${layer.attribution}\n${' '.repeat(19)}${layer.description}${zoom}`,
+      );
+    }
+  });
 }
 
 async function generate(input, options) {

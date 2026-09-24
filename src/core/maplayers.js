@@ -5,6 +5,17 @@ import { geoplateformeWmts, tileUrl } from './basemaps.js';
 import { requestBytes } from './http.js';
 import { TILE_SIZE, lonLatToPixel } from './tiles.js';
 
+// Themes the catalog is sorted into, in the order they are offered. They are named for a town hall, not for the
+// services: a PPR and the clays are both a risk, whoever publishes them. The order is that of the list
+// only; the layers are still laid on the map in the order of the catalog.
+export const MAP_LAYER_THEMES = [
+  { id: 'urbanisme', name: 'Foncier et urbanisme' },
+  { id: 'risques', name: 'Risques' },
+  { id: 'territoire', name: 'Territoire et environnement' },
+];
+
+// `theme` is one of MAP_LAYER_THEMES, and `provider` the short name of who publishes the layer, where
+// `attribution` is the full mention written on the map.
 // A layer is downloaded like a basemap: `tileUrl` builds the address of each of its tiles, and is the place
 // to extend when a service needs something else than a template, a WMS asking for the bounds of each tile.
 // `url` is a template with {z}, {x} and {y}, as for a basemap. `opacity` fades the layer over the map, the
@@ -16,7 +27,9 @@ const MAP_LAYER_LIST = [
   {
     id: 'cadastre',
     name: 'Parcelles cadastrales',
-    description: 'Limites et numéros des parcelles, à partir du zoom 16.',
+    description: 'Limites et numéros des parcelles.',
+    theme: 'urbanisme',
+    provider: 'IGN',
     url: geoplateformeWmts('CADASTRALPARCELS.PARCELLAIRE_EXPRESS', 'image/png'),
     minZoom: 16,
     maxZoom: 19,
@@ -34,7 +47,9 @@ const MAP_LAYER_LIST = [
   {
     id: 'ppr-inondation',
     name: 'PPR inondation',
-    description: 'Zonage réglementaire des plans de prévention du risque inondation, à partir du zoom 13.',
+    description: 'Zonage réglementaire des plans de prévention du risque inondation.',
+    theme: 'risques',
+    provider: 'Géorisques',
     kind: 'wms',
     url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
     wmsLayers: 'PPRN_ZONE_INOND',
@@ -51,7 +66,9 @@ const MAP_LAYER_LIST = [
   {
     id: 'ppr-mouvements',
     name: 'PPR mouvements de terrain',
-    description: 'Zonage réglementaire des plans de prévention du risque mouvement de terrain, à partir du zoom 13.',
+    description: 'Zonage réglementaire des plans de prévention du risque mouvement de terrain.',
+    theme: 'risques',
+    provider: 'Géorisques',
     kind: 'wms',
     url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
     wmsLayers: 'PPRN_ZONE_MVT',
@@ -68,6 +85,8 @@ const MAP_LAYER_LIST = [
     id: 'cavites',
     name: 'Cavités souterraines',
     description: 'Carrières, caves et ouvrages souterrains abandonnés, d’origine non minière.',
+    theme: 'risques',
+    provider: 'Géorisques',
     kind: 'wms',
     url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
     wmsLayers: 'CAVITE_LOCALISEE',
@@ -84,6 +103,8 @@ const MAP_LAYER_LIST = [
     id: 'canalisations',
     name: 'Canalisations de matières dangereuses',
     description: 'Canalisations de transport de gaz, d’hydrocarbures et de produits chimiques, et leurs servitudes.',
+    theme: 'risques',
+    provider: 'Géorisques',
     kind: 'wms',
     url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
     wmsLayers: 'CANALISATIONS',
@@ -100,6 +121,8 @@ const MAP_LAYER_LIST = [
     id: 'argiles',
     name: 'Retrait-gonflement des argiles',
     description: 'Aléa de retrait-gonflement des argiles, millésime 2026, par niveau.',
+    theme: 'risques',
+    provider: 'BRGM',
     kind: 'vector',
     url: 'https://static.data.gouv.fr/resources/carte-des-risques-retrait-gonflement-des-argiles-2026/20260401-081931/argile-2026.pmtiles',
     dataMaxZoom: 12,
@@ -123,6 +146,13 @@ const MAP_LAYER_LIST = [
 ];
 
 export const MAP_LAYERS = Object.fromEntries(MAP_LAYER_LIST.map((layer) => [layer.id, layer]));
+
+/** Layers sorted into their themes, in the order of MAP_LAYER_THEMES and of the list given; empty themes left out. */
+export function mapLayersByTheme(layers) {
+  return MAP_LAYER_THEMES.map((theme) => ({ theme, layers: layers.filter((layer) => layer.theme === theme.id) })).filter(
+    ({ layers: inTheme }) => inTheme.length > 0,
+  );
+}
 
 // Properties holding, in the tiles of a layer added by the user, the label of a feature and its color. The
 // names are those of the data files the tool already reads, a service that publishes tiles and a municipality
@@ -193,6 +223,7 @@ export function customMapLayer(definition = {}) {
     id: definition.id || customId(name),
     name,
     description: definition.description?.trim() || `Couche ajoutée, servie par ${address.host}.`,
+    provider: address.host,
     kind: VECTOR_TILE_PATH.test(address.pathname) ? 'vector' : 'tiles',
     url,
     custom: true,

@@ -121,7 +121,10 @@ describe('API', () => {
     assert.deepEqual(basemaps.body, (await call('GET', '/basemaps')).body);
     assert.ok(basemaps.body.some(({ id, zoomMax }) => id === 'plan-ign' && zoomMax === 19));
     const layers = await call('GET', '/maplayers');
-    assert.ok(layers.body.some(({ id }) => id === 'cadastre'));
+    const cadastre = layers.body.find(({ id }) => id === 'cadastre');
+    assert.equal(cadastre.theme, 'urbanisme');
+    assert.equal(cadastre.fournisseur, 'IGN');
+    assert.equal(cadastre.zoomMin, 16);
   });
 
   it('searches municipalities by name and department', async (t) => {

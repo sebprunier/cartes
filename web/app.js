@@ -1,7 +1,7 @@
 // Interface of the web page: choice of the municipality, settings, estimates and generation.
 
 import { BASEMAPS } from './core/basemaps.js';
-import { MAP_LAYERS, MapLayerError, customMapLayer, mapLayerZoomWarning } from './core/maplayers.js';
+import { MAP_LAYERS, MapLayerError, customMapLayer, mapLayerZoomWarning, mapLayersByTheme } from './core/maplayers.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
 import {
   GEOCODING_STATUS,
@@ -223,48 +223,136 @@ function opacityChoice(chosen, layer) {
   return line;
 }
 
-/** The catalog and the layers remembered, limited to what is not already on the map and to what matches. */
+// The icon of each theme of the catalog, and of the layers added by address: drawn strokes, in the color of
+// the text, so that they read at a glance and print nowhere.
+const THEME_ICONS = {
+  urbanisme: '<path d="M4 4h16v16H4zM4 11h9M13 4v16M13 15h7"/>',
+  risques: '<path d="M12 3.8 21 19.5H3z"/><path d="M12 10v4.4M12 16.9v.1"/>',
+  territoire: '<path d="m3 19.5 6-9.5 4 5.2 2.6-3.4 5.4 7.7z"/><circle cx="16.5" cy="6.5" r="1.8"/>',
+  custom:
+    '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.8 2.6 14.2 0 17M12 3.5c-2.6 2.8-2.6 14.2 0 17"/>',
+};
+const CUSTOM_THEME = { id: 'custom', name: 'Vos couches' };
+
+/**
+ * The catalog, sorted into its themes, then the layers remembered — limited to what is not already on the map and
+ * to what matches the search, which looks into the names of the themes and of the providers too.
+ */
 function showLayerChoices() {
   const wanted = layerSearch.value.trim().toLowerCase();
-  const available = [...Object.values(MAP_LAYERS), ...remembered]
-    .filter((layer) => !mapLayers.some(({ id }) => id === layer.id))
-    .filter((layer) => `${layer.name} ${layer.description} ${layer.attribution}`.toLowerCase().includes(wanted));
+  const available = (layers, theme) =>
+    layers
+      .filter((layer) => !mapLayers.some(({ id }) => id === layer.id))
+      .filter((layer) =>
+        [layer.name, layer.description, layer.attribution, providerOf(layer), theme?.name]
+          .join(' ')
+          .toLowerCase()
+          .includes(wanted),
+      );
+  const groups = [
+    ...mapLayersByTheme(Object.values(MAP_LAYERS)).map(({ theme, layers }) => ({ theme, layers: available(layers, theme) })),
+    { theme: CUSTOM_THEME, layers: available(remembered, CUSTOM_THEME) },
+  ].filter(({ layers }) => layers.length > 0);
 
-  layerChoices.replaceChildren(
-    ...available.map((layer) => {
-      const item = document.createElement('li');
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.textContent = layer.name;
-      add.addEventListener('click', () => {
-        addMapLayer(layer);
-        layerChooser.close();
-      });
-      const description = document.createElement('p');
-      description.className = 'map-layer-description';
-      description.textContent = `${layer.description} ${layer.attribution}`;
-      item.append(add, description);
-
-      // A layer added by address is remembered until it is told to be forgotten.
-      if (!MAP_LAYERS[layer.id]) {
-        const forget = document.createElement('button');
-        forget.type = 'button';
-        forget.className = 'forget-layer';
-        forget.textContent = 'Oublier';
-        forget.addEventListener('click', () => {
-          forgetLayer(layer);
-          showLayerChoices();
-        });
-        description.append(' ', forget);
-      }
-      return item;
-    }),
-  );
-  if (available.length === 0) {
+  layerChoices.replaceChildren(...groups.map(layerGroup));
+  if (groups.length === 0) {
     const empty = document.createElement('li');
     empty.className = 'note';
     empty.textContent = 'Aucune couche ne correspond.';
     layerChoices.append(empty);
+  }
+}
+
+/** A theme of the chooser: its icon and name, then a card for each of its layers. */
+function layerGroup({ theme, layers }) {
+  const group = document.createElement('li');
+  group.className = 'layer-group';
+  const title = document.createElement('h4');
+  title.id = `layer-theme-${theme.id}`;
+  const icon = document.createElement('span');
+  icon.className = 'layer-theme-icon';
+  icon.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">${THEME_ICONS[theme.id]}</svg>`;
+  title.append(icon, theme.name);
+  const list = document.createElement('ul');
+  list.setAttribute('aria-labelledby', title.id);
+  list.append(...layers.map(layerCard));
+  group.append(title, list);
+  return group;
+}
+
+/** A layer of the chooser: the whole card adds it, and says who publishes it and from which zoom it shows. */
+function layerCard(layer) {
+  const item = document.createElement('li');
+  item.className = 'layer-choice';
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'layer-choice-add';
+  add.addEventListener('click', () => {
+    addMapLayer(layer);
+    layerChooser.close();
+  });
+
+  const text = document.createElement('span');
+  text.className = 'layer-choice-text';
+  const name = document.createElement('span');
+  name.className = 'layer-choice-name';
+  name.textContent = layer.name;
+  const description = document.createElement('span');
+  description.className = 'layer-choice-description';
+  description.textContent = layer.description;
+  const badges = document.createElement('span');
+  badges.className = 'layer-choice-badges';
+  badges.append(badge(providerOf(layer)));
+  // The zoom a layer needs is said only when one of the zoom levels offered falls short of it.
+  if (layer.minZoom > Math.min(...zoomLevels())) {
+    const zoom = Number(zoomChoice.value);
+    const short = zoomChoice.value !== '' && zoom < layer.minZoom;
+    const needed = badge(
+      short ? `Dès le zoom ${layer.minZoom}, vous avez choisi le ${zoom}` : `Dès le zoom ${layer.minZoom}`,
+      short ? 'warning' : '',
+    );
+    needed.title = layer.zoomNote ?? '';
+    badges.append(needed);
+  }
+  text.append(name, description, badges);
+
+  const plus = document.createElement('span');
+  plus.className = 'layer-choice-plus';
+  plus.setAttribute('aria-hidden', 'true');
+  plus.textContent = '+';
+  add.append(text, plus);
+  item.append(add);
+
+  // A layer added by address is remembered until it is told to be forgotten.
+  if (!MAP_LAYERS[layer.id]) {
+    const forget = document.createElement('button');
+    forget.type = 'button';
+    forget.className = 'forget-layer';
+    forget.textContent = 'Oublier';
+    forget.setAttribute('aria-label', `Oublier la couche ${layer.name}`);
+    forget.addEventListener('click', () => {
+      forgetLayer(layer);
+      showLayerChoices();
+    });
+    item.append(forget);
+  }
+  return item;
+}
+
+function badge(label, kind = '') {
+  const element = document.createElement('span');
+  element.className = `layer-badge ${kind}`.trim();
+  element.textContent = label;
+  return element;
+}
+
+/** Who publishes a layer: named in the catalog, or the host of its address for a layer added by address. */
+function providerOf(layer) {
+  if (layer.provider) return layer.provider;
+  try {
+    return new URL(layer.url).host;
+  } catch {
+    return '';
   }
 }
 
