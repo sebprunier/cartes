@@ -104,8 +104,13 @@ describe('generateMap', () => {
 
     assert.match(steps[0], /^Téléchargement de \d+ tuiles pour « Plan IGN/);
     assert.ok(steps.includes(`Enregistrement dans ${outputPath}…`));
-    assert.ok(progress.every(({ sourceId }) => sourceId === BASEMAP.id));
-    assert.deepEqual(progress.at(-1), { sourceId: BASEMAP.id, done: extent.tileCount, total: extent.tileCount });
+    const tiles = progress.filter(({ sourceId }) => sourceId === BASEMAP.id);
+    assert.deepEqual(tiles.at(-1), { sourceId: BASEMAP.id, done: extent.tileCount, total: extent.tileCount });
+    // The dates of the basemap and of the boundary, which the catalog out of reach does not give: counted as
+    // missing, and the map generated all the same.
+    const dates = progress.filter(({ sourceId }) => sourceId === 'dates');
+    assert.deepEqual(dates.at(-1), { sourceId: 'dates', done: 2, total: 2, missing: 2 });
+    assert.deepEqual(new Set(progress.map(({ sourceId }) => sourceId)), new Set([BASEMAP.id, 'dates']));
   });
 
   it('leaves out the outline and the legend when asked to, and says so in its steps', async () => {

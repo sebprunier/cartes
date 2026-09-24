@@ -46,6 +46,9 @@ import {
   vectorOverlays,
 } from './render.js';
 
+// The source of the progress of the dates of the data, read in the catalog for the attribution of the map.
+export const DATES_PROGRESS = 'dates';
+
 // Size of the grid of tiles downloaded for each zoom level to estimate the size of the generated file:
 // 6 × 6 tiles keep the sampling error under 10 % on the maps measured, where 16 tiles in a row reached 25 %.
 export const SAMPLE_GRID_SIZE = 6;
@@ -154,12 +157,16 @@ export async function generateMap(
   }
   // The dates of the data are asked for now, and waited for only to write the attribution: the catalog can take
   // longer than all the tiles.
-  const datedSources = withUpdateDates([
-    basemap,
-    // The zoning is credited with the documents of this municipality, or not at all when it has none.
-    ...mapLayers.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
-    ...(outline ? [BOUNDARY_SOURCE] : []),
-  ]);
+  const datedSources = withUpdateDates(
+    [
+      basemap,
+      // The zoning is credited with the documents of this municipality, or not at all when it has none.
+      ...mapLayers.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
+      ...(outline ? [BOUNDARY_SOURCE] : []),
+    ],
+    // Their progress has a line of its own: the catalog can be slower than every tile of the map.
+    { onProgress: (progress) => onProgress({ sourceId: DATES_PROGRESS, ...progress }) },
+  );
   const wmsBlocks = new Map();
   for (const layer of mapLayers.filter(isWmsLayer)) {
     stopIfAborted();

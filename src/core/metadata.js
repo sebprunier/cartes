@@ -58,18 +58,27 @@ function updateDateOf(metadataId, now = Date.now()) {
  * Returns the data sources with their update date, when their metadata record can be read. A source whose date
  * is unavailable (network, catalog error) is returned as is, so that the map can still be generated. The dates
  * are only written at the very end of a map: start this early, and wait for it last.
+ * `onProgress({ done, total, missing })` counts the dates read from the catalog, and those it did not give.
  */
-export function withUpdateDates(sources) {
+export function withUpdateDates(sources, { onProgress = () => {} } = {}) {
+  const total = sources.filter(({ metadataId }) => metadataId).length;
+  let done = 0;
+  let missing = 0;
+  onProgress({ done, total, missing });
   return Promise.all(
     sources.map(async (source) => {
       // A source without a record in the catalog carries its own date, if it has one.
       if (!source.metadataId) return source;
+      let updateDate;
       try {
-        const updateDate = await updateDateOf(source.metadataId);
-        return updateDate ? { ...source, updateDate } : source;
+        updateDate = await updateDateOf(source.metadataId);
       } catch {
-        return source;
+        // Counted as missing below: the map is generated without this date, and says so.
       }
+      done++;
+      if (!updateDate) missing++;
+      onProgress({ done, total, missing });
+      return updateDate ? { ...source, updateDate } : source;
     }),
   );
 }

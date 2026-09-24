@@ -131,11 +131,15 @@ async function generate({
   }
   // The dates of the data are asked for now, and waited for only to write the attribution: the catalog can take
   // longer than all the tiles.
-  const datedSources = withUpdateDates([
-    basemap,
-    ...chosen.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
-    ...(outline ? [BOUNDARY_SOURCE] : []),
-  ]);
+  const datedSources = withUpdateDates(
+    [
+      basemap,
+      ...chosen.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
+      ...(outline ? [BOUNDARY_SOURCE] : []),
+    ],
+    // Their progress has a line of its own: the catalog can be slower than every tile of the map.
+    { onProgress: (progress) => postMessage({ progress: { sourceId: 'dates', ...progress } }) },
+  );
   const { canvas, context } = createCanvas(extent.width, extent.height);
   let drawn = 0;
   let missing = 0;

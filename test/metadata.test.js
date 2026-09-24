@@ -70,6 +70,25 @@ describe('withUpdateDates', () => {
     ]);
   });
 
+  it('counts the dates read, and those the catalog did not give', async (t) => {
+    t.mock.method(globalThis, 'fetch', async (url) =>
+      new URL(url).searchParams.get('ID') === 'IGNF_PLAN-IGN'
+        ? new Response(record([citationDate('2026-08-05', 'revision')]))
+        : new Response('error', { status: 503 }),
+    );
+    const progress = [];
+    await withUpdateDates(
+      [
+        { attribution: '© IGN – Plan IGN', metadataId: 'IGNF_PLAN-IGN' },
+        { attribution: '© IGN – ADMIN EXPRESS', metadataId: 'IGNF_ADMIN-EXPRESS' },
+        { attribution: '© BRGM', datedByConsultation: true },
+      ],
+      { onProgress: (step) => progress.push(step) },
+    );
+    assert.deepEqual(progress[0], { done: 0, total: 2, missing: 0 });
+    assert.deepEqual(progress.at(-1), { done: 2, total: 2, missing: 1 });
+  });
+
   it('keeps a date read for the next map, and asks again for one that failed', async (t) => {
     let answer = new Response('error', { status: 503 });
     const fetch = t.mock.method(globalThis, 'fetch', async () => answer);

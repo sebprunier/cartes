@@ -88,8 +88,13 @@ const MAP = {
     hauteur: { type: 'integer' },
     avancement: {
       type: 'object',
-      description: 'Pour chaque source (fond de carte, couche), le nombre de tuiles ou d’images faites sur le total.',
-      additionalProperties: { type: 'object', properties: { fait: { type: 'integer' }, total: { type: 'integer' } } },
+      description:
+        'Pour chaque source (fond de carte, couche), le nombre de tuiles ou d’images faites sur le total ; pour ' +
+        '« dates », les dates des données lues dans le catalogue, et celles qu’il n’a pas données (manquantes).',
+      additionalProperties: {
+        type: 'object',
+        properties: { fait: { type: 'integer' }, total: { type: 'integer' }, manquantes: { type: 'integer' } },
+      },
     },
     etapes: { type: 'array', items: { type: 'string' } },
     avertissements: { type: 'array', items: { type: 'string' } },

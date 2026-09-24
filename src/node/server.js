@@ -305,7 +305,8 @@ async function run(map, { cacheDir, outputDir, concurrency }) {
       {
         // The path of the file on the server is none of the client's business: it knows the map by its name.
         onStep: (message) => map.steps.push(message.trim().replace(map.filePath, map.fileName)),
-        onProgress: ({ sourceId, done, total }) => (map.progress[sourceId] = { fait: done, total }),
+        onProgress: ({ sourceId, done, total, missing }) =>
+          (map.progress[sourceId] = { fait: done, total, ...(missing === undefined ? {} : { manquantes: missing }) }),
         signal: map.controller.signal,
       },
     );

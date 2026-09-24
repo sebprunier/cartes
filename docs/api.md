@@ -74,7 +74,7 @@ curl http://localhost:8080/cartes/<id>
 curl -OJ http://localhost:8080/cartes/<id>/fichier
 ```
 
-Le suivi renvoie le `statut` — `en attente`, `en cours`, `terminée`, `échouée` ou `annulée` —, l'`avancement` de chaque source en tuiles, les `etapes` franchies, les `avertissements` et, en cas d'échec, l'`erreur`. Une carte terminée reste téléchargeable jusqu'à son `expiration`, puis disparaît avec son fichier.
+Le suivi renvoie le `statut` — `en attente`, `en cours`, `terminée`, `échouée` ou `annulée` —, l'`avancement` de chaque source en tuiles — et celui des dates des données, lues dans le catalogue pour la mention des sources, sous `dates` —, les `etapes` franchies, les `avertissements` et, en cas d'échec, l'`erreur`. Une carte terminée reste téléchargeable jusqu'à son `expiration`, puis disparaît avec son fichier.
 
 ### Les champs d'une demande
 

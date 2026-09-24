@@ -1243,6 +1243,11 @@ dialog h3 {
   color: var(--accent);
 }
 
+#progress-line li.warning .progress-status {
+  color: var(--warning);
+  font-weight: 600;
+}
+
 progress {
   width: 100%;
   height: 0.5rem;

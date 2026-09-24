@@ -1,7 +1,15 @@
 // Interface of the web page: choice of the municipality, settings, estimates and generation.
 
 import { BASEMAPS } from './core/basemaps.js';
-import { MAP_LAYERS, MapLayerError, customMapLayer, mapLayerZoomWarning, mapLayersByTheme } from './core/maplayers.js';
+import {
+  MAP_LAYERS,
+  MapLayerError,
+  customMapLayer,
+  isTileLayer,
+  isWmsLayer,
+  mapLayerZoomWarning,
+  mapLayersByTheme,
+} from './core/maplayers.js';
 import { formatBytes, imageMemory } from './core/estimates.js';
 import {
   GEOCODING_STATUS,
@@ -1245,7 +1253,12 @@ async function generate() {
  * Each keeps its own count, rather than a single total where nothing says what is being downloaded.
  */
 function showProgressSources() {
-  const sources = [BASEMAPS[basemapChoice.value], ...chosenMapLayers().map(layerOf)];
+  // Last, the dates of the data, read in the catalog for the attribution: it can be slower than every tile.
+  const sources = [
+    BASEMAPS[basemapChoice.value],
+    ...chosenMapLayers().map(layerOf),
+    { id: 'dates', name: 'Mention des sources' },
+  ];
   progressLine.replaceChildren(
     ...sources.map((source) => {
       const item = document.createElement('li');
@@ -1266,13 +1279,28 @@ function showProgressSources() {
   progressLine.hidden = false;
 }
 
-function showProgress({ sourceId, done, total }) {
+function showProgress({ sourceId, done, total, missing = 0 }) {
   const item = progressLine.querySelector(`li[data-source="${sourceId}"]`);
   if (!item) return;
-  item.querySelector('progress').value = (done / total) * 100;
-  item.querySelector('.progress-status').textContent =
-    done < total ? `${done} / ${total} tuiles` : `${total} tuiles`;
-  item.classList.toggle('done', done >= total);
+  item.querySelector('progress').value = total === 0 ? 100 : (done / total) * 100;
+  item.querySelector('.progress-status').textContent = progressStatus(sourceId, done, total, missing);
+  item.classList.toggle('done', done >= total && missing === 0);
+  // A date the catalog did not give does not stop the map: the line says it, the result too.
+  item.classList.toggle('warning', done >= total && missing > 0);
+}
+
+/** What a line of progress counts: tiles, the images of a WMS, the dates of the data, or a single reading. */
+function progressStatus(sourceId, done, total, missing) {
+  if (sourceId === 'dates') {
+    if (done < total) return `${done} / ${total} dates`;
+    return missing > 0 ? `${missing} date(s) indisponible(s)` : 'dates lues';
+  }
+  const layer = MAP_LAYERS[sourceId];
+  if (layer && !isTileLayer(layer)) {
+    if (!isWmsLayer(layer)) return done < total ? 'lecture…' : 'lu';
+    return done < total ? `${done} / ${total} images` : `${total} images`;
+  }
+  return done < total ? `${done} / ${total} tuiles` : `${total} tuiles`;
 }
 
 /** Name of the generated file: municipality, basemap, zoom level and rendering. */

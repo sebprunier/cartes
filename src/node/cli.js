@@ -20,7 +20,7 @@ import { GeocodingError, geocodeCsv } from '../core/geocoding.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
-import { SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
+import { DATES_PROGRESS, SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
 import { createApiServer } from './server.js';
 import { SERVICES, checkService, describeCheck } from '../core/status.js';
 
@@ -329,7 +329,11 @@ async function generate(input, options) {
       cacheDir: options.cache,
       concurrency,
     },
-    { onStep: console.log, onProgress: ({ done, total }) => printProgress(done, total) },
+    {
+      onStep: console.log,
+      // The dates of the data are told once the map is written, with the other warnings.
+      onProgress: ({ sourceId, done, total }) => sourceId !== DATES_PROGRESS && printProgress(done, total),
+    },
   );
   for (const warning of mapWarnings) console.log(`  Attention : ${warning}`);
   if (missing > 0) {
