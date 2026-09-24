@@ -41,4 +41,5 @@ Cette mention n'est pas décorative : la licence des données impose de citer la
 - [Choisir le zoom et le format papier](zoom-et-impression.md) — la question qui décide de tout le reste
 - [Ajouter des données](donnees.md) — couches publiques et fichiers de la commune
 - [Application de bureau](application-de-bureau.md), [ligne de commande](ligne-de-commande.md) et [API](api.md) — quand la page web ne suffit plus
+- [Comment ça marche](comment-ca-marche.md) — les tuiles, le zoom et l'assemblage, en images
 - [Problèmes courants](problemes-courants.md)

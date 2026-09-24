@@ -59,6 +59,8 @@ Les pages sont écrites en Markdown dans [`docs/`](docs/) : elles se lisent auss
 
 ## Fonctionnement
 
+La page [Comment ça marche](docs/comment-ca-marche.md) raconte ces étapes en images : les tuiles et le zoom, l'assemblage, les calques, la mémoire.
+
 1. **Commune** : l'[API de géocodage de la Géoplateforme](https://data.geopf.fr/geocodage/openapi) (`type=municipality`) donne le code INSEE. En cas d'homonymes, l'outil liste les candidates et demande de préciser le département.
 2. **Contour** : récupéré depuis ADMIN EXPRESS via le service WFS de la Géoplateforme (couche `ADMINEXPRESS-COG.LATEST:commune`, filtre sur `code_insee`).
 3. **Emprise** : la bbox du contour, élargie d'une marge (3 % par défaut), est convertie en pixels Web Mercator au niveau de zoom demandé, ce qui donne la liste des tuiles à récupérer.

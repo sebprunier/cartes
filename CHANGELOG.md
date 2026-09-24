@@ -9,6 +9,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 ### Ajouté
 
 - Géocoder un fichier d'adresses : un CSV avec une colonne d'adresse — ou des colonnes de numéro, de voie, de code postal et de commune — mais sans coordonnées est placé par le service de géocodage de l'IGN, la recherche restreinte à la commune de la carte. Chaque adresse est classée trouvée, à vérifier ou introuvable, d'après des seuils mesurés sur 430 adresses : seules les trouvées sont dessinées, les secondes sur demande, et le bilan dit quelles lignes corriger. Le fichier géocodé s'enregistre, pour ne pas recommencer. En ligne de commande : `cartes geocoder lieux.csv --commune 86081`, puis `--donnees` et `--donnees-a-verifier`. La carte cite alors la Base Adresse Nationale, d'où viennent les positions.
+- Une page « Comment ça marche » explique en images ce que fait l'outil : les tuiles et le zoom, le passage de la commune aux tuiles, l'assemblage, les calques, le passage du pixel au papier, la mémoire et ses limites. Elle se termine par un glossaire. Ses illustrations sont de vraies cartes de Colombiers, et `npm run illustrations` les redessine.
 
 ### Modifié
 

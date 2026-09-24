@@ -37,6 +37,10 @@ export const DOCUMENTATION_SECTIONS = [
     ],
   },
   {
+    title: 'Comprendre',
+    pages: [{ file: 'comment-ca-marche.md', title: 'Comment ça marche' }],
+  },
+  {
     title: 'Référence',
     pages: [
       { file: 'donnees-et-licences.md', title: 'Sources et licences' },

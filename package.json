@@ -33,7 +33,8 @@
     "web": "node scripts/build-web.js --serve",
     "build:electron": "node scripts/build-electron.js",
     "electron": "node scripts/build-electron.js && electron .",
-    "package:electron": "node scripts/build-electron.js && electron-builder"
+    "package:electron": "node scripts/build-electron.js && electron-builder",
+    "illustrations": "node scripts/illustrations.js"
   },
   "engines": {
     "node": ">=22"
