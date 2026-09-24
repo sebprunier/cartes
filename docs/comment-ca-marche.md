@@ -25,26 +25,28 @@ Chaque tuile est désignée par trois nombres : son zoom, sa colonne et sa rang�
 
 ## Le téléchargement
 
-Les tuiles sont demandées six à la fois, pour aller vite sans surcharger un service public. Un service comme la Géoplateforme refuse parfois une tuile qui existe, par surcharge passagère : l'outil la redemande, quatre essais en tout, en attendant deux fois plus longtemps à chaque fois. Une tuile qui échoue toujours est laissée en blanc, et l'outil le signale.
+Les tuiles sont demandées six à la fois, pour aller vite sans surcharger un service public : dès qu'un téléchargement se termine, le suivant commence.
+
+Un service comme la Géoplateforme refuse parfois une tuile qui existe, quand il est surchargé. L'outil la redemande alors, jusqu'à quatre essais en tout, en attendant deux fois plus longtemps avant chaque nouvel essai, pendant que les autres tuiles continuent d'arriver. Si les quatre essais échouent, la tuile reste blanche et l'outil le signale.
+
+![Six files de téléchargement en parallèle, chacune enchaînant les tuiles ; sur la troisième, une tuile échoue deux fois, attend 1 s puis 2 s, et arrive au troisième essai ; à droite, la fois suivante, les douze tuiles sont lues dans le cache](images/schemas/telechargement.svg)
 
 Dans l'application et en ligne de commande, les tuiles téléchargées sont gardées sur le disque : régénérer la même commune ne retélécharge rien. Sur la page web, c'est le cache du navigateur qui s'en charge.
 
 ## L'assemblage
 
-Les tuiles sont recopiées dans une seule image, aux dimensions exactes de l'emprise : les tuiles du bord sont rognées au pixel près. Pour Colombiers au zoom 13, l'image mesure 639 × 489 pixels.
+Les tuiles sont recollées bord à bord, dans l'ordre de leurs colonnes et de leurs rangées. L'image obtenue déborde de l'emprise, puisque les tuiles du bord n'y entrent qu'en partie. Elle est donc rognée au pixel près : pour Colombiers au zoom 13, il reste 639 × 489 pixels sur 1 024 × 768.
 
-![L'image de Colombiers au zoom 13, assemblée à partir des tuiles et recadrée sur l'emprise](images/comment-assemblage.png "La même carte, une fois les tuiles assemblées et recadrées sur l'emprise.")
+![Les douze tuiles séparées, puis recollées bord à bord avec en hachures ce qui déborde de l'emprise, puis l'image rognée sur l'emprise](images/comment-assemblage.png "Les tuiles arrivent une à une, sont recollées, puis rognées sur l'emprise.")
 
 ## Les calques
 
-Sur ce fond, l'outil pose ensuite, dans l'ordre :
+Sur ce fond, l'outil pose ensuite ses calques, du dessous vers le dessus :
 
-1. **Les couches** servies comme des images — le cadastre, en tuiles ; les plans de prévention des risques, demandés au service de Géorisques en quelques grandes images ;
-2. **Les couches que l'outil dessine lui-même**, à partir de données vectorielles — l'aléa retrait-gonflement des argiles. Elles restent nettes à tous les niveaux de zoom ;
-3. **Le contour de la commune** ;
-4. **Vos données**, avec leurs étiquettes, placées pour ne pas se recouvrir ;
-5. **La légende**, en bas à gauche ;
-6. **La mention des sources**, en bas à droite, avec la date de chaque donnée.
+1. **Le fond de carte**, assemblé à partir des tuiles.
+2. **Les couches** que vous avez choisies. Certaines sont servies comme des images : le cadastre en tuiles, les plans de prévention des risques demandés à Géorisques en quelques grandes images. D'autres sont dessinées par l'outil à partir de données vectorielles, comme l'aléa retrait-gonflement des argiles, et restent nettes à tous les niveaux de zoom.
+3. **Le contour de la commune et vos données**, avec leurs étiquettes, placées pour ne pas se recouvrir.
+4. **La légende**, en bas à gauche, et **la mention des sources**, en bas à droite, avec la date de chaque donnée.
 
 ![La même carte de Colombiers au zoom 14, calque après calque : le fond de carte, l'aléa argiles, le contour et les points d'apport volontaire, puis la légende et la mention des sources](images/comment-calques.png "Quatre étapes de la même carte, au zoom 14.")
 
