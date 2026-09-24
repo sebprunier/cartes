@@ -319,7 +319,8 @@ function layerCard(layer) {
   const plus = document.createElement('span');
   plus.className = 'layer-choice-plus';
   plus.setAttribute('aria-hidden', 'true');
-  plus.textContent = '+';
+  // Drawn rather than typed: a « + » sits where its font puts it, seldom in the middle of the circle.
+  plus.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14"><path d="M8 2.5v11M2.5 8h11"/></svg>';
   add.append(text, plus);
   item.append(add);
 

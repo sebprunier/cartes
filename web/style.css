@@ -1126,9 +1126,13 @@ dialog h3 {
   border: 1px solid var(--line-strong);
   border-radius: 50%;
   color: var(--accent);
-  font-size: 1.2rem;
-  font-weight: 500;
-  line-height: 1;
+}
+
+.layer-choice-plus svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 #layer-choices .layer-choice-add:hover .layer-choice-plus {
