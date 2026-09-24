@@ -12,6 +12,7 @@ Elles ne demandent aucun fichier : elles sont téléchargées au moment de la g�
 
 | Thème | Couche | Ce qu'elle montre |
 | --- | --- | --- |
+| Foncier et urbanisme | Zonage du PLU | zones urbaines, à urbaniser, agricoles et naturelles, avec le code de chaque zone |
 | Foncier et urbanisme | Parcelles cadastrales | limites et numéros des parcelles, à partir du zoom 16 |
 | Risques | PPR inondation | zonage réglementaire des plans de prévention du risque inondation |
 | Risques | PPR mouvements de terrain | zonage réglementaire, pour les glissements et effondrements |
@@ -20,6 +21,8 @@ Elles ne demandent aucun fichier : elles sont téléchargées au moment de la g�
 | Risques | Retrait-gonflement des argiles | aléa faible, moyen ou fort, millésime 2026 |
 
 Chaque couche a une **opacité** réglable, pour laisser lire le fond de carte en dessous. Certaines ne sont dessinées qu'à partir d'un certain zoom : l'outil le signale avant de télécharger quoi que ce soit.
+
+Le zonage du PLU est celui du document en vigueur sur la commune, tel qu'il est publié sur le Géoportail de l'urbanisme : un PLU, un PLU intercommunal — dont la carte ne garde que ce qu'elle montre — ou les secteurs d'une carte communale. Une commune qui relève du règlement national d'urbanisme n'a pas de zonage : la carte est générée sans, et l'outil le dit.
 
 Une couche vide n'est pas une panne : beaucoup de communes ne sont traversées par aucune canalisation, et n'ont ni cavité recensée ni plan de prévention.
 

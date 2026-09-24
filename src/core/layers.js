@@ -454,7 +454,7 @@ export function layerShapes(layer, extent) {
 }
 
 /** Size of the labels, which follows the size of the image, as the symbols and the attribution do. */
-function labelFontSize(extent) {
+export function labelFontSize(extent) {
   return Math.max(11, Math.round(Math.max(4, Math.round(Math.max(extent.width, extent.height) / 400)) * 1.6));
 }
 

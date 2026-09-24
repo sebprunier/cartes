@@ -2,7 +2,7 @@
 
 Ce document explique d'où viennent les données utilisées par `cartes`, sous quelles conditions elles peuvent être réutilisées, et comment l'outil respecte ces conditions.
 
-> Analyse réalisée le 17 septembre 2026 à partir des fiches du catalogue de la Géoplateforme et du texte officiel de la licence, complétée le 23 septembre pour le géocodage des adresses. Ce n'est pas un avis juridique. Les licences et les fiches peuvent évoluer : elles sont à revérifier avant tout changement d'usage important, par exemple le lancement d'un service en ligne.
+> Analyse réalisée le 17 septembre 2026 à partir des fiches du catalogue de la Géoplateforme et du texte officiel de la licence, complétée le 23 septembre pour le géocodage des adresses et le 24 septembre pour le zonage des PLU. Ce n'est pas un avis juridique. Les licences et les fiches peuvent évoluer : elles sont à revérifier avant tout changement d'usage important, par exemple le lancement d'un service en ligne.
 
 ## En résumé
 
@@ -19,6 +19,7 @@ Ce document explique d'où viennent les données utilisées par `cartes`, sous q
 | Plan IGN | fond de carte `plan-ign` | WMTS, couche `GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2` | [IGNF_PLAN-IGN](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PLAN-IGN) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0) |
 | BD ORTHO (photographies aériennes) | fond de carte `ortho-ign` | WMTS, couche `ORTHOIMAGERY.ORTHOPHOTOS` | [IGNF_BD-ORTHO](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_BD-ORTHO) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0) |
 | Parcellaire Express (PCI) | couche `cadastre`, superposée au fond de carte | WMTS, couche `CADASTRALPARCELS.PARCELLAIRE_EXPRESS` | [IGNF_PARCELLAIRE-EXPRESS-PCI](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PARCELLAIRE-EXPRESS-PCI) | Aucune contrainte d'utilisation, avec un lien vers la licence ouverte 2.0 d'Etalab |
+| Documents d'urbanisme (PLU, PLU intercommunal, carte communale) | couche `plu`, dessinée par l'outil à partir des zones | WFS, couches `wfs_du:zone_urba` et `wfs_du:secteur_cc`, publiées par le Géoportail de l'urbanisme | [Géoportail de l'urbanisme](https://www.geoportail-urbanisme.gouv.fr/) | Licence Ouverte ([conditions générales d'utilisation](https://www.geoportail-urbanisme.gouv.fr/cgu/)) |
 | Risques naturels et technologiques | couches `ppr-inondation`, `ppr-mouvements`, `cavites` et `canalisations` | WMS de Géorisques, couches `PPRN_ZONE_INOND`, `PPRN_ZONE_MVT`, `CAVITE_LOCALISEE` et `CANALISATIONS` | [Géorisques](https://www.georisques.gouv.fr/) | Licence Ouverte (mentions légales du site) |
 | Retrait-gonflement des argiles, millésime 2026 | couche `argiles`, dessinée à partir de tuiles vectorielles | archive PMTiles publiée sur data.gouv.fr | [Carte des risques retrait-gonflement des argiles – 2026](https://www.data.gouv.fr/datasets/carte-des-risques-retrait-gonflement-des-argiles-2026) | Licence Ouverte 2.0 (déclarée par le jeu de données) |
 | ADMIN EXPRESS | contour de la commune | WFS, couche `ADMINEXPRESS-COG.LATEST:commune` | [IGNF_ADMIN-EXPRESS](https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_ADMIN-EXPRESS) | Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0), avec un lien vers la licence ouverte 2.0 d'Etalab |
@@ -34,6 +35,8 @@ Les fiches du Plan IGN et de la BD ORTHO nomment la licence sans préciser sa ve
 Les mentions légales de Géorisques indiquent que « la Licence Ouverte / Open Licence s'applique à l'ensemble des réutilisations libres gratuites de données publiques » et que, sauf mention contraire, les contenus du site sont sous licence Etalab 2.0. Le service ne publie pas de date de mise à jour pour ses couches : la carte les crédite donc de la date à laquelle elles ont été consultées, qui est celle de la génération.
 
 Chaque couche de Géorisques n'est dessinée par le service que dans une plage d'échelles, qui lui est propre : les zonages de PPR disparaissent au-delà du 1:100 000, les cavités en deçà du 1:2 000, les canalisations en deçà du 1:20 000. L'outil demande donc chaque image à une échelle que le service accepte, puis l'agrandit ou la réduit — sans quoi une couche ajoutée serait tout simplement absente de la carte.
+
+Les documents d'urbanisme sont versés au Géoportail de l'urbanisme par les communes et les intercommunalités qui les approuvent. Ses conditions générales d'utilisation indiquent que « l'utilisation des données d'urbanisme est soumise aux conditions définies dans la licence ouverte ». La carte les cite avec le document et la date de son approbation, lue dans le service : « Géoportail de l'urbanisme, PLU de Colombiers (approbation du 23/01/2020) ». Une commune qui relève du règlement national d'urbanisme n'a pas de document : la carte est alors générée sans zonage, et l'outil le signale. Attention à ce qu'elle dit : la carte montre le zonage, pas le règlement de chaque zone, et le document approuvé reste la référence. Pour une parcelle donnée, c'est le certificat d'urbanisme qui fait foi.
 
 La carte des argiles est publiée par la Direction interministérielle du numérique à partir de la donnée de Géorisques, produite par le BRGM. Elle est déclarée sous licence ouverte 2.0 sur data.gouv.fr, et la carte la crédite avec la date de sa publication (1er avril 2026). Attention à ce qu'elle dit : cet aléa est cartographié à l'échelle départementale et **ne vaut pas étude de sol**. Une carte communale sert à situer les secteurs concernés, pas à conclure pour une parcelle donnée.
 
@@ -82,7 +85,7 @@ L'IGN ne garantit ni l'absence d'erreurs dans les données, ni leur mise à disp
   - le fond de carte ;
   - chaque couche superposée ;
   - ADMIN EXPRESS quand le contour est tracé ;
-  - la date de dernière mise à jour de chaque donnée — ou, pour un service qui n'en publie pas comme Géorisques, la date à laquelle il a été consulté ;
+  - la date de dernière mise à jour de chaque donnée — ou, pour un service qui n'en publie pas comme Géorisques, la date à laquelle il a été consulté, et pour un document d'urbanisme, la date de son approbation ;
   - la date de génération de la carte.
 
   Par exemple : « Sources : © IGN – Plan IGN (mise à jour du 05/08/2026) ; © IGN – ADMIN EXPRESS (mise à jour du 27/08/2026) · Carte générée le 17/09/2026 ».

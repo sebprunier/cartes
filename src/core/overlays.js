@@ -12,7 +12,10 @@ export const ATTRIBUTION_BACKGROUND = 'rgba(255, 255, 255, 0.85)';
  * followed by the generation date of the map.
  */
 export function attributionText({ sources, date = new Date() }) {
-  const credits = sources.map(({ attribution, updateDate, datedByConsultation }) => {
+  const credits = sources.map(({ attribution, updateDate, approvedOn, datedByConsultation }) => {
+    // A planning document is as fresh as the day it was approved, or last changed. « Approbation » agrees with
+    // a PLU as with a carte communale.
+    if (approvedOn) return `${attribution} (approbation du ${frenchDate(approvedOn)})`;
     if (updateDate) return `${attribution} (mise à jour du ${frenchDate(updateDate)})`;
     // A service that publishes no update date is credited with the day it was read, as the licence asks for
     // the freshness of the data one way or another.

@@ -37,7 +37,7 @@ Ce que cela change pour qui veut s'y fier : les décisions de rendu s'appuient s
 2. **Fait** : une page web pour générer une carte sans rien installer.
 3. **Fait** : une application de bureau, pour les cartes que le navigateur ne sait pas produire, avec ses installeurs pour macOS, Windows et Linux.
 4. **Fait** : ajouter les données de la commune sur les cartes (points, zones, tracés), avec leurs catégories, leur légende et un aperçu avant génération.
-5. **Fait** : un catalogue de couches ouvertes à superposer — cadastre, PPR inondation et mouvements de terrain, cavités souterraines, canalisations de matières dangereuses, aléa retrait-gonflement des argiles.
+5. **Fait** : un catalogue de couches ouvertes à superposer — cadastre, zonage des PLU, PPR inondation et mouvements de terrain, cavités souterraines, canalisations de matières dangereuses, aléa retrait-gonflement des argiles.
 6. **Fait** : une documentation utilisateur en ligne, et une aide dans les outils eux-mêmes.
 7. **Fait** : ouvrir le catalogue aux couches que la commune fournit elle-même, par l'adresse de leurs tuiles.
 8. **Fait** : une API HTTP, pour intégrer cartes à d'autres logiciels, et son déploiement sur Clever Cloud.

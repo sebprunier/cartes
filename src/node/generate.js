@@ -9,6 +9,7 @@ import {
   checkMapLayer,
   isCustomLayer,
   isTileLayer,
+  isUrbanismLayer,
   isVectorLayer,
   isWmsLayer,
   mapLayerLegendEntries,
@@ -25,6 +26,7 @@ import {
 } from '../core/municipalities.js';
 import { attributionText } from '../core/overlays.js';
 import { downloadTiles, extentFromBbox, fetchTile, sampleTiles, tilesInExtent } from '../core/tiles.js';
+import { extentBbox, readUrbanPlan, urbanPlanDrawing } from '../core/urbanism.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
 import { wmsLegendUrl, wmsRequests } from '../core/wms.js';
 import { cachedTileLoader, tileSizes } from './cache.js';
@@ -35,6 +37,7 @@ import {
   drawMapLayer,
   drawOverlays,
   drawWmsLayer,
+  labelOverlays,
   layerOverlays,
   legendImageEntry,
   legendOverlay,
@@ -94,8 +97,8 @@ export function mapFileName({ boundary, basemap, mapLayers = [], zoom, grayscale
  * `onStep(message)` tells what is being done, and what went wrong along the way without stopping the map;
  * `onProgress({ sourceId, done, total })` counts the tiles or images of each source. An aborted `signal` stops
  * the generation at the next step. What the tool has to word for its own user comes back in the result: `missing`
- * tiles of the basemap, left blank, and `updateDatesMissing` when the catalog did not give the date of the
- * data, which the license of the IGN asks to write on the map.
+ * tiles of the basemap, left blank, `updateDatesMissing` when the catalog did not give the date of the
+ * data, which the license of the IGN asks to write on the map, and `warnings` about what the map lacks.
  */
 export async function generateMap(
   {
@@ -129,6 +132,19 @@ export async function generateMap(
       onProgress: (done, total) => onProgress({ sourceId: source.id, done, total }),
     });
 
+  // The zoning is read before anything else: a service that does not answer fails the map at once, rather
+  // than once its thousands of tiles are downloaded.
+  const warnings = [];
+  const urbanPlans = new Map();
+  for (const layer of mapLayers.filter(isUrbanismLayer)) {
+    onStep(`Lecture du zonage de ${boundary.name} sur le Géoportail de l’urbanisme…`);
+    const plan = await readUrbanPlan(boundary.inseeCode, extentBbox(extent));
+    const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name);
+    if (drawing.warning) warnings.push(drawing.warning);
+    else onStep(`  ${plan.zones.length} zone(s), ${drawing.labels.length} étiquette(s).`);
+    urbanPlans.set(layer.id, drawing);
+  }
+
   onStep(`Téléchargement de ${extent.tileCount} tuiles pour « ${basemap.name} » (zoom ${zoom})…`);
   const tiles = await download(basemap);
   const failedTiles = tiles.filter((tile) => tile.error);
@@ -143,9 +159,19 @@ export async function generateMap(
   const { pixels, missing } = await assembleTiles(extent, tiles, { grayscale });
 
   const vectorShapes = [];
+  const zoneLabels = [];
   const legendExtra = [];
   for (const layer of mapLayers) {
     stopIfAborted();
+    if (isUrbanismLayer(layer)) {
+      const { paths, labels, legend: entries } = urbanPlans.get(layer.id);
+      vectorShapes.push(...paths);
+      zoneLabels.push(...labels);
+      legendExtra.push(...entries);
+      onProgress({ sourceId: layer.id, done: 1, total: 1 });
+      continue;
+    }
+
     if (isVectorLayer(layer)) {
       onStep(`Lecture des tuiles vectorielles de « ${layer.name} »…`);
       const vectorTiles = await readVectorLayer(layer, extent);
@@ -186,10 +212,16 @@ export async function generateMap(
   stopIfAborted();
   const overlays = vectorOverlays(vectorShapes);
   if (outline) overlays.push(boundaryOutline(boundary, extent));
+  overlays.push(...labelOverlays(zoneLabels));
   overlays.push(...layerOverlays(layers, extent));
   if (legend) overlays.push(await legendOverlay(layers, extent, legendExtra));
 
-  const sources = await withUpdateDates([basemap, ...mapLayers, ...(outline ? [BOUNDARY_SOURCE] : [])]);
+  const sources = await withUpdateDates([
+    basemap,
+    // The zoning is credited with the documents of this municipality, or not at all when it has none.
+    ...mapLayers.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
+    ...(outline ? [BOUNDARY_SOURCE] : []),
+  ]);
   const added = layersSource(layers);
   if (added) sources.push(added);
   overlays.push(await attributionLabel(attributionText({ sources }), extent));
@@ -205,6 +237,7 @@ export async function generateMap(
     height: extent.height,
     missing,
     updateDatesMissing: sources.some((source) => source.metadataId && !source.updateDate),
+    warnings,
   };
 }
 

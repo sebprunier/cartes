@@ -45,6 +45,34 @@ const MAP_LAYER_LIST = [
     },
   },
   {
+    id: 'plu',
+    name: 'Zonage du PLU',
+    description:
+      'Zones urbaines, à urbaniser, agricoles et naturelles du document d’urbanisme en vigueur : PLU, PLU ' +
+      'intercommunal ou carte communale.',
+    theme: 'urbanisme',
+    provider: 'Géoportail de l’urbanisme',
+    kind: 'urbanism',
+    maxZoom: 19,
+    opacity: 0.45,
+    // Completed on each map with the document and the day it was approved (see urbanPlanSource).
+    attribution: 'Géoportail de l’urbanisme',
+    // The colors a PLU is usually printed in, in increasing luminance: 96 for U, 129 for N, 159 for AUc, 195 for
+    // AUs and 232 for A. Laid at 45 % over white, they keep only about 15 levels apart (183 to 245): printed in
+    // grayscale, the label of each zone is what tells them apart. A carte communale reuses them.
+    styles: {
+      U: { fill: '#d7301f', label: 'Zone urbaine (U)' },
+      AUc: { fill: '#f08c2e', label: 'Zone à urbaniser, ouverte (AU)' },
+      AUs: { fill: '#f7b38d', label: 'Zone à urbaniser, fermée (AU)' },
+      A: { fill: '#fff27a', label: 'Zone agricole (A)' },
+      N: { fill: '#43a857', label: 'Zone naturelle et forestière (N)' },
+      'CC-constructible': { fill: '#d7301f', label: 'Secteur constructible' },
+      'CC-activites': { fill: '#f08c2e', label: 'Secteur réservé aux activités' },
+      'CC-non-constructible': { fill: '#fff27a', label: 'Secteur non constructible' },
+    },
+    // No weight ratio, as for the clays: a wash of translucent color flattens the image rather than weighing on it.
+  },
+  {
     id: 'ppr-inondation',
     name: 'PPR inondation',
     description: 'Zonage réglementaire des plans de prévention du risque inondation.',
@@ -338,9 +366,14 @@ export function isWmsLayer(layer) {
   return layer.kind === 'wms';
 }
 
+/** Whether a layer is the zoning of the planning documents, read as data for the municipality of the map. */
+export function isUrbanismLayer(layer) {
+  return layer.kind === 'urbanism';
+}
+
 /** Whether a layer is laid down as tiles, downloaded and cached like a basemap. */
 export function isTileLayer(layer) {
-  return !isVectorLayer(layer) && !isWmsLayer(layer);
+  return !isVectorLayer(layer) && !isWmsLayer(layer) && !isUrbanismLayer(layer);
 }
 
 /**

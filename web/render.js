@@ -90,12 +90,12 @@ export function drawPaths(context, paths) {
   context.save();
   context.lineJoin = 'round';
   context.lineCap = 'round';
-  for (const { path, color, strokeWidth, fill, fillOpacity } of paths) {
+  for (const { path, color, strokeWidth, fill, fillOpacity, fillRule = 'nonzero' } of paths) {
     const shape = new Path2D(path);
     if (fill) {
       context.globalAlpha = fillOpacity;
       context.fillStyle = fill;
-      context.fill(shape);
+      context.fill(shape, fillRule);
       context.globalAlpha = 1;
     }
     if (color && strokeWidth > 0) {
@@ -103,6 +103,23 @@ export function drawPaths(context, paths) {
       context.lineWidth = strokeWidth;
       context.stroke(shape);
     }
+  }
+  context.restore();
+}
+
+/** Writes labels centred on their point, in bold over a white halo: the codes of the zones of a PLU. */
+export function drawLabels(context, labels) {
+  context.save();
+  context.lineJoin = 'round';
+  context.textAlign = 'center';
+  context.textBaseline = 'alphabetic';
+  for (const { text, x, y, fontSize, color } of labels) {
+    context.font = `bold ${fontSize}px sans-serif`;
+    context.strokeStyle = '#ffffff';
+    context.lineWidth = Math.max(2, Math.round(fontSize / 4));
+    context.strokeText(text, x, y);
+    context.fillStyle = color;
+    context.fillText(text, x, y);
   }
   context.restore();
 }

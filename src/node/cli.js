@@ -287,7 +287,7 @@ async function generate(input, options) {
   }
 
   const start = performance.now();
-  const { missing, updateDatesMissing } = await generateMap(
+  const { missing, updateDatesMissing, warnings: mapWarnings } = await generateMap(
     {
       basemap,
       extent,
@@ -305,6 +305,7 @@ async function generate(input, options) {
     },
     { onStep: console.log, onProgress: ({ done, total }) => printProgress(done, total) },
   );
+  for (const warning of mapWarnings) console.log(`  Attention : ${warning}`);
   if (missing > 0) {
     console.log(
       `  Attention : ${missing} tuile(s) indisponible(s), laissée(s) en blanc. ` +

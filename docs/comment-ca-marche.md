@@ -55,7 +55,7 @@ Sur ce fond, l'outil pose ensuite ses calques, du dessous vers le dessus. Voici 
 
 ![Le Plan IGN de Colombiers au zoom 14, seul](images/comment-calques-1-fond.png "1. Le fond de carte.")
 
-**Les couches** que vous avez choisies. Certaines sont servies comme des images : le cadastre en tuiles, les plans de prévention des risques demandés à Géorisques en quelques grandes images. D'autres sont dessinées par l'outil à partir de données vectorielles, comme ici l'aléa retrait-gonflement des argiles : elles restent nettes à tous les niveaux de zoom.
+**Les couches** que vous avez choisies. Certaines sont servies comme des images : le cadastre en tuiles, les plans de prévention des risques demandés à Géorisques en quelques grandes images. D'autres sont dessinées par l'outil à partir de données vectorielles, comme ici l'aléa retrait-gonflement des argiles, ou le zonage des PLU avec le code de chaque zone : elles restent nettes à tous les niveaux de zoom.
 
 ![La même carte, recouverte de l'aléa retrait-gonflement des argiles, en orange là où il est moyen, en rose là où il est fort](images/comment-calques-2-couche.png "2. Une couche : l'aléa argiles, dessiné par l'outil.")
 
@@ -92,7 +92,7 @@ La page web, l'application, la ligne de commande et l'API partagent le même cod
 
 ## D'où viennent les données
 
-![Les services d'où viennent les données : la Géoplateforme de l'IGN pour les fonds de carte, les contours, les dates et le géocodage ; Géorisques pour les risques ; data.gouv.fr pour l'aléa argiles ; et vos propres fichiers et couches](images/schemas/sources.svg)
+![Les services d'où viennent les données : la Géoplateforme de l'IGN pour les fonds de carte, le cadastre, le zonage des PLU, les contours, les dates et le géocodage ; Géorisques pour les risques ; data.gouv.fr pour l'aléa argiles ; et vos propres fichiers et couches](images/schemas/sources.svg)
 
 Toutes sont publiques, sous licence ouverte, et citées sur chaque carte. La page [Sources et licences](donnees-et-licences.md) les détaille une à une, avec ce que leur licence permet et ce qu'elle impose.
 

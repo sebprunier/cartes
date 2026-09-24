@@ -139,14 +139,29 @@ export function vectorOverlays(shapes) {
   return shapes.map(pathOverlay);
 }
 
-function pathOverlay({ path, box: area, color, strokeWidth, fill, fillOpacity }) {
+function pathOverlay({ path, box: area, color, strokeWidth, fill, fillOpacity, fillRule = 'nonzero' }) {
   const stroke = color && strokeWidth > 0 ? `stroke="${color}" stroke-width="${strokeWidth}"` : 'stroke="none"';
   return {
     svg:
-      `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" ${stroke} ` +
-      'stroke-linejoin="round" stroke-linecap="round"/>',
+      `<path d="${path}" fill="${fill ?? 'none'}" fill-opacity="${fill ? fillOpacity : 0}" fill-rule="${fillRule}" ` +
+      `${stroke} stroke-linejoin="round" stroke-linecap="round"/>`,
     box: area,
   };
+}
+
+/** Overlays writing labels centred on their point, in bold over a white halo: the codes of the zones of a PLU. */
+export function labelOverlays(labels) {
+  return labels.map(({ text, x, y, fontSize, color, box: area }) => {
+    const position = `x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle"`;
+    const font = `font-family="sans-serif" font-size="${fontSize}" font-weight="bold"`;
+    return {
+      svg:
+        `<text ${position} ${font} stroke="#ffffff" stroke-width="${Math.max(2, Math.round(fontSize / 4))}" ` +
+        `stroke-linejoin="round" fill="none">${escapeXml(text)}</text>` +
+        `<text ${position} ${font} fill="${color}">${escapeXml(text)}</text>`,
+      box: area,
+    };
+  });
 }
 
 function layerElements({ points, paths, fontSize }) {

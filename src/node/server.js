@@ -310,6 +310,7 @@ async function run(map, { cacheDir, outputDir, concurrency }) {
       },
     );
     if (map.status === 'annulée') return rm(map.filePath, { force: true });
+    map.warnings.push(...result.warnings);
     if (result.missing > 0) {
       map.warnings.push(`${result.missing} tuile(s) indisponible(s), laissée(s) en blanc : redemandez la carte pour réessayer.`);
     }

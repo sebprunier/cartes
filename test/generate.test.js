@@ -8,6 +8,7 @@ import sharp from 'sharp';
 
 import { BASEMAPS } from '../src/core/basemaps.js';
 import { readLayer } from '../src/core/layers.js';
+import { MAP_LAYERS } from '../src/core/maplayers.js';
 import { extentFromBbox, tilesInExtent } from '../src/core/tiles.js';
 import { estimateMapFileSize, generateMap } from '../src/node/generate.js';
 
@@ -93,7 +94,13 @@ describe('generateMap', () => {
     const { extent } = request();
     const metadata = await sharp(outputPath).metadata();
     assert.deepEqual([metadata.width, metadata.height], [extent.width, extent.height]);
-    assert.deepEqual(result, { width: extent.width, height: extent.height, missing: 0, updateDatesMissing: true });
+    assert.deepEqual(result, {
+      width: extent.width,
+      height: extent.height,
+      missing: 0,
+      updateDatesMissing: true,
+      warnings: [],
+    });
 
     assert.match(steps[0], /^Téléchargement de \d+ tuiles pour « Plan IGN/);
     assert.ok(steps.includes(`Enregistrement dans ${outputPath}…`));
@@ -133,6 +140,73 @@ describe('generateMap', () => {
     );
     assert.equal(steps.at(-1).startsWith('Assemblage'), true, steps.join('\n'));
     await assert.rejects(access(outputPath));
+  });
+});
+
+describe('generateMap, with the zoning of the PLU', () => {
+  // The answers of the Géoportail de l'urbanisme, by the feature type asked for: a PLU approved on
+  // 23 January 2020, with one agricultural zone covering the middle of the map.
+  function urbanismService(t, { documents = [{ partition: 'DU_86081' }] } = {}) {
+    const answers = {
+      'wfs_du:doc_urba_com': { features: documents.map((properties) => ({ properties })) },
+      'wfs_du:doc_urba': { features: [{ properties: { partition: 'DU_86081', typedoc: 'PLU', datappro: '20200123' } }] },
+      'wfs_du:zone_urba': {
+        features: [
+          {
+            properties: { typezone: 'A', libelle: 'Ap', libelong: 'Zone agricole protégée' },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0.425, 46.775],
+                  [0.44, 46.775],
+                  [0.44, 46.785],
+                  [0.425, 46.785],
+                  [0.425, 46.775],
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    };
+    const asked = [];
+    t.mock.method(globalThis, 'fetch', async (url) => {
+      const typeName = new URL(url).searchParams.get('TYPENAMES');
+      if (!answers[typeName]) throw new Error('Pas de réseau pendant les tests.');
+      asked.push(typeName);
+      return new Response(JSON.stringify(answers[typeName]), { headers: { 'content-type': 'application/json' } });
+    });
+    return asked;
+  }
+
+  it('reads the zoning before the tiles, then draws it over the basemap', async (t) => {
+    const asked = urbanismService(t);
+    const outputPath = path.join(tempDir, 'plu.png');
+    const steps = [];
+    const result = await generateMap(request({ outputPath, mapLayers: [MAP_LAYERS.plu] }), {
+      onStep: (message) => steps.push(message),
+    });
+
+    assert.deepEqual(asked, ['wfs_du:doc_urba_com', 'wfs_du:doc_urba', 'wfs_du:zone_urba']);
+    assert.match(steps[0], /^Lecture du zonage de Colombiers/);
+    assert.match(steps[1], /1 zone\(s\)/);
+    assert.deepEqual(result.warnings, []);
+
+    // The middle of the map is inside the zone: its yellow is laid over the basemap, which is gray.
+    const { extent } = request();
+    const { data } = await sharp(outputPath)
+      .extract({ left: Math.round(extent.width / 2), top: Math.round(extent.height / 2), width: 1, height: 1 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    assert.ok(data[2] < data[0] - 20, `pixel ${[...data]}`);
+  });
+
+  it('warns that a municipality without a planning document has no zoning, and still generates the map', async (t) => {
+    urbanismService(t, { documents: [] });
+    const result = await generateMap(request({ outputPath: path.join(tempDir, 'rnu.png'), mapLayers: [MAP_LAYERS.plu] }));
+    assert.equal(result.warnings.length, 1);
+    assert.match(result.warnings[0], /^Colombiers n’a pas de document d’urbanisme.*règlement national d’urbanisme/);
   });
 });
 

@@ -8,11 +8,13 @@ import {
   checkMapLayer,
   chooseMapLayers,
   isTileLayer,
+  isUrbanismLayer,
   isVectorLayer,
   isWmsLayer,
   mapLayerLegendEntries,
   vectorStyleOf,
 } from './core/maplayers.js';
+import { extentBbox, readUrbanPlan, urbanPlanDrawing } from './core/urbanism.js';
 import { wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { BOUNDARY_SOURCE } from './core/municipalities.js';
@@ -23,6 +25,7 @@ import {
   createCanvas,
   drawAttribution,
   drawBoundary,
+  drawLabels,
   drawLayers,
   drawPaths,
   drawLegend,
@@ -102,7 +105,20 @@ async function generate({
   }
 
   const chosen = chooseMapLayers(mapLayers);
-  const sources = await withUpdateDates([basemap, ...chosen, ...(outline ? [BOUNDARY_SOURCE] : [])]);
+  // The zoning is read before the tiles: a service that does not answer fails the map at once.
+  const warnings = [];
+  const urbanPlans = new Map();
+  for (const layer of chosen.filter(isUrbanismLayer)) {
+    const plan = await readUrbanPlan(boundary.inseeCode, extentBbox(extent));
+    const drawing = urbanPlanDrawing(layer, plan, extent, boundary.name);
+    if (drawing.warning) warnings.push(drawing.warning);
+    urbanPlans.set(layer.id, drawing);
+  }
+  const sources = await withUpdateDates([
+    basemap,
+    ...chosen.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
+    ...(outline ? [BOUNDARY_SOURCE] : []),
+  ]);
   const added = layersSource(layers);
   if (added) sources.push(added);
   const { canvas, context } = createCanvas(extent.width, extent.height);
@@ -123,7 +139,17 @@ async function generate({
   });
 
   const legendExtra = [];
+  const zoneLabels = [];
   for (const layer of chosen) {
+    if (isUrbanismLayer(layer)) {
+      const { paths, labels, legend: entries } = urbanPlans.get(layer.id);
+      drawPaths(context, paths);
+      zoneLabels.push(...labels);
+      legendExtra.push(...entries);
+      postMessage({ progress: { sourceId: layer.id, done: 1, total: 1 } });
+      continue;
+    }
+
     if (isVectorLayer(layer)) {
       const vectorTiles = await readVectorLayer(layer, extent);
       drawPaths(context, vectorTileShapes(vectorTiles, extent, { styleOf: vectorStyleOf(layer) }));
@@ -157,6 +183,7 @@ async function generate({
   }
 
   if (outline) drawBoundary(context, boundary, extent);
+  drawLabels(context, zoneLabels);
   drawLayers(context, layers, extent);
   if (legend) drawLegend(context, layers, extent, legendExtra);
   drawAttribution(context, attributionText({ sources }), extent);
@@ -168,5 +195,6 @@ async function generate({
     tiles: drawn,
     missing,
     updateDatesMissing: sources.some((source) => source.metadataId && !source.updateDate),
+    warnings,
   };
 }

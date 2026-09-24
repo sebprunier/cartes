@@ -1223,7 +1223,8 @@ function showMap(map, seconds) {
   details.textContent =
     `Image de ${map.width} × ${map.height} px, générée en ${seconds} s` +
     (map.missing > 0 ? `, ${map.missing} tuile(s) indisponible(s) laissée(s) en blanc` : '') +
-    (map.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.');
+    (map.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.') +
+    (map.warnings ?? []).map((warning) => ` ${warning}`).join('');
 
   result.replaceChildren(delivery, document.createElement('br'), details);
   result.hidden = false;

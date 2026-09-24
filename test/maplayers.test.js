@@ -11,6 +11,7 @@ import {
   customMapLayer,
   isCustomLayer,
   isTileLayer,
+  isUrbanismLayer,
   isVectorLayer,
   isWmsLayer,
   mapLayerLegendEntries,
@@ -23,9 +24,12 @@ describe('MAP_LAYERS', () => {
   it('describes every layer with what a map and its sources mention need', () => {
     for (const [id, layer] of Object.entries(MAP_LAYERS)) {
       assert.equal(layer.id, id);
-      for (const field of ['name', 'description', 'url', 'attribution']) {
+      for (const field of ['name', 'description', 'attribution']) {
         assert.ok(layer[field], `${id} ${field}`);
       }
+      // The zoning is read by municipality from a service of its own, and dated by its documents.
+      if (isUrbanismLayer(layer)) continue;
+      assert.ok(layer.url, `${id} url`);
       // The open licence asks for the freshness of the data: a date read from a catalog, written here, or
       // failing that the day the service was read.
       assert.ok(layer.metadataId || layer.updateDate || layer.datedByConsultation, `${id} date`);
@@ -76,7 +80,7 @@ describe('MAP_LAYERS', () => {
 
   it('sorts every layer into one way of getting its drawing', () => {
     for (const layer of Object.values(MAP_LAYERS)) {
-      const ways = [isTileLayer(layer), isVectorLayer(layer), isWmsLayer(layer)].filter(Boolean);
+      const ways = [isTileLayer(layer), isVectorLayer(layer), isWmsLayer(layer), isUrbanismLayer(layer)].filter(Boolean);
       assert.equal(ways.length, 1, layer.id);
       if (isWmsLayer(layer)) assert.ok(layer.wmsLayers, layer.id);
     }

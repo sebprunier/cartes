@@ -6,11 +6,14 @@ import { BASEMAPS } from './core/basemaps.js';
 import { layersSource } from './core/layers.js';
 import {
   chooseMapLayers,
+  isTileLayer,
+  isUrbanismLayer,
   isVectorLayer,
   isWmsLayer,
   mapLayerLegendEntries,
   vectorStyleOf,
 } from './core/maplayers.js';
+import { extentBbox, readUrbanPlan, urbanPlanDrawing } from './core/urbanism.js';
 import { wmsLegendUrl, wmsRequests } from './core/wms.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from './core/vectortiles.js';
 import { withUpdateDates } from './core/metadata.js';
@@ -23,6 +26,7 @@ import {
   drawAttribution,
   drawBoundary,
   drawLayers,
+  drawLabels,
   drawLegend,
   drawPaths,
   drawTile,
@@ -36,6 +40,19 @@ const DETAIL_WIDTH = 700;
 const DETAIL_HEIGHT = 420;
 const CONCURRENCY = 6;
 
+// The zoning of the municipality previewed, read once: the miniature and every move of the detail draw it again.
+let urbanPlanRead;
+
+function urbanPlanOf(boundary, extent) {
+  if (urbanPlanRead?.inseeCode !== boundary.inseeCode) {
+    const plan = readUrbanPlan(boundary.inseeCode, extentBbox(extent));
+    // A failed read is not kept: the next preview tries again.
+    plan.catch(() => (urbanPlanRead = undefined));
+    urbanPlanRead = { inseeCode: boundary.inseeCode, plan };
+  }
+  return urbanPlanRead.plan;
+}
+
 /**
  * Draws the two views of a map request: the miniature of the whole municipality, and the detail at the point
  * given as a fraction of the map, its center by default.
@@ -44,10 +61,17 @@ export async function renderPreview(request, center) {
   const { basemapId, boundary, bbox, margin, grayscale, outline, mapLayers = [], layers, legend } = request;
   const basemap = BASEMAPS[basemapId];
   const chosen = chooseMapLayers(mapLayers);
-  const sources = await withUpdateDates([basemap, ...chosen, ...(outline ? [BOUNDARY_SOURCE] : [])]);
+  const extent = extentFromBbox(bbox, overviewZoom(bbox, margin), margin);
+  const urbanPlan = chosen.some(isUrbanismLayer) ? await urbanPlanOf(boundary, extent) : undefined;
+  const sources = await withUpdateDates([
+    basemap,
+    ...chosen.flatMap((layer) =>
+      isUrbanismLayer(layer) ? (urbanPlanDrawing(layer, urbanPlan, extent, boundary.name).source ?? []) : [layer],
+    ),
+    ...(outline ? [BOUNDARY_SOURCE] : []),
+  ]);
   const added = layersSource(layers);
   if (added) sources.push(added);
-  const extent = extentFromBbox(bbox, overviewZoom(bbox, margin), margin);
 
   const [overview, detail] = await Promise.all([
     paint({
@@ -57,6 +81,7 @@ export async function renderPreview(request, center) {
       sizedFor: extent,
       grayscale,
       boundary: outline ? boundary : undefined,
+      municipality: boundary,
       layers,
       legend,
       attribution: attributionText({ sources }),
@@ -82,6 +107,7 @@ export async function renderDetail(request, center) {
     sizedFor: mapExtent,
     grayscale,
     boundary: outline ? boundary : undefined,
+    municipality: boundary,
     layers,
   });
   return { detail, wholeMap: area.width === mapExtent.width && area.height === mapExtent.height };
@@ -100,12 +126,29 @@ function overviewZoom(bbox, margin) {
  * Draws the tiles of `area`, then the overlays as they would be drawn on the whole map of `sizedFor`, shifted
  * so that the window falls in the canvas: symbols and labels then keep the size they will have on the map.
  */
-async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, boundary, layers, legend, attribution }) {
+async function paint({
+  basemap,
+  mapLayers = [],
+  area,
+  sizedFor,
+  grayscale,
+  boundary,
+  municipality,
+  layers,
+  legend,
+  attribution,
+}) {
   const { canvas, context } = createCanvas(area.width, area.height);
   const tiles = [...tilesInExtent(area)];
   // Layers drawn from vector tiles are read once from their archive, not downloaded tile by tile.
   const legendExtra = [];
   const vectors = [];
+  const zonings = [];
+  for (const layer of mapLayers.filter(isUrbanismLayer)) {
+    const drawing = urbanPlanDrawing(layer, await urbanPlanOf(municipality, sizedFor), sizedFor, municipality.name);
+    zonings.push(drawing);
+    legendExtra.push(...drawing.legend);
+  }
   for (const layer of mapLayers.filter(isVectorLayer)) {
     const tiles = await readVectorLayer(layer, sizedFor);
     vectors.push({ layer, tiles });
@@ -113,7 +156,7 @@ async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, bound
   }
 
   // The basemap first, then the image layers laid over it, in the order of the catalog.
-  for (const source of [basemap, ...mapLayers.filter((layer) => !isVectorLayer(layer) && !isWmsLayer(layer))]) {
+  for (const source of [basemap, ...mapLayers.filter(isTileLayer)]) {
     await downloadTiles(source, area.zoom, tiles, {
       loadTile: async (url, tile) => {
         // The desktop engine passes the tile through the main process, which caches it on disk; in a browser,
@@ -147,7 +190,9 @@ async function paint({ basemap, mapLayers = [], area, sizedFor, grayscale, bound
   for (const { layer, tiles } of vectors) {
     drawPaths(context, vectorTileShapes(tiles, sizedFor, { styleOf: vectorStyleOf(layer) }));
   }
+  for (const { paths } of zonings) drawPaths(context, paths);
   if (boundary) drawBoundary(context, boundary, sizedFor);
+  for (const { labels } of zonings) drawLabels(context, labels);
   drawLayers(context, layers, sizedFor);
   if (legend) drawLegend(context, layers, sizedFor, legendExtra);
   if (attribution) drawAttribution(context, attribution, sizedFor);
