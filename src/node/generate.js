@@ -147,7 +147,16 @@ export async function generateMap(
     if (drawing.warning && !warnings.includes(drawing.warning)) warnings.push(drawing.warning);
     if (!drawing.warning) onStep(`  ${drawing.paths.length} forme(s), ${drawing.labels.length} étiquette(s).`);
     urbanPlans.set(layer.id, drawing);
+    onProgress({ sourceId: layer.id, done: 1, total: 1 });
   }
+  // The dates of the data are asked for now, and waited for only to write the attribution: the catalog can take
+  // longer than all the tiles.
+  const datedSources = withUpdateDates([
+    basemap,
+    // The zoning is credited with the documents of this municipality, or not at all when it has none.
+    ...mapLayers.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
+    ...(outline ? [BOUNDARY_SOURCE] : []),
+  ]);
   const wmsBlocks = new Map();
   for (const layer of mapLayers.filter(isWmsLayer)) {
     stopIfAborted();
@@ -183,7 +192,6 @@ export async function generateMap(
       vectorShapes.push(...paths);
       zoneLabels.push(...labels);
       legendExtra.push(...entries);
-      onProgress({ sourceId: layer.id, done: 1, total: 1 });
       continue;
     }
 
@@ -225,12 +233,7 @@ export async function generateMap(
   overlays.push(...layerOverlays(layers, extent));
   if (legend) overlays.push(await legendOverlay(layers, extent, legendExtra));
 
-  const sources = await withUpdateDates([
-    basemap,
-    // The zoning is credited with the documents of this municipality, or not at all when it has none.
-    ...mapLayers.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
-    ...(outline ? [BOUNDARY_SOURCE] : []),
-  ]);
+  const sources = await datedSources;
   const added = layersSource(layers);
   if (added) sources.push(added);
   overlays.push(await attributionLabel(attributionText({ sources }), extent));

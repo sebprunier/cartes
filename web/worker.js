@@ -117,6 +117,7 @@ async function generate({
     placedLabels.push(...drawing.labels.map(({ box }) => box));
     if (drawing.warning && !warnings.includes(drawing.warning)) warnings.push(drawing.warning);
     urbanPlans.set(layer.id, drawing);
+    postMessage({ progress: { sourceId: layer.id, done: 1, total: 1 } });
   }
   const wmsImages = new Map();
   for (const layer of chosen.filter(isWmsLayer)) {
@@ -126,13 +127,13 @@ async function generate({
     });
     wmsImages.set(layer.id, blocks.map((block, index) => ({ block, content: images[index] })));
   }
-  const sources = await withUpdateDates([
+  // The dates of the data are asked for now, and waited for only to write the attribution: the catalog can take
+  // longer than all the tiles.
+  const datedSources = withUpdateDates([
     basemap,
     ...chosen.flatMap((layer) => (isUrbanismLayer(layer) ? (urbanPlans.get(layer.id).source ?? []) : [layer])),
     ...(outline ? [BOUNDARY_SOURCE] : []),
   ]);
-  const added = layersSource(layers);
-  if (added) sources.push(added);
   const { canvas, context } = createCanvas(extent.width, extent.height);
   let drawn = 0;
   let missing = 0;
@@ -158,7 +159,6 @@ async function generate({
       drawPaths(context, paths);
       zoneLabels.push(...labels);
       legendExtra.push(...entries);
-      postMessage({ progress: { sourceId: layer.id, done: 1, total: 1 } });
       continue;
     }
 
@@ -195,6 +195,9 @@ async function generate({
   drawLabels(context, zoneLabels);
   drawLayers(context, layers, extent);
   if (legend) drawLegend(context, layers, extent, legendExtra);
+  const sources = await datedSources;
+  const added = layersSource(layers);
+  if (added) sources.push(added);
   drawAttribution(context, attributionText({ sources }), extent);
 
   return {

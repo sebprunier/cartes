@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 
-import { fetchUpdateDate, updateDateFromRecord, withUpdateDates } from '../src/core/metadata.js';
+import { fetchUpdateDate, forgetUpdateDates, updateDateFromRecord, withUpdateDates } from '../src/core/metadata.js';
 
 function citationDate(date, type) {
   return `<gmd:date><gmd:CI_Date><gmd:date><gco:Date>${date}</gco:Date></gmd:date><gmd:dateType>
@@ -52,6 +52,8 @@ describe('fetchUpdateDate', () => {
 });
 
 describe('withUpdateDates', () => {
+  beforeEach(() => forgetUpdateDates());
+
   it('adds the update date to the sources whose record is available, and keeps the others as they are', async (t) => {
     t.mock.method(globalThis, 'fetch', async (url) =>
       new URL(url).searchParams.get('ID') === 'IGNF_PLAN-IGN'
@@ -66,5 +68,18 @@ describe('withUpdateDates', () => {
       { attribution: '© IGN – Plan IGN', metadataId: 'IGNF_PLAN-IGN', updateDate: '2026-08-05' },
       { attribution: '© IGN – ADMIN EXPRESS', metadataId: 'IGNF_ADMIN-EXPRESS' },
     ]);
+  });
+
+  it('keeps a date read for the next map, and asks again for one that failed', async (t) => {
+    let answer = new Response('error', { status: 503 });
+    const fetch = t.mock.method(globalThis, 'fetch', async () => answer);
+    const plan = { attribution: '© IGN – Plan IGN', metadataId: 'IGNF_PLAN-IGN' };
+
+    assert.deepEqual(await withUpdateDates([plan]), [plan]);
+    answer = new Response(record([citationDate('2026-08-05', 'revision')]));
+    assert.equal((await withUpdateDates([plan]))[0].updateDate, '2026-08-05');
+    // The preview, then the map, then another map: the catalog was asked twice, once for the failure.
+    assert.equal((await withUpdateDates([plan]))[0].updateDate, '2026-08-05');
+    assert.equal(fetch.mock.callCount(), 2);
   });
 });

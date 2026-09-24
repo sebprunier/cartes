@@ -71,15 +71,18 @@ export async function renderPreview(request, center) {
     const plan = await urbanPlanOf(layer, boundary, extent);
     urbanSources.push({ layer, source: urbanPlanDrawing(layer, plan, extent, boundary.name).source });
   }
-  const sources = await withUpdateDates([
+  // The dates of the data are asked for while the tiles download, and waited for only to write the attribution:
+  // the catalog can take longer than the whole preview.
+  const attribution = withUpdateDates([
     basemap,
     ...chosen.flatMap((layer) =>
       isUrbanismLayer(layer) ? (urbanSources.find((each) => each.layer === layer).source ?? []) : [layer],
     ),
     ...(outline ? [BOUNDARY_SOURCE] : []),
-  ]);
-  const added = layersSource(layers);
-  if (added) sources.push(added);
+  ]).then((sources) => {
+    const added = layersSource(layers);
+    return attributionText({ sources: added ? [...sources, added] : sources });
+  });
 
   const [overview, detail] = await Promise.all([
     paint({
@@ -92,7 +95,7 @@ export async function renderPreview(request, center) {
       municipality: boundary,
       layers,
       legend,
-      attribution: attributionText({ sources }),
+      attribution,
     }),
     renderDetail(request, center),
   ]);
@@ -209,7 +212,7 @@ async function paint({
   for (const { labels } of zonings) drawLabels(context, labels);
   drawLayers(context, layers, sizedFor);
   if (legend) drawLegend(context, layers, sizedFor, legendExtra);
-  if (attribution) drawAttribution(context, attribution, sizedFor);
+  if (attribution) drawAttribution(context, await attribution, sizedFor);
   context.restore();
   return canvas;
 }

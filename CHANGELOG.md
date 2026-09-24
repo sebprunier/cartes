@@ -21,6 +21,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Corrigé
 
+- La génération ne reste plus « en attente » avant de télécharger les tuiles : elle attendait les dates des données dans le catalogue de la Géoplateforme, qui mettait de 5 à 22 secondes à répondre. Ces dates sont maintenant demandées pendant le téléchargement, et gardées une heure pour l'aperçu et les cartes suivantes. Sur la page web, les tuiles de Colombiers démarrent au bout de 3 secondes au lieu de 15.
 - La recherche d'une commune n'affiche plus « Recherche impossible : HTTP 400 » quand on a saisi moins de trois lettres : le service de géocodage refuse ces recherches. Les 14 communes au nom d'une ou deux lettres — Y, Eu, By, Bû, Oô, Us… — sont désormais trouvées, dès la première lettre, et `cartes generer Y` fonctionne.
 - Quand le service d'une couche est en panne, l'outil le dit en clair — « Géorisques ne répond pas pour la couche « PPR mouvements de terrain » (il renvoie une page d'erreur au lieu d'une image) » — plutôt que d'afficher une adresse. Et il le dit au début de la génération, avant de télécharger le fond de carte, plutôt qu'à la fin.
 - Sur une page courte — la page de génération à son ouverture, dans l'application comme dans le navigateur — le pied de page reste en bas de la fenêtre, au lieu de laisser une bande vide sous lui.

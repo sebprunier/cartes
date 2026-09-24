@@ -39,9 +39,25 @@ export function updateDateFromRecord(xml) {
   return latest(dates.filter(({ type }) => type === 'revision')) ?? latest(dates);
 }
 
+// The catalog is slow — 5 to 22 s for two records on 24 September 2026 — and its dates change once a day at most:
+// a date read is kept an hour, for the preview and the maps that follow it.
+const KEPT_MS = 60 * 60 * 1000;
+const readDates = new Map();
+
+function updateDateOf(metadataId, now = Date.now()) {
+  const kept = readDates.get(metadataId);
+  if (kept && now - kept.at < KEPT_MS) return kept.date;
+  const date = fetchUpdateDate(metadataId);
+  readDates.set(metadataId, { date, at: now });
+  // A failed read is not kept: the next map asks again.
+  date.catch(() => readDates.delete(metadataId));
+  return date;
+}
+
 /**
  * Returns the data sources with their update date, when their metadata record can be read. A source whose date
- * is unavailable (network, catalog error) is returned as is, so that the map can still be generated.
+ * is unavailable (network, catalog error) is returned as is, so that the map can still be generated. The dates
+ * are only written at the very end of a map: start this early, and wait for it last.
  */
 export function withUpdateDates(sources) {
   return Promise.all(
@@ -49,11 +65,16 @@ export function withUpdateDates(sources) {
       // A source without a record in the catalog carries its own date, if it has one.
       if (!source.metadataId) return source;
       try {
-        const updateDate = await fetchUpdateDate(source.metadataId);
+        const updateDate = await updateDateOf(source.metadataId);
         return updateDate ? { ...source, updateDate } : source;
       } catch {
         return source;
       }
     }),
   );
+}
+
+/** Forgets the dates read, for the tests. */
+export function forgetUpdateDates() {
+  readDates.clear();
 }
