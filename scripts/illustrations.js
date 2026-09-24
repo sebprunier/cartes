@@ -131,92 +131,59 @@ async function tilesFigure(zoom) {
 }
 
 /**
- * The assembly, in three steps: the tiles one by one, as they arrive; put edge to edge, with what falls outside
- * the extent hatched; cut to the extent, as the tool does it.
+ * The assembly, in three images at the scale of the map: the tiles one by one, as they arrive; put edge to edge,
+ * with what falls outside the extent veiled; cut to the extent, as the tool does it.
  */
 async function assemblyFigure(extent, tiles, { x0, y0, columns, rows, mosaic }) {
-  const tile = 144;
-  const scale = tile / TILE_SIZE;
   const gap = 16;
-  const title = 46;
-  const arrow = 64;
-  const scaled = (value) => Math.round(value * scale);
-
-  // Step 1: the tiles apart.
-  const apartWidth = columns * tile + (columns - 1) * gap;
-  const apartHeight = rows * tile + (rows - 1) * gap;
-  // Step 2: the tiles edge to edge, beside the first.
-  const joinedLeft = apartWidth + arrow;
-  const joinedWidth = columns * tile;
-  const joinedHeight = rows * tile;
-  const left = scaled(extent.xMin - x0 * TILE_SIZE);
-  const top = scaled(extent.yMin - y0 * TILE_SIZE);
-  const cutWidth = scaled(extent.width);
-  const cutHeight = scaled(extent.height);
-  // Step 3: the image cut, under the second, where the extent was.
-  const cutTop = title + apartHeight + arrow + title;
-  const width = joinedLeft + joinedWidth;
-  const height = cutTop + cutHeight + 2;
-
-  const pieces = await Promise.all(
-    tiles
-      .filter((each) => each.content)
-      .map(async (each) => ({
-        input: await sharp(each.content).resize(tile, tile).png().toBuffer(),
-        left: (each.x - x0) * (tile + gap),
-        top: title + (each.y - y0) * (tile + gap),
-      })),
-  );
-  const joined = await sharp(mosaic).resize(joinedWidth, joinedHeight).png().toBuffer();
-  const { pixels } = await assembleTiles(extent, tiles);
-  const cut = await sharp(pixels, { raw: { width: extent.width, height: extent.height, channels: CHANNELS } })
-    .resize(cutWidth, cutHeight)
-    .png()
-    .toBuffer();
-
-  const label = (x, y, value, { size = 25, weight = 600, fill = INK, anchor = 'start' } = {}) =>
-    `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="${FONT}" font-size="${size}" font-weight="${weight}" fill="${fill}">${text(value)}</text>`;
   const frame = (x, y, w, h, stroke = '#cfd7df', strokeWidth = 1) =>
     `<rect x="${x + 0.5}" y="${y + 0.5}" width="${w - 1}" height="${h - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
-  const frames = pieces.map(({ left: x, top: y }) => frame(x, y, tile, tile)).join('');
-  const grid = [
-    ...Array.from({ length: columns - 1 }, (_, i) => `M${joinedLeft + (i + 1) * tile},${title}v${joinedHeight}`),
-    ...Array.from({ length: rows - 1 }, (_, i) => `M${joinedLeft},${title + (i + 1) * tile}h${joinedWidth}`),
-  ].join('');
-  const [ex, ey] = [joinedLeft + left, title + top];
-  const count = tiles.length;
-  const pixelCount = (value) => value.toLocaleString('fr-FR').replace(/\s/g, ' ');
-  const middle = title + apartHeight / 2;
-  const overlay =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
-    '<defs>' +
-    `<pattern id="cut" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#ffffff" fill-opacity="0.55"/><path d="M0,0V10" stroke="#b3261e" stroke-width="2" stroke-opacity="0.45"/></pattern>` +
-    `<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="${ACCENT}"/></marker>` +
-    '</defs>' +
-    label(0, 32, `1. Les ${count} tuiles, telles qu’elles arrivent`) +
-    frames +
-    `<path d="M${apartWidth + 12},${middle}h${arrow - 24}" stroke="${ACCENT}" stroke-width="3" marker-end="url(#arrow)"/>` +
-    label(joinedLeft, 32, '2. Recollées bord à bord') +
-    `<path fill="url(#cut)" fill-rule="evenodd" d="M${joinedLeft},${title}h${joinedWidth}v${joinedHeight}h-${joinedWidth}Z M${ex},${ey}h${cutWidth}v${cutHeight}h-${cutWidth}Z"/>` +
-    `<path d="${grid}" stroke="${BRAND}" stroke-width="1.5" stroke-dasharray="6 4" fill="none"/>` +
-    frame(ex, ey, cutWidth, cutHeight, ACCENT, 3) +
-    `<path d="M${ex + cutWidth / 2},${title + joinedHeight + 12}v${cutTop - title - joinedHeight - 62}" stroke="${ACCENT}" stroke-width="3" marker-end="url(#arrow)"/>` +
-    label(ex, cutTop - 14, '3. Rognées sur l’emprise') +
-    frame(ex, cutTop, cutWidth, cutHeight) +
-    label(0, cutTop + 22, `Recollées, les tuiles font ${pixelCount(columns * TILE_SIZE)} × ${pixelCount(rows * TILE_SIZE)} pixels.`, { size: 23, weight: 400 }) +
-    label(0, cutTop + 58, 'Les bandes hachurées sont rognées : il reste', { size: 23, weight: 400 }) +
-    label(0, cutTop + 94, `${pixelCount(extent.width)} × ${pixelCount(extent.height)} pixels, les dimensions exactes`, { size: 23, weight: 400 }) +
-    label(0, cutTop + 130, 'de l’emprise, en vert.', { size: 23, weight: 400 }) +
-    '</svg>';
+  const svg = (width, height, content) =>
+    Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${content}</svg>`);
 
+  // The tiles apart.
+  const apartWidth = columns * TILE_SIZE + (columns - 1) * gap;
+  const apartHeight = rows * TILE_SIZE + (rows - 1) * gap;
+  const pieces = tiles
+    .filter((tile) => tile.content)
+    .map((tile) => ({ input: tile.content, left: (tile.x - x0) * (TILE_SIZE + gap), top: (tile.y - y0) * (TILE_SIZE + gap) }));
   await write(
-    sharp({ create: { width, height, channels: 3, background: '#ffffff' } }).composite([
+    sharp({ create: { width: apartWidth, height: apartHeight, channels: 3, background: '#ffffff' } }).composite([
       ...pieces,
-      { input: joined, left: joinedLeft, top: title },
-      { input: cut, left: ex, top: cutTop },
-      { input: Buffer.from(overlay) },
+      { input: svg(apartWidth, apartHeight, pieces.map(({ left, top }) => frame(left, top, TILE_SIZE, TILE_SIZE)).join('')) },
     ]),
-    'comment-assemblage.png',
+    'comment-assemblage-1-tuiles.png',
+  );
+
+  // The tiles edge to edge, what falls outside the extent veiled.
+  const width = columns * TILE_SIZE;
+  const height = rows * TILE_SIZE;
+  const left = extent.xMin - x0 * TILE_SIZE;
+  const top = extent.yMin - y0 * TILE_SIZE;
+  const grid = [
+    ...Array.from({ length: columns - 1 }, (_, i) => `M${(i + 1) * TILE_SIZE},0V${height}`),
+    ...Array.from({ length: rows - 1 }, (_, i) => `M0,${(i + 1) * TILE_SIZE}H${width}`),
+  ].join('');
+  await write(
+    sharp(mosaic).composite([
+      {
+        input: svg(
+          width,
+          height,
+          `<path fill="#f6dcd9" fill-opacity="0.75" fill-rule="evenodd" d="M0,0H${width}V${height}H0Z M${left},${top}h${extent.width}v${extent.height}h-${extent.width}Z"/>` +
+            `<path d="${grid}" stroke="${BRAND}" stroke-width="1.5" stroke-dasharray="6 4" fill="none"/>` +
+            frame(left, top, extent.width, extent.height, ACCENT, 3),
+        ),
+      },
+    ]),
+    'comment-assemblage-2-recollees.png',
+  );
+
+  // The image cut to the extent, as the tool assembles it.
+  const { pixels } = await assembleTiles(extent, tiles);
+  await write(
+    sharp(pixels, { raw: { width: extent.width, height: extent.height, channels: CHANNELS } }),
+    'comment-assemblage-3-rognee.png',
   );
 }
 

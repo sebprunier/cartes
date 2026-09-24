@@ -35,9 +35,17 @@ Dans l'application et en ligne de commande, les tuiles téléchargées sont gard
 
 ## L'assemblage
 
-Les tuiles sont recollées bord à bord, dans l'ordre de leurs colonnes et de leurs rangées. L'image obtenue déborde de l'emprise, puisque les tuiles du bord n'y entrent qu'en partie. Elle est donc rognée au pixel près : pour Colombiers au zoom 13, il reste 639 × 489 pixels sur 1 024 × 768.
+Les tuiles arrivent une à une, chacune dans son fichier.
 
-![Les douze tuiles séparées, puis recollées bord à bord avec en hachures ce qui déborde de l'emprise, puis l'image rognée sur l'emprise](images/comment-assemblage.png "Les tuiles arrivent une à une, sont recollées, puis rognées sur l'emprise.")
+![Les douze tuiles de Colombiers au zoom 13, séparées les unes des autres](images/comment-assemblage-1-tuiles.png "Les 12 tuiles, telles qu'elles arrivent.")
+
+L'outil les recolle bord à bord, dans l'ordre de leurs colonnes et de leurs rangées, dans une image de 1 024 × 768 pixels. Cette image déborde de l'emprise, en vert, puisque les tuiles du bord n'y entrent qu'en partie.
+
+![Les douze tuiles recollées bord à bord ; l'emprise est encadrée en vert, et ce qui en déborde est voilé de rose](images/comment-assemblage-2-recollees.png "Recollées bord à bord : voilé de rose, ce qui déborde de l'emprise.")
+
+Ce qui déborde est rogné au pixel près. Il reste 639 × 489 pixels : les dimensions exactes de l'emprise, et celles de la carte.
+
+![L'image de Colombiers au zoom 13, rognée sur l'emprise](images/comment-assemblage-3-rognee.png "Rognée sur l'emprise : 639 × 489 pixels.")
 
 ## Les calques
 
