@@ -268,8 +268,11 @@ function serviceDown(layer) {
 // The icon of each theme of the catalog, and of the layers added by address: drawn strokes, in the color of
 // the text, so that they read at a glance and print nowhere.
 const THEME_ICONS = {
-  urbanisme: '<path d="M4 4h16v16H4zM4 11h9M13 4v16M13 15h7"/>',
-  risques: '<path d="M12 3.8 21 19.5H3z"/><path d="M12 10v4.4M12 16.9v.1"/>',
+  // A house: what urbanism decides, where and how to build.
+  urbanisme: '<path d="M3.5 20.5h17M5.5 20.5v-9L12 5.5l6.5 6M18.5 11.5v9"/><path d="M10 20.5v-5h4v5"/>',
+  // A shield, for prevention, holding waves: flooding is the risk most plans deal with. A warning sign would
+  // read as a problem of the interface.
+  risques: '<path d="M12 3.2 19 6v5.2c0 4.4-2.9 7.9-7 9.6-4.1-1.7-7-5.2-7-9.6V6z"/><path d="M8 10.8c1.3-1 2.7-1 4 0s2.7 1 4 0M8 14.6c1.3-1 2.7-1 4 0s2.7 1 4 0"/>',
   territoire: '<path d="m3 19.5 6-9.5 4 5.2 2.6-3.4 5.4 7.7z"/><circle cx="16.5" cy="6.5" r="1.8"/>',
   custom:
     '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.8 2.6 14.2 0 17M12 3.5c-2.6 2.8-2.6 14.2 0 17"/>',
