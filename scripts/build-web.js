@@ -17,6 +17,7 @@ const CONTENT_TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
 };
 
 await rm(OUTPUT, { recursive: true, force: true });
