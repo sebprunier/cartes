@@ -63,3 +63,19 @@ En ligne de commande et dans l'application, le PNG d'un plan est écrit avec une
 La page web est limitée par ce que le navigateur sait dessiner : environ 268 millions de pixels sur Chrome, Edge et Safari, soit le zoom 17 pour une commune de la taille de Colombiers — davantage pour une petite commune —, et deux fois plus sur Firefox, qui va jusqu'au zoom 18 pour Colombiers. Tous les niveaux de zoom sont proposés : si l'image demandée dépasse cette limite, la page le dit **avant** de télécharger quoi que ce soit, et vous renvoie vers l'[application de bureau](application-de-bureau.md) ou la [ligne de commande](ligne-de-commande.md), qui n'ont pas cette limite — seulement celle de la mémoire de votre machine, qu'indique la colonne « Mémoire ».
 
 Pourquoi la taille double à chaque niveau, et d'où vient cette limite : la page [Comment ça marche](comment-ca-marche.md) l'explique en images.
+
+## Ouvrir une très grande image
+
+Produire une image et l'afficher sont deux choses différentes : l'application de bureau et la ligne de commande produisent une carte au zoom 19, mais bien des logiciels ne savent pas l'ouvrir. Affichée, elle occupe environ 5 Go de mémoire, même quand le fichier n'en pèse que 65 Mo.
+
+Mesuré en septembre 2026 sur macOS, avec la carte de Colombiers :
+
+| Logiciel | Zoom 17 (80 millions de pixels) | Zoom 18 (320 millions) | Zoom 19 (1,3 milliard) |
+| --- | --- | --- | --- |
+| Chrome, Firefox | ✅ | ✅ | ❌ refusée |
+| Safari | ✅ | ✅ | ✅ |
+| Aperçu | ✅ | ✅ lent | ❌ s'ouvre, mais toute grise |
+| GIMP, QGIS | ✅ | ✅ | ✅ |
+
+Le fichier n'est pas abîmé pour autant : un logiciel qui le refuse ou l'affiche en gris n'est allé qu'au bout de sa propre limite. Pour regarder ou retoucher une carte au zoom 19, passez par GIMP ou QGIS, tous deux libres. Pour l'imprimer, confiez le fichier à l'imprimeur, dont les logiciels sont faits pour ces tailles.
+

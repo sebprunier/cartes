@@ -59,6 +59,10 @@ Le service qui publie la couche est en panne : l'outil lui a redemandé ses imag
 
 La page [État des services](etat-des-services.md) dit lequel répond, et lequel non. La génération s'arrête avant de télécharger le fond de carte, pour ne pas vous faire attendre pour rien. Relancez plus tard, ou retirez la couche en question pour générer la carte sans elle. Le zonage du PLU, lu sur le Géoportail de l'urbanisme, se comporte de la même façon.
 
+## La carte ne s'ouvre pas, ou s'affiche en gris
+
+Au zoom 19, une carte compte plus d'un milliard de pixels. Chrome et Firefox refusent de l'afficher — Firefox la dit même « contenant des erreurs » —, Aperçu l'affiche toute grise : le fichier est pourtant correct, ces logiciels n'ouvrent pas une image aussi grande. Ouvrez-la avec GIMP ou QGIS, ou descendez au zoom 18. Les mesures sont dans [Zoom et impression](zoom-et-impression.md#ouvrir-une-tres-grande-image).
+
 ## Des tuiles manquent, laissées en blanc
 
 Le service a refusé quelques tuiles, ce qui arrive. Relancez la même commande : les tuiles déjà téléchargées sont en cache, seules les manquantes seront redemandées.
