@@ -61,7 +61,7 @@ La page [État des services](etat-des-services.md) dit lequel répond, et lequel
 
 ## La carte ne s'ouvre pas, ou s'affiche en gris
 
-Au zoom 19, une carte compte plus d'un milliard de pixels. Chrome et Firefox refusent de l'afficher — Firefox la dit même « contenant des erreurs » —, Aperçu l'affiche toute grise : le fichier est pourtant correct, ces logiciels n'ouvrent pas une image aussi grande. Ouvrez-la avec GIMP ou QGIS, ou descendez au zoom 18. Les mesures sont dans [Zoom et impression](zoom-et-impression.md#ouvrir-une-tres-grande-image).
+Au zoom 19, une carte compte plus d'un milliard de pixels. Chrome et Firefox refusent de l'afficher — Firefox la dit même « contenant des erreurs » —, Aperçu l'affiche toute grise : le fichier est pourtant correct, ces logiciels n'ouvrent pas une image aussi grande. Ouvrez-la avec Safari ou GIMP, ou descendez au zoom 18. Les mesures sont dans [Zoom et impression](zoom-et-impression.md#ouvrir-une-tres-grande-image).
 
 ## Des tuiles manquent, laissées en blanc
 

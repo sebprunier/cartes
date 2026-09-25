@@ -28,7 +28,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 - Sur la page de génération et dans l'application, la promesse « aucune donnée n'est envoyée ailleurs » quitte l'en-tête pour la zone de dépôt des fichiers, où elle compte, et devient exacte : vos fichiers ne quittent pas votre ordinateur, seules les adresses que vous choisissez de géocoder sont envoyées. Rien ne part sans confirmation.
 - Les fichiers CSV sont lus en UTF-8, ou à défaut en Windows-1252, celui de bien des tableurs : leurs accents ne se perdent plus.
 - Le tableau des tailles d'instance, dans la documentation de l'API, est refait avec de nouvelles mesures sur Clever Cloud : une ligne par zoom, avec la taille de l'image et sa mémoire, une colonne par taille d'instance, les durées avec et sans cache, et le zoom maximal à régler pour chaque taille, jusqu'à la XL qu'il faut pour le zoom 19.
-- La documentation prévient qu'une carte au zoom 19 ne s'ouvre pas partout : Chrome et Firefox la refusent, Aperçu l'affiche en gris, alors que Safari, GIMP et QGIS l'ouvrent. Le tableau des mesures est dans « Zoom et impression », et « Problèmes courants » y renvoie.
+- La documentation prévient qu'une carte au zoom 19 ne s'ouvre pas partout : Chrome et Firefox la refusent, Aperçu l'affiche en gris, alors que Safari et GIMP l'ouvrent. Le tableau des mesures est dans « Zoom et impression », et « Problèmes courants » y renvoie.
 
 ### Corrigé
 

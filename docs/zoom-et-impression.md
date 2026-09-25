@@ -75,7 +75,7 @@ Mesuré en septembre 2026 sur macOS, avec la carte de Colombiers :
 | Chrome, Firefox | ✅ | ✅ | ❌ refusée |
 | Safari | ✅ | ✅ | ✅ |
 | Aperçu | ✅ | ✅ lent | ❌ s'ouvre, mais toute grise |
-| GIMP, QGIS | ✅ | ✅ | ✅ |
+| GIMP | ✅ | ✅ | ✅ |
 
-Le fichier n'est pas abîmé pour autant : un logiciel qui le refuse ou l'affiche en gris n'est allé qu'au bout de sa propre limite. Pour regarder ou retoucher une carte au zoom 19, passez par GIMP ou QGIS, tous deux libres. Pour l'imprimer, confiez le fichier à l'imprimeur, dont les logiciels sont faits pour ces tailles.
+Le fichier n'est pas abîmé pour autant : un logiciel qui le refuse ou l'affiche en gris n'est allé qu'au bout de sa propre limite. Pour regarder ou retoucher une carte au zoom 19, passez par Safari, ou par GIMP, un logiciel de retouche libre. Pour l'imprimer, confiez le fichier à l'imprimeur, dont les logiciels sont faits pour ces tailles.
 
