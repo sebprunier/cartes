@@ -2,7 +2,7 @@
 
 ## Versions prises en charge
 
-Le projet est au stade de prototype : seule la dernière version de la branche `main` reçoit des correctifs de sécurité.
+Seule la dernière version publiée reçoit des correctifs de sécurité, par une version corrective ; la branche `main` les reçoit en premier.
 
 ## Signaler une vulnérabilité
 

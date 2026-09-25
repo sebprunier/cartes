@@ -2,9 +2,11 @@
 
 Les évolutions notables du projet sont consignées dans ce fichier.
 
-Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), et le projet suit le [versionnage sémantique](https://semver.org/lang/fr/). Tant que la version est en 0.x, les commandes et les options peuvent encore changer.
+Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), et le projet suit le [versionnage sémantique](https://semver.org/lang/fr/). À partir de la 1.0.0, ce que les outils exposent à d'autres programmes — commandes, options, API, identifiants, fichiers — ne change pas sans une version majeure : la section de la 1.0.0 dit ce qui est garanti.
 
 ## [Non publié]
+
+Première version stable. Ce que la 1.0.0 garantit, jusqu'à une version majeure : les commandes, leurs options — sous leurs noms français et anglais — et leurs valeurs par défaut ; les chemins et les champs de l'API, dans les demandes comme dans les réponses, sous leurs deux noms aussi ; les identifiants des fonds et des couches du catalogue ; le nom des cartes générées ; les colonnes qu'un fichier géocodé reçoit et les valeurs de son statut ; et que ce que la page retient dans le navigateur — les couches ajoutées par leur adresse — reste lu par les versions suivantes. Une version mineure peut en ajouter, jamais en retirer ni en renommer. Ce qu'elle ne garantit pas : l'apparence d'une carte, qui dépend des services publics dont les données et les styles évoluent ; la présence d'une couche dont le service fermerait ; les seuils du géocodage et les estimations de poids, qui sont des mesures et seront refaites.
 
 ### Ajouté
 
@@ -22,6 +24,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ### Modifié
 
+- L'API décrit, dans sa description OpenAPI, la réponse de chaque service — instance, communes, fonds, couches, estimation, carte — et non plus seulement les demandes ; un test vérifie que chaque réponse s'y tient. Les champs d'une couche, d'une couche ajoutée par son adresse et d'un fichier de données y sont listés avec leurs noms anglais (`opacity` ; `url`, `layer`, `name`, `attribution` ; `fileName`, `title`, `content`), que l'API acceptait sans le dire. Elle décrit aussi le code 401 d'une clé absente, le 413 d'une demande trop volumineuse et l'en-tête `Location` d'une carte acceptée, et la documentation nomme le statut `supprimée`.
+- L'aide de la ligne de commande donne le code de sortie des commandes — 0 si elle a réussi, 1 sinon —, le nom complet des cartes générées, couches comprises, l'option `--paralleles` de `cartes serveur` et l'alias anglais `status` de `cartes etat`, qui y manquait.
+- La documentation nomme les six colonnes qu'un fichier géocodé reçoit — `latitude`, `longitude`, `geocodage_statut`, `geocodage_score`, `geocodage_adresse_trouvee`, `geocodage_date` — et les trois valeurs du statut, pour les outils qui les liront.
 - L'estimation du poids du fichier, sur la page web, tient compte de l'encodeur du navigateur, mesuré sur Chrome, Firefox et Safari : un PNG y pèse environ 1,5 fois ce qu'il pèse avec l'application, et l'estimation l'annonçait trop léger.
 - L'avancement de la génération a une ligne « Mention des sources », qui compte les dates des données lues dans le catalogue de la Géoplateforme : quand il est lent, on voit ce que la carte attend. Une date qu'il ne donne pas passe la ligne en avertissement, sans arrêter la carte. Les autres lignes disent ce qu'elles comptent : des tuiles, des images, ou une lecture. L'API donne le même avancement, sous `dates`.
 - La fenêtre des couches disponibles est rangée par thème — foncier et urbanisme, risques, puis vos couches ajoutées par leur adresse — avec une icône par thème. Chaque couche est une carte cliquable en entier, qui dit qui la publie et, s'il le faut, le zoom à partir duquel elle se dessine. Ce badge passe en orange quand le zoom choisi est trop petit, avant même d'ajouter la couche. La recherche trouve aussi un thème ou un fournisseur. `cartes couches` range la liste de la même façon, et l'API donne le thème, le fournisseur et le zoom minimum de chaque couche. Le bouton « Ajouter une couche par son adresse » devient « Ajouter une couche personnalisée ».

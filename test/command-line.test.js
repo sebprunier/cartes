@@ -27,10 +27,14 @@ describe('parseCommandLine', () => {
     const french = parseCommandLine([
       'generer', '86081', '--departement', '86', '-f', 'ortho-ign', '--sortie', 'carte.jpg', '--marge', '0.1',
       '--gris', '--sans-contour', '--estimer', '--max-tuiles', '10', '--paralleles', '2', '--format', 'tif',
+      '--couche-perso', 'https://exemple.fr/wms', '--couche-perso-couche', 'CAVITE', '--couche-perso-nom', 'Cavités',
+      '--couche-perso-source', '© BRGM', '--donnees', 'lieux.csv', '--donnees-a-verifier',
     ]);
     const english = parseCommandLine([
       'generate', '86081', '--department', '86', '--basemap', 'ortho-ign', '--output', 'carte.jpg', '--margin', '0.1',
       '--grayscale', '--no-outline', '--estimate', '--max-tiles', '10', '--concurrency', '2', '--format', 'tif',
+      '--custom-layer', 'https://exemple.fr/wms', '--custom-layer-layer', 'CAVITE', '--custom-layer-name', 'Cavités',
+      '--custom-layer-source', '© BRGM', '--data', 'lieux.csv', '--data-unverified',
     ]);
     assert.deepEqual(french, english);
     assert.equal(french.options.basemap, 'ortho-ign');
@@ -58,6 +62,17 @@ describe('parseCommandLine', () => {
     for (const command of Object.keys(FRENCH_COMMANDS)) {
       const variant = command !== plain(command) && plain(command) in FRENCH_COMMANDS;
       assert.ok(HELP.includes(`cartes ${command}`) || variant, `commande ${command}`);
+    }
+  });
+
+  // The English names are the alias of the French ones: the help lists them all, in one place.
+  it('lists every English alias in the help', () => {
+    const aliases = HELP.slice(HELP.indexOf('existent aussi en anglais'));
+    for (const english of new Set(Object.values(FRENCH_COMMANDS))) {
+      assert.match(aliases, new RegExp(`\\b${english}\\b`), `commande ${english}`);
+    }
+    for (const [name, { french }] of Object.entries(OPTIONS)) {
+      if (french) assert.match(aliases, new RegExp(`--${name}\\b`), `option --${name}`);
     }
   });
 

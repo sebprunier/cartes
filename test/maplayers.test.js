@@ -182,6 +182,29 @@ describe('customMapLayer', () => {
     assert.ok(isTileLayer(customMapLayer({ ...CUSTOM, url: 'https://exemple.fr/{z}/{x}/{y}?format=png' })));
   });
 
+  // The page and the desktop application keep the layers added between two maps, in this shape: what a former
+  // version wrote must still build, whether it knew of WMS layers or not.
+  it('rebuilds a layer from what the page remembers of it, whichever version wrote it', () => {
+    const tiles = { id: 'perso-zones-humides', url: TEMPLATE, name: 'Zones humides', attribution: '© Syndicat' };
+    assert.equal(customMapLayer(tiles).id, 'perso-zones-humides');
+    assert.ok(isVectorLayer(customMapLayer(tiles)));
+    const wms = {
+      id: 'perso-cavites',
+      url: 'https://exemple.fr/wms',
+      name: 'Cavités',
+      attribution: '© BRGM',
+      wmsLayers: 'CAVITE_LOCALISEE',
+      minZoom: 13,
+      dataMaxZoom: 16,
+    };
+    const layer = customMapLayer(wms);
+    assert.ok(isWmsLayer(layer));
+    assert.equal(layer.id, 'perso-cavites');
+    assert.equal(layer.wmsLayers, 'CAVITE_LOCALISEE');
+    assert.equal(layer.minZoom, 13);
+    assert.equal(layer.dataMaxZoom, 16);
+  });
+
   it('gives the same address the same identifier, so that a layer added twice stays one layer', () => {
     assert.equal(customMapLayer(CUSTOM).id, customMapLayer({ ...CUSTOM, opacity: 0.2 }).id);
     assert.equal(customMapLayer({ ...CUSTOM, name: 'Zones humides' }).id, 'perso-zones-humides');

@@ -267,7 +267,7 @@ async function generate(input, options) {
   try {
     // The n-th layer name goes to the n-th address that is not a template of tiles: a WMS is given by its
     // service and the name of one of its layers, and both kinds can be mixed.
-    const wmsNames = [...options['custom-layer-wms']];
+    const wmsNames = [...options['custom-layer-layer']];
     const custom = options['custom-layer'].map((url, index) => ({
       url,
       name: options['custom-layer-name'][index],

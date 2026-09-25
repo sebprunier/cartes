@@ -27,7 +27,7 @@ Rien n'est bridé par défaut. Chaque réglage passe par une variable d'environn
 | `CARTES_CONSERVATION` | durée, en minutes, pendant laquelle une carte reste téléchargeable | 60 |
 | `CARTES_SORTIES` | dossier où les cartes sont écrites | un dossier `cartes` dans le dossier temporaire |
 
-Le cache des tuiles se règle comme pour la ligne de commande, avec `--cache` (`.cache/tiles` par défaut).
+Le cache des tuiles se règle comme pour la ligne de commande, avec `--cache` (`.cache/tiles` par défaut), et le nombre de téléchargements simultanés de chaque carte avec `--paralleles` (6).
 
 ### Combien de mémoire ?
 
@@ -48,14 +48,14 @@ Chaque chemin a un alias anglais, entre parenthèses.
 | --- | --- |
 | `GET /communes?nom=…&departement=…` (`/municipalities?name=…&department=…`) | chercher une commune par son nom |
 | `GET /fonds` (`/basemaps`) | lister les fonds de carte |
-| `GET /couches` (`/maplayers`) | lister les couches superposables, avec leur thème, qui les publie et, s'il y en a un, le zoom à partir duquel elles se dessinent (`zoomMin`) |
+| `GET /couches` (`/maplayers`) | lister les couches superposables, avec leur thème (`urbanisme`, `risques` ou `territoire`), qui les publie et, s'il y en a un, le zoom à partir duquel elles se dessinent (`zoomMin`) |
 | `POST /estimations` (`/estimates`) | pour chaque zoom, les dimensions, le format papier et la mémoire ; pour le zoom demandé, le poids estimé du fichier |
 | `POST /cartes` (`/maps`) | demander une carte |
 | `GET /cartes/{id}` | suivre une carte : statut, avancement, avertissements |
 | `GET /cartes/{id}/fichier` (`/maps/{id}/file`) | télécharger une carte terminée |
 | `DELETE /cartes/{id}` | annuler une carte, ou supprimer une carte terminée et son fichier |
 
-Une erreur est renvoyée en JSON, décrite en français : `{ "erreur": "Fond inconnu : …" }`.
+Une erreur est renvoyée en JSON, décrite en français : `{ "erreur": "Fond inconnu : …" }`, avec le code 400 pour une demande incorrecte, 401 pour une clé absente ou invalide, 404 pour une carte inconnue ou expirée, 409 pour une carte pas encore prête, 413 pour une demande trop volumineuse, au-delà de 21 Mo. La description OpenAPI, sur `/openapi.json`, donne la réponse de chaque service, champ par champ.
 
 ## Demander une carte
 
@@ -74,11 +74,11 @@ curl http://localhost:8080/cartes/<id>
 curl -OJ http://localhost:8080/cartes/<id>/fichier
 ```
 
-Le suivi renvoie le `statut` — `en attente`, `en cours`, `terminée`, `échouée` ou `annulée` —, l'`avancement` de chaque source en tuiles — et celui des dates des données, lues dans le catalogue pour la mention des sources, sous `dates` —, les `etapes` franchies, les `avertissements` et, en cas d'échec, l'`erreur`. Une carte terminée reste téléchargeable jusqu'à son `expiration`, puis disparaît avec son fichier.
+Le suivi renvoie le `statut` — `en attente`, `en cours`, `terminée`, `échouée` ou `annulée`, et `supprimée` en réponse à la suppression —, l'`avancement` de chaque source en tuiles — et celui des dates des données, lues dans le catalogue pour la mention des sources, sous `dates` —, les `etapes` franchies, les `avertissements` et, en cas d'échec, l'`erreur`. Une carte terminée reste téléchargeable jusqu'à son `expiration`, puis disparaît avec son fichier.
 
 ### Les champs d'une demande
 
-Ce sont les options de `cartes generer`, en JSON. Chacun accepte aussi un nom anglais : `municipality`, `department`, `basemap`, `zoom`, `maplayers`, `customLayers`, `data`, `dataCategory`, `dataColor`, `format`, `margin`, `dpi`, `grayscale`, `outline`, `legend`. Un champ inconnu est refusé, pour qu'une faute de frappe ne passe pas inaperçue.
+Ce sont les options de `cartes generer`, en JSON. Chacun accepte aussi un nom anglais : `municipality`, `department`, `basemap`, `zoom`, `maplayers`, `customLayers`, `data`, `dataCategory`, `dataColor`, `format`, `margin`, `dpi`, `grayscale`, `outline`, `legend`. Les champs d'une couche, d'une couche ajoutée par son adresse et d'un fichier en ont un aussi : `opacity` ; `url`, `layer`, `name`, `attribution`, `opacity` ; `fileName`, `title`, `content`. Un champ inconnu est refusé, pour qu'une faute de frappe ne passe pas inaperçue.
 
 | Champ | Effet | Par défaut |
 | --- | --- | --- |
@@ -98,6 +98,10 @@ Ce sont les options de `cartes generer`, en JSON. Chacun accepte aussi un nom an
 | `legende` | afficher la légende des données ajoutées | `true` |
 
 `POST /estimations` prend les mêmes champs. La [ligne de commande](ligne-de-commande.md) et [l'ajout de données](donnees.md) en disent plus sur chacun.
+
+### Ce qui ne changera pas
+
+À partir de la version 1.0.0, les chemins, les champs des demandes et des réponses — sous leurs noms français et anglais —, les codes de réponse et les identifiants du catalogue ne changent pas sans une version majeure. Une version mineure peut ajouter un champ, un service ou une couche, jamais en retirer ni en renommer : un logiciel qui lit les réponses doit tolérer un champ qu'il ne connaît pas. La description OpenAPI de l'instance, sur `/openapi.json`, fait foi.
 
 ## Déployer sur Clever Cloud
 

@@ -5,7 +5,7 @@ import { describe, it } from 'node:test';
 
 import { Validator } from '@seriousme/openapi-schema-validator';
 
-import { REQUEST_FIELDS } from '../src/node/api-fields.js';
+import { CUSTOM_LAYER_FIELDS, DATA_FIELDS, LAYER_FIELDS, REQUEST_FIELDS } from '../src/node/api-fields.js';
 import { openApi } from '../src/node/openapi.js';
 import { createApiServer } from '../src/node/server.js';
 
@@ -72,11 +72,31 @@ describe('OpenAPI description', () => {
 
   it('describes the fields of a request that the server reads, under both their names', () => {
     const request = document.paths['/cartes'].post.requestBody.content['application/json'].schema;
-    assert.deepEqual(Object.keys(request.properties).sort(), Object.keys(REQUEST_FIELDS).sort());
-    for (const [french, english] of Object.entries(REQUEST_FIELDS)) {
-      assert.ok(request.propertyNames.enum.includes(french), french);
-      assert.ok(request.propertyNames.enum.includes(english), english);
-      if (french !== english) assert.ok(request.description.includes(english), `${english} absent de la description`);
+    const { properties } = request;
+    for (const [schema, fields, where] of [
+      [request, REQUEST_FIELDS, 'la demande'],
+      [properties.couches.items.oneOf[1], LAYER_FIELDS, 'une couche'],
+      [properties.couchesPerso.items, CUSTOM_LAYER_FIELDS, 'une couche ajoutée'],
+      [properties.donnees.items, DATA_FIELDS, 'un fichier de données'],
+    ]) {
+      assert.deepEqual(Object.keys(schema.properties).sort(), Object.keys(fields).sort(), where);
+      for (const [french, english] of Object.entries(fields)) {
+        assert.ok(schema.propertyNames.enum.includes(french), `${where} : ${french}`);
+        assert.ok(schema.propertyNames.enum.includes(english), `${where} : ${english}`);
+        if (french !== english) assert.ok(schema.description.includes(english), `${english} absent de la description`);
+      }
+    }
+  });
+
+  it('gives every service its answer, and every protected service what a missing key answers', () => {
+    for (const [route, operations] of Object.entries(document.paths)) {
+      for (const [method, operation] of Object.entries(operations)) {
+        const where = `${method.toUpperCase()} ${route}`;
+        const ok = operation.responses[200] ?? operation.responses[202];
+        assert.ok(ok?.content, `${where} : pas de réponse décrite`);
+        const isPublic = Array.isArray(operation.security) && operation.security.length === 0;
+        assert.equal(Boolean(operation.responses[401]), !isPublic, `${where} : 401`);
+      }
     }
   });
 

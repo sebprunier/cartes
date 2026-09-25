@@ -70,7 +70,7 @@ Un CSV avec des adresses mais sans coordonnées — une colonne `adresse`, ou de
 cartes geocoder defibrillateurs.csv --commune 86081
 ```
 
-La commande envoie les adresses au service de géocodage de la Géoplateforme (IGN), en restreignant la recherche à la commune donnée. Elle écrit à côté du fichier un `defibrillateurs-geocode.csv` : le même fichier, dans le même séparateur, complété de la latitude, de la longitude et du résultat du géocodage de chaque ligne. Puis elle dresse le bilan :
+La commande envoie les adresses au service de géocodage de la Géoplateforme (IGN), en restreignant la recherche à la commune donnée. Elle écrit à côté du fichier un `defibrillateurs-geocode.csv` : le même fichier, dans le même séparateur, complété de la latitude, de la longitude et du résultat du géocodage de chaque ligne — les six colonnes que décrit [Ajouter des données](donnees.md). Puis elle dresse le bilan :
 
 - **trouvées** : placées avec assurance, et dessinées sur la carte ;
 - **à vérifier** : le service a hésité, ou n'a trouvé qu'une route ou une rue, faute de numéro — le point est au milieu de la voie, parfois loin du lieu voulu. Elles ne sont dessinées qu'avec `--donnees-a-verifier` ;
@@ -86,7 +86,12 @@ La carte cite alors la Base Adresse Nationale, d'où viennent les positions, dan
 
 ## Ce qu'il faut savoir
 
-- Les cartes sont écrites dans `sorties/`, sous un nom qui rappelle la commune, le fond et le zoom.
+- Les cartes sont écrites dans `sorties/`, sous le nom `<code INSEE>-<commune>-<fond>[-<couche>…]-z<zoom>[-gris].<format>` : `86081-colombiers-plan-ign-cadastre-z16.png`, par exemple. La page web et l'API nomment les cartes de la même façon.
+- Toute commande se termine avec le code 0 si elle a réussi, 1 sinon — commande ou option invalide, commune introuvable, fichier illisible, service en panne pour `cartes etat` —, avec un message en français sur la sortie d'erreur. Un script peut s'y fier.
 - Les tuiles téléchargées sont conservées dans `.cache/tiles/` : relancer une commande ne retélécharge rien.
 - `--max-tuiles` est un garde-fou : au-delà de 5 000 tuiles, l'outil refuse plutôt que de lancer un téléchargement d'une heure par mégarde.
 - `--paralleles` règle le nombre de téléchargements simultanés. Six par défaut, ce qui reste courtois envers les services publics utilisés.
+
+## Ce qui ne changera pas
+
+À partir de la version 1.0.0, les commandes, leurs options — sous leurs noms français et anglais — et leurs valeurs par défaut, les identifiants des fonds et des couches, le nom des cartes générées et les colonnes d'un fichier géocodé ne changent pas sans une version majeure. Une version mineure peut ajouter une option ou une couche, jamais en retirer ni en renommer. Les [notes de chaque version](https://github.com/sebprunier/cartes/releases) disent ce qui a été ajouté.

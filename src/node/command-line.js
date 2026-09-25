@@ -46,7 +46,8 @@ Options de « generer » :
       --donnees-couleur <propriete>
                             propriété qui porte la couleur des objets ; par défaut : couleur, color
                             (les styles écrits dans le fichier sont toujours respectés)
-  -o, --sortie <fichier>    fichier de sortie, défaut : sorties/<commune>-<fond>-z<zoom>[-gris].<format>
+  -o, --sortie <fichier>    fichier de sortie, défaut :
+                            sorties/<code INSEE>-<commune>-<fond>[-<couches>]-z<zoom>[-gris].<format>
       --format <format>     png, jpg ou tif ; défaut : jpg pour les photographies aériennes (ortho-ign), png sinon
       --marge <fraction>    marge autour de la commune, défaut : 0.03
       --dpi <n>             résolution d'impression visée, défaut : 150
@@ -71,6 +72,7 @@ Options de « geocoder » :
 
 Options de « serveur » :
       --port <n>            port d'écoute ; défaut : la variable PORT, sinon 8080
+      --paralleles <n>      téléchargements simultanés par carte, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   Le reste se règle par des variables d'environnement : CARTES_CLE_API, CARTES_ZOOM_MAX,
   CARTES_GENERATIONS, CARTES_CONSERVATION et CARTES_SORTIES. La documentation les décrit :
@@ -91,9 +93,12 @@ Le niveau de zoom décide de la taille de l'image, donc du format papier : le ch
 plutôt que d'après le détail souhaité. La documentation l'explique :
 https://sebprunier.github.io/cartes/zoom-et-impression.html
 
-Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, geocode, serve,
---department, --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-name,
---custom-layer-source, --custom-layer-opacity, --custom-layer-wms, --data, --data-title, --data-category, --data-color,
+Toute commande se termine avec le code 0 si elle a réussi, 1 sinon : option ou commande invalide, commune
+introuvable, service en panne.
+
+Les commandes et options existent aussi en anglais : search, basemaps, maplayers, generate, geocode, serve, status,
+--department, --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-layer, --custom-layer-name,
+--custom-layer-source, --custom-layer-opacity, --data, --data-title, --data-category, --data-color,
 --data-unverified, --municipality, --output, --margin, --grayscale, --no-outline, --no-legend, --estimate,
 --max-tiles, --concurrency, --help.`;
 
@@ -122,7 +127,7 @@ export const OPTIONS = {
   'custom-layer-name': { type: 'string', french: 'couche-perso-nom', multiple: true, default: [] },
   'custom-layer-source': { type: 'string', french: 'couche-perso-source', multiple: true, default: [] },
   'custom-layer-opacity': { type: 'string', french: 'couche-perso-opacite', multiple: true, default: [] },
-  'custom-layer-wms': { type: 'string', french: 'couche-perso-couche', multiple: true, default: [] },
+  'custom-layer-layer': { type: 'string', french: 'couche-perso-couche', multiple: true, default: [] },
   data: { type: 'string', french: 'donnees', multiple: true, default: [] },
   'data-title': { type: 'string', french: 'donnees-titre', multiple: true, default: [] },
   'data-category': { type: 'string', french: 'donnees-categorie' },

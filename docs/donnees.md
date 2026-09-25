@@ -101,7 +101,17 @@ Ce classement n'est pas un détail. Le service répond toujours quelque chose, m
 
 Le tableau donne, pour chaque adresse à regarder, son numéro de ligne dans le fichier et ce que le service a trouvé. **Corrigez-les dans votre tableur**, puis déposez de nouveau le fichier : la correction servira à toutes vos cartes suivantes.
 
-« Enregistrer le fichier géocodé » donne le même fichier, dans le même séparateur, complété de la latitude, de la longitude et du résultat de chaque ligne. Déposé plus tard, il est ajouté aussitôt, sans rien envoyer de nouveau. En ligne de commande, c'est [`cartes geocoder`](ligne-de-commande.md) qui fait ce travail.
+« Enregistrer le fichier géocodé » donne le même fichier, dans le même séparateur, complété de six colonnes, que d'autres outils peuvent lire :
+
+| Colonne | Contenu |
+| --- | --- |
+| `latitude`, `longitude` | la position trouvée, en WGS 84 ; vides pour une adresse introuvable |
+| `geocodage_statut` | `trouvée`, `à vérifier` ou `introuvable` |
+| `geocodage_score` | la confiance du service, de 0 à 1 |
+| `geocodage_adresse_trouvee` | l'adresse que le service a retenue, à comparer à la vôtre |
+| `geocodage_date` | le jour du géocodage, en AAAA-MM-JJ |
+
+Déposé plus tard, ce fichier est ajouté aussitôt, sans rien envoyer de nouveau : seules les lignes `trouvée` sont dessinées, et les `à vérifier` sur demande. Géocodé de nouveau après correction, il perd ces colonnes pour en recevoir de fraîches. En ligne de commande, c'est [`cartes geocoder`](ligne-de-commande.md) qui fait ce travail.
 
 Une carte qui dessine des adresses géocodées cite la Base Adresse Nationale, et la date du géocodage, dans sa mention des sources : sa licence le demande.
 

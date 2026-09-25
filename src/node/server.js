@@ -17,7 +17,7 @@ import { CapabilitiesError, completeWmsDefinitions } from '../core/capabilities.
 import { MunicipalityNotFound, searchMunicipalities } from '../core/municipalities.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
-import { REQUEST_FIELDS } from './api-fields.js';
+import { CUSTOM_LAYER_FIELDS, DATA_FIELDS, LAYER_FIELDS, REQUEST_FIELDS } from './api-fields.js';
 import { estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
 import { openApi } from './openapi.js';
 
@@ -35,10 +35,6 @@ const ROUTES = {
   fichier: 'file',
 };
 const FRENCH_ROUTES = Object.fromEntries(Object.entries(ROUTES).map(([french, english]) => [english, french]));
-
-const LAYER_FIELDS = { id: 'id', opacite: 'opacity' };
-const CUSTOM_LAYER_FIELDS = { adresse: 'url', nom: 'name', source: 'attribution', opacite: 'opacity', couche: 'wmsLayers' };
-const DATA_FIELDS = { fichier: 'fileName', titre: 'title', contenu: 'content' };
 
 /** An error of the request, told to the client as is, with its HTTP status. */
 export class ApiError extends Error {
@@ -428,9 +424,12 @@ export async function resolveRequest(body, { maxZoom = Infinity } = {}) {
 
   let mapLayers;
   try {
-    const custom = listField(fields.customLayers, 'couchesPerso').map((layer) =>
-      normalizeFields(layer, CUSTOM_LAYER_FIELDS, 'une couche ajoutée par son adresse'),
-    );
+    const custom = listField(fields.customLayers, 'couchesPerso').map((entry) => {
+      // The name of the layer of a WMS is `couche` or `layer` to the client, and `wmsLayers` to the catalog.
+      const what = 'une couche ajoutée par son adresse';
+      const { layer, ...definition } = normalizeFields(entry, CUSTOM_LAYER_FIELDS, what);
+      return layer === undefined ? definition : { ...definition, wmsLayers: layer };
+    });
     mapLayers = chooseMapLayers([
       ...listField(fields.maplayers, 'couches').map((layer) =>
         typeof layer === 'string' ? { id: layer } : normalizeFields(layer, LAYER_FIELDS, 'une couche'),

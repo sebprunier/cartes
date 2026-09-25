@@ -13,7 +13,7 @@
   Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format.
 </p>
 
-> **État du projet** : utilisable, en version 0.x. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/generer/), l'application de bureau et la ligne de commande — et une API, pour l'intégrer à d'autres logiciels. Les commandes, les options et l'interface peuvent encore évoluer.
+> **État du projet** : utilisable. Trois façons de générer une carte : la [page web](https://sebprunier.github.io/cartes/generer/), l'application de bureau et la ligne de commande — et une API, pour l'intégrer à d'autres logiciels. À partir de la version 1.0.0, les commandes, l'API et les fichiers produits ne changent plus sans une version majeure : le [journal des modifications](CHANGELOG.md) dit ce qui est garanti, et ce qui ne l'est pas.
 
 ## Pourquoi ce projet
 

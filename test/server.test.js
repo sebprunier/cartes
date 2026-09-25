@@ -8,6 +8,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import sharp from 'sharp';
 
 import { extentFromBbox, tilesInExtent } from '../src/core/tiles.js';
+import { openApi } from '../src/node/openapi.js';
 import { createApiServer } from '../src/node/server.js';
 
 // Colombiers, roughly: its tiles are put in the cache beforehand, and the services of the Géoplateforme are
@@ -30,15 +31,57 @@ const BOUNDARY = {
     { geometry: { type: 'Polygon', coordinates: [RING] }, properties: { code_insee: '86081', nom_officiel: 'Colombiers' } },
   ],
 };
+// A WMS added by its address: what it announces, and the image it draws.
+const CAPABILITIES = `<?xml version="1.0" encoding="UTF-8"?>
+<WMS_Capabilities version="1.3.0" xmlns="http://www.opengis.net/wms">
+  <Service><Name>WMS</Name><Title>Exemple</Title></Service>
+  <Capability><Layer><Title>Risques</Title><CRS>EPSG:3857</CRS>
+    <Layer><Name>CAVITE_LOCALISEE</Name><Title>Cavités souterraines</Title></Layer>
+  </Layer></Capability>
+</WMS_Capabilities>`;
+const POINTS = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', geometry: { type: 'Point', coordinates: [0.43, 46.78] }, properties: { nom: 'Mairie' } },
+  ],
+};
+
+const DESCRIPTION = openApi('9.9.9');
+
+/** The schema of what a service answers, as the OpenAPI description gives it. */
+function described(method, route, status) {
+  return DESCRIPTION.paths[route][method].responses[status].content['application/json'].schema;
+}
+
+/**
+ * Checks that an answer has only the fields its schema describes, and all those it requires: a field added to
+ * the API and forgotten in its description is found here, rather than by a client.
+ */
+function assertDescribed(body, schema, where) {
+  if (schema.type === 'array') {
+    assert.ok(Array.isArray(body), where);
+    body.forEach((item, index) => assertDescribed(item, schema.items, `${where}[${index}]`));
+    return;
+  }
+  if (schema.type !== 'object' || !schema.properties) return;
+  assert.equal(typeof body, 'object', where);
+  for (const name of Object.keys(body)) assert.ok(name in schema.properties, `${where}.${name} n’est pas décrit`);
+  for (const name of schema.required ?? []) assert.ok(name in body, `${where}.${name} manque`);
+  for (const [name, value] of Object.entries(body)) {
+    if (value === null || typeof value !== 'object') continue;
+    assertDescribed(value, schema.properties[name], `${where}.${name}`);
+  }
+}
 
 const realFetch = globalThis.fetch;
 let tempDir;
 let cacheDir;
+let tile;
 
 before(async () => {
   tempDir = await mkdtemp(path.join(tmpdir(), 'cartes-test-'));
   cacheDir = path.join(tempDir, 'cache');
-  const tile = await sharp({ create: { width: 256, height: 256, channels: 3, background: '#e8e4d8' } })
+  tile = await sharp({ create: { width: 256, height: 256, channels: 3, background: '#e8e4d8' } })
     .png()
     .toBuffer();
   for (const zoom of [12, 13]) {
@@ -59,6 +102,8 @@ beforeEach((t) => {
     if (address.startsWith('http://localhost')) return realFetch(url, options);
     if (address.startsWith('https://data.geopf.fr/geocodage/')) return Response.json(GEOCODING);
     if (address.startsWith('https://data.geopf.fr/wfs/')) return Response.json(BOUNDARY);
+    if (address.includes('REQUEST=GetCapabilities')) return new Response(CAPABILITIES);
+    if (address.includes('REQUEST=GetMap')) return new Response(tile, { headers: { 'content-type': 'image/png' } });
     // The catalog of the dates of the data, and anything else, is out of reach, as offline.
     throw new Error('Pas de réseau pendant les tests.');
   });
@@ -99,6 +144,7 @@ describe('API', () => {
     assert.equal(home.response.status, 200);
     assert.equal(home.body.version, '9.9.9');
     assert.equal(home.body.cleRequise, true);
+    assertDescribed(home.body, described('get', '/', 200), 'GET /');
     const openApi = await call('GET', '/openapi.json');
     assert.equal(openApi.body.info.version, '9.9.9');
     assert.ok(openApi.body.paths['/cartes']);
@@ -120,19 +166,53 @@ describe('API', () => {
     const basemaps = await call('GET', '/fonds');
     assert.deepEqual(basemaps.body, (await call('GET', '/basemaps')).body);
     assert.ok(basemaps.body.some(({ id, zoomMax }) => id === 'plan-ign' && zoomMax === 19));
+    assertDescribed(basemaps.body, described('get', '/fonds', 200), 'GET /fonds');
     const layers = await call('GET', '/maplayers');
     const cadastre = layers.body.find(({ id }) => id === 'cadastre');
     assert.equal(cadastre.theme, 'urbanisme');
     assert.equal(cadastre.fournisseur, 'IGN');
     assert.equal(cadastre.zoomMin, 16);
+    assertDescribed(layers.body, described('get', '/couches', 200), 'GET /couches');
   });
 
   it('searches municipalities by name and department', async (t) => {
     const { call } = await startApi(t);
     const { body } = await call('GET', '/communes?nom=Colombiers&departement=86');
     assert.deepEqual(body.map(({ codeInsee }) => codeInsee), ['86081']);
+    assertDescribed(body, described('get', '/communes', 200), 'GET /communes');
+    assert.deepEqual((await call('GET', '/municipalities?name=Colombiers&department=86')).body, body);
     const missing = await call('GET', '/communes');
     assert.equal(missing.response.status, 400);
+  });
+
+  // The fields of a layer, of a layer added by its address and of a file have English names too, like those of
+  // the request itself: they are the ones described, and none other passes.
+  it('reads the fields of a layer, of a WMS and of a file under their English names too', async (t) => {
+    const { call } = await startApi(t);
+    const accepted = await call('POST', '/estimations', {
+      municipality: '86081',
+      zoom: 13,
+      maplayers: [{ id: 'argiles', opacity: 0.4 }],
+      customLayers: [
+        { url: 'https://exemple.fr/wms', layer: 'CAVITE_LOCALISEE', name: 'Cavités', attribution: '© BRGM' },
+      ],
+      data: [{ fileName: 'points.geojson', title: 'Points', content: JSON.stringify(POINTS) }],
+    });
+    assert.equal(accepted.response.status, 200, JSON.stringify(accepted.body));
+    const unknownLayer = await call('POST', '/estimations', {
+      commune: '86081',
+      couchesPerso: [{ adresse: 'https://exemple.fr/wms', couche: 'INCONNUE', nom: 'Cavités', source: '© BRGM' }],
+    });
+    assert.equal(unknownLayer.response.status, 400);
+    assert.match(unknownLayer.body.erreur, /n’a pas de couche « INCONNUE »/);
+    const unknownField = await call('POST', '/estimations', {
+      commune: '86081',
+      couchesPerso: [
+        { adresse: 'https://exemple.fr/wms', wmsLayers: 'CAVITE_LOCALISEE', nom: 'Cavités', source: '© BRGM' },
+      ],
+    });
+    assert.equal(unknownField.response.status, 400);
+    assert.match(unknownField.body.erreur, /^Champ inconnu dans une couche ajoutée par son adresse : wmsLayers\./);
   });
 
   it('answers in French, with a JSON error, what it does not serve or understand', async (t) => {
@@ -169,6 +249,7 @@ describe('API', () => {
     assert.equal(body.niveaux[0].zoom, 13);
     assert.equal(body.niveaux.at(-1).zoom, 19);
     assert.ok(body.poids > 0);
+    assertDescribed(body, described('post', '/estimations', 200), 'POST /estimations');
   });
 
   it('generates a map in the background, and serves its file once done', async (t) => {
@@ -176,9 +257,11 @@ describe('API', () => {
     const created = await call('POST', '/cartes', { commune: '86081', zoom: 13, contour: false });
     assert.equal(created.response.status, 202);
     assert.equal(created.response.headers.get('location'), `/cartes/${created.body.id}`);
+    assertDescribed(created.body, described('post', '/cartes', 202), 'POST /cartes');
 
     const map = await waitFor(call, created.body.id);
     assert.equal(map.statut, 'terminée', map.erreur);
+    assertDescribed(map, described('get', '/cartes/{id}', 200), 'GET /cartes/{id}');
     assert.equal(map.nomFichier, '86081-colombiers-plan-ign-z13.png');
     assert.ok(map.etapes.includes(`Enregistrement dans ${map.nomFichier}…`));
     assert.ok(map.avertissements.some((warning) => warning.startsWith('Date de mise à jour des données indisponible')));
