@@ -25,6 +25,14 @@ export const MAP_LAYER_THEMES = [
 // publishes: above it the layer is left out, and `maxZoomNote` says so.
 // `dataMaxZoom` caps the resolution asked for: above it the drawing is stretched, which spares a service and
 // suits data that has no more detail to give — and, for some services, keeps them drawing at all.
+
+// Géorisques publishes its layers on two WMS. The official address of its flows serves most of them, the
+// cavities and the pipelines included. The zoning of the PPR is served by the older « risques » service only,
+// whose configuration has been broken since 24 September 2026 — every request, the capabilities included,
+// gets a MapServer error page (#39): its two layers fail until the BRGM repairs it.
+const GEORISQUES_SERVICES = 'https://www.georisques.gouv.fr/services';
+const GEORISQUES_RISQUES = 'https://mapsref.brgm.fr/wxs/georisques/risques';
+
 const MAP_LAYER_LIST = [
   {
     id: 'cadastre',
@@ -191,7 +199,7 @@ const MAP_LAYER_LIST = [
     theme: 'risques',
     provider: 'Géorisques',
     kind: 'wms',
-    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    url: GEORISQUES_RISQUES,
     wmsLayers: 'PPRN_ZONE_INOND',
     wmsStyle: 'inspire_common:DEFAULT',
     dataMaxZoom: 16,
@@ -210,7 +218,7 @@ const MAP_LAYER_LIST = [
     theme: 'risques',
     provider: 'Géorisques',
     kind: 'wms',
-    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    url: GEORISQUES_RISQUES,
     wmsLayers: 'PPRN_ZONE_MVT',
     wmsStyle: 'inspire_common:DEFAULT',
     dataMaxZoom: 16,
@@ -228,7 +236,7 @@ const MAP_LAYER_LIST = [
     theme: 'risques',
     provider: 'Géorisques',
     kind: 'wms',
-    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    url: GEORISQUES_SERVICES,
     wmsLayers: 'CAVITE_LOCALISEE',
     wmsStyle: 'inspire_common:DEFAULT',
     // The service stops drawing this layer when zoomed past 1:2000: the image is asked for at zoom 17, where
@@ -246,11 +254,12 @@ const MAP_LAYER_LIST = [
     theme: 'risques',
     provider: 'Géorisques',
     kind: 'wms',
-    url: 'https://mapsref.brgm.fr/wxs/georisques/risques',
+    url: GEORISQUES_SERVICES,
     wmsLayers: 'CANALISATIONS',
     wmsStyle: 'default',
-    // Nothing is drawn below 1:20000: the image is always asked for at zoom 14, then drawn larger, which
-    // thickens the lines at the highest zoom levels.
+    // The image is always asked for at zoom 14, then drawn larger, which thickens the lines at the highest
+    // zoom levels. The service of the PPR drew nothing below 1:20000; this one draws at every scale, and
+    // whether asking it for more pixels would give thinner lines is still to be measured.
     dataMaxZoom: 14,
     maxZoom: 19,
     opacity: 0.9,
