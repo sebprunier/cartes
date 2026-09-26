@@ -62,6 +62,7 @@ node src/node/cli.js --aide
 | `scripts/build-electron.js` | construit l'interface de l'application dans `dist-electron/` |
 | `scripts/mesure-navigateurs.js` | sert une page qui mesure le canevas d'un navigateur — taille maximale, échec au-delà, poids de ses encodeurs — à partir des tuiles de Colombiers en cache (`npm run mesure:navigateurs`) |
 | `scripts/illustrations.js` | redessine les illustrations de la documentation à partir de vraies cartes de Colombiers (`npm run illustrations`, demande le réseau ou le cache des tuiles) |
+| `scripts/captures.js` | refait les captures d'écran de la documentation qui montrent l'outil : la page de génération pilotée pas à pas sur Colombiers (Vienne), et la fenêtre de l'application (`npm run captures`, sous macOS ; `npm run captures -- <nom>` pour une seule, demande le réseau) |
 | `test/` | tests unitaires (`node:test`) |
 
 ## Conventions

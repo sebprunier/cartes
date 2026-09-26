@@ -132,10 +132,12 @@ describe('documentation site', () => {
     assert.match(html, /class="capture-pending"[\s\S]*La fenêtre de départ, vide[\s\S]*<code>images\/captures\/pas-encore-prise\.png<\/code>/);
   });
 
-  // A screenshot at twice the resolution says so by its density, and is shown at the size of the interface.
-  it('shows a screenshot at the size the interface has on the screen', () => {
+  // A screenshot at twice the resolution says so by its density, and is shown at the size of the interface: half
+  // of its pixels, whatever they are once `npm run captures` has taken it again.
+  it('shows a screenshot at the size the interface has on the screen', async () => {
     const double = render('![Réglages](images/captures/generer-2-reglages.png)\n', { title: 'Essai' }).html;
-    assert.match(double, /width="972" height="761"/);
+    const png = await readFile(path.join(SOURCE, 'images', 'captures', 'generer-2-reglages.png'));
+    assert.match(double, new RegExp(`width="${png.readUInt32BE(16) / 2}" height="${png.readUInt32BE(20) / 2}"`));
     const windows = render('![SmartScreen](images/captures/windows-smartscreen-1.png)\n', { title: 'Essai' }).html;
     assert.match(windows, /width="536" height="508"/);
   });
