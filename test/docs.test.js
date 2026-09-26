@@ -114,6 +114,13 @@ describe('documentation site', () => {
     }
   });
 
+  // A video is made to be shared: its address must work even when no page shows it.
+  it('publishes every video of the documentation', async () => {
+    for (const video of await readdir(path.join(SOURCE, 'videos'))) {
+      assert.ok(existsSync(path.join(output, 'videos', video)), video);
+    }
+  });
+
   it('leads each former address of the documentation to where its page lives now', async () => {
     for (const [from, to] of Object.entries(REDIRECTIONS)) {
       const html = await readFile(path.join(output, from), 'utf8');

@@ -7,3 +7,7 @@ dist-electron/
 dist-installers/
 dist-mesure/
 .clever.json
+# Ce que la vidéo de présentation prépare et rend, refait par ses scripts.
+scripts/video/public/
+scripts/video/src/generated/
+scripts/video/out/

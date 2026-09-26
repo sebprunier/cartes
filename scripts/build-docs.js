@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds the documentation site into the root of dist/: one HTML page per Markdown file of docs/, the home page
-// from docs/README.md, and redirections from the addresses the documentation had before. The Markdown stays
-// readable on GitHub, and is the only place the text is written.
+// from docs/README.md, the videos of docs/videos/, and redirections from the addresses the documentation had
+// before. The Markdown stays readable on GitHub, and is the only place the text is written.
 //
 // An image of a page whose file does not exist yet is a screenshot to come: the site shows in its place what
 // the screenshot should hold, and the image itself as soon as its file is added — nothing else to change.
@@ -102,6 +102,10 @@ export async function buildDocs(output, { version, date = new Date() }) {
   await cp(path.join(SOURCE, 'documentation.css'), path.join(output, 'documentation.css'));
   await cp(path.join(SOURCE, 'images', 'logo.png'), path.join(output, 'logo.png'));
   await cp(path.join(SOURCE, 'images', 'social-preview.png'), path.join(output, 'social-preview.png'));
+  // The videos are published whole, whether a page shows them or not: they are made to be linked from elsewhere.
+  if (existsSync(path.join(SOURCE, 'videos'))) {
+    await cp(path.join(SOURCE, 'videos'), path.join(output, 'videos'), { recursive: true });
+  }
 
   const pages = DOCUMENTATION_PAGES.filter(({ file }) => existsSync(path.join(SOURCE, file)));
   for (const [index, page] of pages.entries()) {

@@ -63,6 +63,7 @@ node src/node/cli.js --aide
 | `scripts/mesure-navigateurs.js` | sert une page qui mesure le canevas d'un navigateur — taille maximale, échec au-delà, poids de ses encodeurs — à partir des tuiles de Colombiers en cache (`npm run mesure:navigateurs`) |
 | `scripts/illustrations.js` | redessine les illustrations de la documentation à partir de vraies cartes de Colombiers (`npm run illustrations`, demande le réseau ou le cache des tuiles) |
 | `scripts/captures.js` | refait les captures d'écran de la documentation qui montrent l'outil : la page de génération pilotée pas à pas sur Colombiers (Vienne), et la fenêtre de l'application (`npm run captures`, sous macOS ; `npm run captures -- <nom>` pour une seule, demande le réseau) |
+| `scripts/video/` | la vidéo de présentation, publiée dans `docs/videos/` : un projet à part, avec ses propres dépendances, qui tire ses images et ses chiffres des fonctions de l'outil (voir son [README](scripts/video/README.md)) |
 | `test/` | tests unitaires (`node:test`) |
 
 ## Conventions
@@ -71,7 +72,7 @@ node src/node/cli.js --aide
 - **Ligne de commande** : chaque commande et chaque option a un nom français, affiché dans l'aide, et un alias anglais.
 - **Style** : modules ES, indentation de 2 espaces, guillemets simples, points-virgules, lignes de 120 caractères au plus. En cas de doute, suivez le style du code existant.
 - **Cœur partagé** : `src/core/` ne doit importer ni module `node:`, ni sharp. Ce code sert aussi à la page web et à l'application Electron ; un test le vérifie.
-- **Dépendances** : le moins possible. sharp est la seule dépendance d'exécution : discutez-en dans une issue avant d'en ajouter une. Les outils de construction et de test (`devDependencies`) ne partent ni dans l'application ni sur un serveur, et demandent moins de précautions — tant que les tests tournent sans réseau.
+- **Dépendances** : le moins possible. sharp est la seule dépendance d'exécution : discutez-en dans une issue avant d'en ajouter une. Les outils de construction et de test (`devDependencies`) ne partent ni dans l'application ni sur un serveur, et demandent moins de précautions — tant que les tests tournent sans réseau. La vidéo de présentation a les siennes, à part, dans `scripts/video/` : Remotion, qui la fabrique, n'est pas sous une licence libre, et n'entre ainsi ni dans l'outil ni dans ses tests.
 - **Documentation** : les pages du site sont écrites en Markdown dans `docs/`, et déclarées dans `scripts/build-docs.js`. Elles doivent rester lisibles telles quelles sur GitHub ; un test vérifie que chaque page est publiée et que ses liens aboutissent.
 - **Données** : avant d'ajouter une source de données, vérifiez que sa licence et ses conditions d'utilisation le permettent, puis complétez [Données utilisées et licences](docs/donnees-et-licences.md).
 - **Assistants de code** : si vous travaillez avec un assistant, [CLAUDE.md](CLAUDE.md) rassemble les consignes du projet et les pièges déjà rencontrés.

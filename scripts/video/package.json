@@ -1,0 +1,27 @@
+{
+  "name": "cartes-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vidéo de présentation de cartes, faite avec ses propres cartes de Colombiers (#40)",
+  "type": "module",
+  "scripts": {
+    "preparer": "node prepare.mjs",
+    "studio": "remotion studio src/index.jsx",
+    "rendu": "remotion render src/index.jsx Presentation ../../docs/videos/cartes-presentation-fr-1080p.mp4 --crf=20 --jpeg-quality=95 --color-space=bt709",
+    "rendu:720p": "remotion render src/index.jsx Presentation ../../docs/videos/cartes-presentation-fr-720p.mp4 --scale=0.6667 --crf=23 --jpeg-quality=95 --color-space=bt709",
+    "couverture": "remotion still src/index.jsx Couverture ../../docs/videos/cartes-presentation-fr.jpg --frame=299 --image-format=jpeg --jpeg-quality=88"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@remotion/cli": "4.0.529",
+    "@remotion/fonts": "4.0.529",
+    "@remotion/paths": "4.0.529",
+    "@remotion/transitions": "4.0.529",
+    "lucide-react": "1.48.0",
+    "qrcode": "1.5.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.529"
+  }
+}
