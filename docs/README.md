@@ -4,14 +4,13 @@
 
 ![Extrait d'une carte de Colombiers (Vienne) au zoom 16, avec les points d'apport volontaire de la commune](images/exemple-colombiers.png)
 
-## cartes en 75 secondes
-
-L'outil en vidéo, sans le son, sur de vraies cartes de Colombiers : de la commune entière au nom de ses rues, les couches publiques, les données de la commune et la mention des sources. Pour la partager, elle existe aussi [en 1080p](videos/cartes-presentation-fr-1080p.mp4).
-
-<video class="presentation" controls preload="none" poster="videos/cartes-presentation-fr.jpg" width="1920" height="1080">
-  <source src="videos/cartes-presentation-fr-720p.mp4" type="video/mp4" />
-  <a href="videos/cartes-presentation-fr-720p.mp4">Voir la vidéo de présentation</a>
-</video>
+<figure class="presentation">
+  <video controls preload="none" poster="videos/cartes-presentation-fr-vignette.jpg" width="1920" height="1080">
+    <source src="videos/cartes-presentation-fr-720p.mp4" type="video/mp4" />
+    <a href="videos/cartes-presentation-fr-720p.mp4">Voir la vidéo de présentation</a>
+  </video>
+  <figcaption>L'outil en 75 secondes, sur de vraies cartes de Colombiers.</figcaption>
+</figure>
 
 ## Quatre façons de s'en servir
 

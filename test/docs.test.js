@@ -114,6 +114,14 @@ describe('documentation site', () => {
     }
   });
 
+  // The video of presentation opens the home page, in place of its image, and nowhere else on it.
+  it('opens the home page with its presentation video', async () => {
+    const html = await readFile(path.join(output, 'index.html'), 'utf8');
+    const hero = html.match(/<section class="hero">[\s\S]*?<\/section>/)[0];
+    assert.match(hero, /<video [^>]*poster="videos\/[^"]+"/);
+    assert.doesNotMatch(html.replace(hero, ''), /<video|images\/exemple-colombiers/);
+  });
+
   // A video is made to be shared: its address must work even when no page shows it.
   it('publishes every video of the documentation', async () => {
     for (const video of await readdir(path.join(SOURCE, 'videos'))) {

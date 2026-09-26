@@ -411,8 +411,9 @@ function pageTemplate({ page, rendered, version, date, previous, next }) {
 }
 
 /**
- * The home page: its title, first paragraph and first image make the opening, and each list whose items all
- * start with a bold text becomes a grid of cards — of links when that text is one.
+ * The home page: its title, first paragraph and first image make the opening — its presentation video instead of
+ * the image when it has one, the image staying for GitHub —, and each list whose items all start with a bold text
+ * becomes a grid of cards — of links when that text is one.
  */
 function homeTemplate({ page, rendered, version, date }) {
   let { html } = rendered;
@@ -420,8 +421,11 @@ function homeTemplate({ page, rendered, version, date }) {
   html = html.replace(/<h1>[\s\S]*?<\/h1>\n?/, '');
   const lead = html.match(/<p>([\s\S]*?)<\/p>\n?/);
   html = html.replace(lead[0], '');
-  const illustration = html.match(/<figure>[\s\S]*?<\/figure>\n?/)?.[0] ?? '';
-  html = html.replace(illustration, '');
+  const image = html.match(/<figure>[\s\S]*?<\/figure>\n?/)?.[0] ?? '';
+  html = html.replace(image, '');
+  const video = html.match(/<figure class="presentation">[\s\S]*?<\/figure>\n?/)?.[0];
+  if (video) html = html.replace(video, '');
+  const illustration = video ?? image;
 
   html = html.replace(/<ul>\n([\s\S]*?)<\/ul>/g, (list, items) => {
     const entries = [...items.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(([, item]) => item.trim());

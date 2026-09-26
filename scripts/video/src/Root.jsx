@@ -4,6 +4,7 @@ import { Composition, Folder } from 'remotion';
 
 import { COVER_DURATION, Cover } from './Cover.jsx';
 import { Presentation, SCENES, presentationDuration } from './Presentation.jsx';
+import { VIGNETTE_FRAME, Vignette } from './Vignette.jsx';
 import { FPS, HEIGHT, WIDTH } from './theme.js';
 
 export const Root = () => (
@@ -20,6 +21,14 @@ export const Root = () => (
       id="Couverture"
       component={Cover}
       durationInFrames={COVER_DURATION}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+    />
+    <Composition
+      id="Vignette"
+      component={Vignette}
+      durationInFrames={VIGNETTE_FRAME + 1}
       fps={FPS}
       width={WIDTH}
       height={HEIGHT}

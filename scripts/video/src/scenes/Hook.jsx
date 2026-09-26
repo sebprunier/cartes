@@ -51,7 +51,11 @@ function useTiles() {
   }, []);
 }
 
-export const Hook = () => {
+/**
+ * The opening. `bare`, it shows the map alone, without its titles and its figures, framed on `startScreen` then
+ * `endScreen`: the thumbnail of the video is drawn from it.
+ */
+export const Hook = ({ bare = false, startScreen = START_SCREEN, endScreen = END_SCREEN }) => {
   const frame = useCurrentFrame();
   const tiles = useTiles();
 
@@ -60,7 +64,7 @@ export const Hook = () => {
   const drift = 1 + 0.035 * progress(frame, DIVE_START + DIVE_DURATION, 60, (t) => t);
   const scale = logLerp(START_SCALE, END_SCALE, dive) * drift;
   const point = [lerp(START_POINT[0], commune.townHall[0], pan), lerp(START_POINT[1], commune.townHall[1], pan)];
-  const screen = [lerp(START_SCREEN[0], END_SCREEN[0], pan), lerp(START_SCREEN[1], END_SCREEN[1], pan)];
+  const screen = [lerp(startScreen[0], endScreen[0], pan), lerp(startScreen[1], endScreen[1], pan)];
 
   const arrived = tiles.filter((tile) => frame >= tile.at).length;
   const ramp = (from, to) => interpolate(scale, [from, to], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
@@ -149,58 +153,65 @@ export const Hook = () => {
         />
       </div>
 
-      <AbsoluteFill
-        style={{
-          opacity: panel,
-          background: `linear-gradient(90deg, rgba(247, 246, 241, 0.97) 0%, rgba(247, 246, 241, 0.94) 33%, rgba(247, 246, 241, 0) 52%)`,
-        }}
-      />
-
-      <div style={{ position: 'absolute', left: MARGIN, top: 84, width: 740 }}>
-        <Appear at={0} y={10} blur={4}>
-          <Place />
-        </Appear>
-        <div style={{ marginTop: 28 }}>
-          <Headline first="Toute votre commune." second="Chaque rue lisible." at={4} secondAt={DIVE_START + 22} size={70} />
-        </div>
-        <Appear at={TILES_START} style={{ marginTop: 40 }}>
-          <div
-            style={{
-              fontFamily: FONT,
-              fontSize: 120,
-              fontWeight: 780,
-              letterSpacing: '-0.045em',
-              lineHeight: 1,
-              color: COLORS.ink,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {frenchNumber(arrived)}
-          </div>
-          <div style={{ marginTop: 10, fontFamily: FONT, fontSize: 27, fontWeight: 500, color: COLORS.muted }}>
-            tuiles du Plan IGN, recollées en une seule image
-          </div>
-        </Appear>
-        <div style={{ display: 'flex', gap: 14, marginTop: 30 }}>
-          <Appear at={TILES_START + TILES_DURATION - 4}>
-            <Stat value={`${frenchNumber(commune.width)} × ${frenchNumber(commune.height)}`} label="pixels" size={34} />
-          </Appear>
-          <Appear at={TILES_START + TILES_DURATION + 2}>
-            <Stat value={selected.paper} label={`à ${figures.dpi} dpi`} size={34} color={COLORS.accent} />
-          </Appear>
-          <Appear at={TILES_START + TILES_DURATION + 8}>
-            <Stat
-              value={`${frenchNumber(Number(selected.metersPerPixel), 2)} m`}
-              label="par pixel"
-              size={34}
-              color={COLORS.brand}
-            />
-          </Appear>
-        </div>
-      </div>
+      {bare ? null : <Titles arrived={arrived} panel={panel} />}
     </AbsoluteFill>
   );
 };
+
+/** The titles and the figures of the opening, over a veil that keeps them readable once the map fills the frame. */
+const Titles = ({ arrived, panel }) => (
+  <>
+    <AbsoluteFill
+      style={{
+        opacity: panel,
+        background: `linear-gradient(90deg, rgba(247, 246, 241, 0.97) 0%, rgba(247, 246, 241, 0.94) 33%, rgba(247, 246, 241, 0) 52%)`,
+      }}
+    />
+
+    <div style={{ position: 'absolute', left: MARGIN, top: 84, width: 740 }}>
+      <Appear at={0} y={10} blur={4}>
+        <Place />
+      </Appear>
+      <div style={{ marginTop: 28 }}>
+        <Headline first="Toute votre commune." second="Chaque rue lisible." at={4} secondAt={DIVE_START + 22} size={70} />
+      </div>
+      <Appear at={TILES_START} style={{ marginTop: 40 }}>
+        <div
+          style={{
+            fontFamily: FONT,
+            fontSize: 120,
+            fontWeight: 780,
+            letterSpacing: '-0.045em',
+            lineHeight: 1,
+            color: COLORS.ink,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {frenchNumber(arrived)}
+        </div>
+        <div style={{ marginTop: 10, fontFamily: FONT, fontSize: 27, fontWeight: 500, color: COLORS.muted }}>
+          tuiles du Plan IGN, recollées en une seule image
+        </div>
+      </Appear>
+      <div style={{ display: 'flex', gap: 14, marginTop: 30 }}>
+        <Appear at={TILES_START + TILES_DURATION - 4}>
+          <Stat value={`${frenchNumber(commune.width)} × ${frenchNumber(commune.height)}`} label="pixels" size={34} />
+        </Appear>
+        <Appear at={TILES_START + TILES_DURATION + 2}>
+          <Stat value={selected.paper} label={`à ${figures.dpi} dpi`} size={34} color={COLORS.accent} />
+        </Appear>
+        <Appear at={TILES_START + TILES_DURATION + 8}>
+          <Stat
+            value={`${frenchNumber(Number(selected.metersPerPixel), 2)} m`}
+            label="par pixel"
+            size={34}
+            color={COLORS.brand}
+          />
+        </Appear>
+      </div>
+    </div>
+  </>
+);
 
 /** The pill naming the municipality, as the page shows it once chosen. */
 const Place = () => (

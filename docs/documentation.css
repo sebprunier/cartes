@@ -668,9 +668,22 @@ figcaption {
   margin: 0;
 }
 
-.hero-image img {
+.hero-image img,
+.hero-image video {
   border-radius: 14px;
   box-shadow: 0 2px 4px rgb(16 32 48 / 0.06), 0 24px 60px rgb(16 32 48 / 0.16);
+}
+
+/* La vidéo de présentation, à la place de l'illustration : à la largeur de la colonne, dans le même écrin. */
+.hero-image video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--line);
+}
+
+.hero-image figcaption {
+  margin-top: 0.8rem;
 }
 
 .home-content {
@@ -700,16 +713,6 @@ figcaption {
   font-size: 1.1rem;
 }
 
-/* La vidéo de présentation, à la largeur du contenu, dans le même écrin que l'illustration d'accueil. */
-.presentation {
-  display: block;
-  width: 100%;
-  max-width: 64rem;
-  height: auto;
-  border-radius: 14px;
-  background: var(--line);
-  box-shadow: 0 2px 4px rgb(16 32 48 / 0.06), 0 24px 60px rgb(16 32 48 / 0.16);
-}
 
 .cards {
   display: grid;

@@ -14,7 +14,8 @@ npm run preparer     # images et chiffres, tirés de cartes
 npm run studio       # parcourir la vidéo dans le navigateur, scène par scène
 npm run rendu        # docs/videos/cartes-presentation-fr-1080p.mp4
 npm run rendu:720p   # docs/videos/cartes-presentation-fr-720p.mp4
-npm run couverture   # docs/videos/cartes-presentation-fr.jpg
+npm run couverture   # docs/videos/cartes-presentation-fr.jpg, pour les réseaux
+npm run vignette     # docs/videos/cartes-presentation-fr-vignette.jpg, sur l'accueil de la documentation
 ```
 
 `npm run preparer` demande le réseau pour ce qui manque au cache des tuiles du dépôt (`.cache/tiles/`), pour le géocodage des adresses d'exemple et pour les dates des sources. Il écrit les images dans `public/` et les chiffres dans `src/generated/figures.json`, que git ignore : relancez-le quand le rendu des cartes, le catalogue des couches ou l'interface changent, et la vidéo suit. La commande du terminal est lancée pour de vrai, avec un cache vide, pour que sa durée soit celle d'une première carte.
@@ -28,7 +29,8 @@ npm run couverture   # docs/videos/cartes-presentation-fr.jpg
 | `src/scenes/` | une scène par fichier, de l'accroche à l'écran de fin |
 | `src/components/` | les titres, les cartes (caméra, contour), l'interface redessinée |
 | `src/theme.js` | les couleurs du logo et de la page, les polices, le mouvement |
-| `src/Cover.jsx` | l'image de couverture |
+| `src/Cover.jsx` | l'image de couverture, pour les réseaux |
+| `src/Vignette.jsx` | la vignette de la vidéo sur l'accueil de la documentation : la fin de la plongée, sans texte |
 
 ## Licences
 
