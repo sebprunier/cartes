@@ -27,7 +27,7 @@ export const MAP_LAYER_THEMES = [
 // suits data that has no more detail to give — and, for some services, keeps them drawing at all.
 
 // Géorisques publishes its layers on two WMS. The official address of its flows serves most of them, the
-// cavities and the pipelines included. The zoning of the PPR is served by the older « risques » service only,
+// cavities, the pipelines and the polluted soils included. The zoning of the PPR is served by the older « risques » service only,
 // whose configuration has been broken since 24 September 2026 — every request, the capabilities included,
 // gets a MapServer error page (#39): its two layers fail until the BRGM repairs it.
 const GEORISQUES_SERVICES = 'https://www.georisques.gouv.fr/services';
@@ -264,6 +264,23 @@ const MAP_LAYER_LIST = [
     maxZoom: 19,
     opacity: 0.9,
     attribution: '© BRGM – Géorisques, canalisations de matières dangereuses',
+    datedByConsultation: true,
+  },
+  {
+    id: 'sols-pollues',
+    name: 'Secteurs d’information sur les sols',
+    description: 'Terrains dont la pollution est connue de l’État : une étude de sols s’impose avant d’en changer l’usage.',
+    theme: 'risques',
+    provider: 'Géorisques',
+    kind: 'wms',
+    url: GEORISQUES_SERVICES,
+    wmsLayers: 'SSP_CLASSIFICATION_SIS',
+    wmsStyle: 'default',
+    // The service draws the sectors at every scale — points up to zoom 14, hatched outlines above, with their
+    // identifier —, their labels the size of those of the basemap: each image is asked for at the zoom of the map.
+    maxZoom: 19,
+    opacity: 0.9,
+    attribution: '© BRGM – Géorisques, secteurs d’information sur les sols',
     datedByConsultation: true,
   },
   {

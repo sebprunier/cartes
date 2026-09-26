@@ -160,7 +160,7 @@ export const SERVICES = [
     url: wfsOf('wfs_du:doc_urba_com', `insee='${PLACE.inseeCode}'`, 'partition'),
     expect: 'json',
   },
-  ...['ppr-inondation', 'ppr-mouvements', 'cavites', 'canalisations'].map((id) => ({
+  ...['ppr-inondation', 'ppr-mouvements', 'cavites', 'canalisations', 'sols-pollues'].map((id) => ({
     id,
     group: 'Couches',
     name: MAP_LAYERS[id].name,

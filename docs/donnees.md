@@ -19,6 +19,7 @@ Elles ne demandent aucun fichier : elles sont téléchargées au moment de la g�
 | Risques | PPR mouvements de terrain | zonage réglementaire, pour les glissements et effondrements |
 | Risques | Cavités souterraines | carrières, caves et ouvrages souterrains abandonnés |
 | Risques | Canalisations de matières dangereuses | gaz, hydrocarbures et produits chimiques |
+| Risques | Secteurs d'information sur les sols | terrains dont la pollution est connue de l'État, où une étude de sols s'impose avant de changer d'usage |
 | Risques | Retrait-gonflement des argiles | aléa faible, moyen ou fort, millésime 2026 |
 | Territoire et environnement | Artificialisation des sols | surfaces artificialisées ou non, selon l'OCS GE, dans le dernier millésime disponible pour la commune |
 | Territoire et environnement | Bandes tampons des cours d'eau | cours d'eau le long desquels la PAC impose une bande enherbée (BCAE 4), dernière édition |

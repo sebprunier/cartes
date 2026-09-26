@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { HttpError } from '../src/core/http.js';
+import { MAP_LAYERS } from '../src/core/maplayers.js';
 import { extentFromBbox } from '../src/core/tiles.js';
 import { fetchWmsImages, wmsRequests } from '../src/core/wms.js';
 
@@ -95,3 +96,17 @@ describe('fetchWmsImages', () => {
   });
 });
 
+
+// Measured on Châtellerault on 26 September 2026: the service draws the sectors at every scale, their labels at a
+// fixed size in pixels, as the basemap does its own. Asked for at a lower zoom and enlarged, they would outgrow it.
+describe('secteurs d’information sur les sols', () => {
+  it('are asked for to the official service of Géorisques, at the resolution of the map at every zoom', () => {
+    const layer = MAP_LAYERS['sols-pollues'];
+    assert.match(layer.url, /^https:\/\/www\.georisques\.gouv\.fr\//);
+    for (const zoom of [13, 16, 19]) {
+      for (const block of wmsRequests(layer, extentFromBbox([0.535, 46.815, 0.56, 46.83], zoom))) {
+        assert.equal(block.pixelWidth, block.width, `zoom ${zoom}`);
+      }
+    }
+  });
+});

@@ -10,6 +10,7 @@ Première version stable. Ce que la 1.0.0 garantit, jusqu'à une version majeure
 
 ### Ajouté
 
+- Une couche « Secteurs d'information sur les sols », de Géorisques : les terrains dont la pollution est connue de l'État, où une étude de sols s'impose avant d'en changer l'usage, avec leur identifiant. En ligne de commande : `--couches sols-pollues` (#25).
 - Une vidéo de présentation, sur la page d'accueil de la documentation : 75 secondes, sans le son, sur de vraies cartes de Colombiers, de la commune entière au nom de ses rues. Elle se partage par son adresse, en 1080p (<https://sebprunier.github.io/cartes/videos/cartes-presentation-fr-1080p.mp4>) ou en 720p, et `scripts/video/` la refait avec les fonctions de l'outil (#40).
 - Une couche personnalisée peut venir d'un service WMS, et plus seulement de tuiles : le formulaire demande ce que publie le service, lit les couches qu'il annonce et les propose dans une liste, avec leur titre, leur source et les échelles auxquelles il les dessine. En ligne de commande : `--couche-perso <adresse du service> --couche-perso-couche <nom>` ; dans l'API : `couche` dans `couchesPerso`.
 - L'application de bureau annonce une nouvelle version : au lancement, elle demande à GitHub quelle est la dernière publiée, et un bandeau propose de la télécharger et d'en lire les nouveautés. Elle ne se met pas à jour d'elle-même — ses installeurs ne sont pas signés — et ne dit rien quand elle est hors ligne.
