@@ -220,13 +220,15 @@ async function status() {
 }
 
 function listMapLayers() {
-  const groups = mapLayersByTheme(Object.values(MAP_LAYERS));
-  groups.forEach(({ theme, layers }, index) => {
+  const all = Object.values(MAP_LAYERS);
+  // The column of the identifiers as wide as the longest one: « artificialisation » overflowed a fixed width.
+  const width = Math.max(...all.map(({ id }) => id.length)) + 1;
+  mapLayersByTheme(all).forEach(({ theme, layers }, index) => {
     console.log(`${index > 0 ? '\n' : ''}${theme.name}`);
     for (const layer of layers) {
       const zoom = layer.minZoom === undefined ? '' : ` À partir du zoom ${layer.minZoom}.`;
       console.log(
-        `  ${layer.id.padEnd(16)} ${layer.name} — ${layer.attribution}\n${' '.repeat(19)}${layer.description}${zoom}`,
+        `  ${layer.id.padEnd(width)} ${layer.name} — ${layer.attribution}\n${' '.repeat(width + 3)}${layer.description}${zoom}`,
       );
     }
   });
