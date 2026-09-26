@@ -229,10 +229,11 @@ export async function generateMap(
 
     if (isWmsLayer(layer)) {
       const blocks = wmsBlocks.get(layer.id);
-      const missingBlocks = await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
+      const { missing: missingBlocks, drawn } = await drawWmsLayer(pixels, extent, blocks, { opacity: layer.opacity });
       if (missingBlocks > 0) onStep(`  ${missingBlocks} image(s) indisponible(s) : le fond reste visible.`);
-      // The service styles its own zoning: its legend is the only one that tells the truth about it.
-      const legendImage = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+      // The service styles its own zoning: its legend is the only one that tells the truth about it. As for a
+      // layer of tiles, it is shown only when the layer drew something on this map.
+      const legendImage = drawn ? await fetchTile(wmsLegendUrl(layer)).catch(() => null) : null;
       if (legendImage) legendExtra.push(await legendImageEntry(legendImage));
       continue;
     }

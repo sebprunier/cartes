@@ -53,7 +53,7 @@ L'adresse est essayée sur une tuile avant d'être acceptée. Si le service ne c
 
 Beaucoup de services publics publient leurs couches par un **WMS**, qui dessine l'image qu'on lui demande plutôt que de servir des tuiles toutes faites — Géorisques, la Géoplateforme, bien des départements. Choisissez « Un service WMS », donnez l'**adresse du service** (`https://exemple.fr/wms`, ou l'adresse complète de ses capacités, `…?SERVICE=WMS&REQUEST=GetCapabilities`, que l'outil ramène au service), puis cliquez sur « Lire les couches » : l'outil lit la liste des couches que le service annonce, et vous choisissez la vôtre, en la cherchant par son titre. Le nom et la source se remplissent d'après ce que dit le service ; vérifiez-les, la source surtout.
 
-Le service dit aussi à quelles échelles il dessine chaque couche : l'outil en tient compte, et demande l'image à une échelle que le service accepte. La légende que publie le service est ajoutée à celle de la carte.
+Le service dit aussi à quelles échelles il dessine chaque couche : l'outil en tient compte, et demande l'image à une échelle que le service accepte. La légende que publie le service est ajoutée à celle de la carte, quand la couche y dessine quelque chose.
 
 En ligne de commande, l'adresse du service va dans `--couche-perso`, et le nom exact de la couche dans `--couche-perso-couche` ; un nom inexact est refusé, avec les noms qui s'en approchent.
 

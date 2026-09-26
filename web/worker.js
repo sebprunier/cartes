@@ -207,11 +207,13 @@ async function generate({
     }
 
     if (isWmsLayer(layer)) {
+      let drawn = false;
       for (const { block, content } of wmsImages.get(layer.id)) {
-        if (content) await drawWmsBlock(context, block, content, { opacity: layer.opacity });
+        if (content && (await drawWmsBlock(context, block, content, { opacity: layer.opacity }))) drawn = true;
       }
-      // The service styles its own zoning: its legend is the only one that tells the truth about it.
-      const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+      // The service styles its own zoning: its legend is the only one that tells the truth about it. As for a
+      // layer of tiles, it is shown only when the layer drew something on this map.
+      const legend = drawn ? await fetchTile(wmsLegendUrl(layer)).catch(() => null) : null;
       if (legend) legendExtra.push(await legendImageEntry(legend));
       continue;
     }

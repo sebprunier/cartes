@@ -16,6 +16,7 @@ import {
   boundaryOutline,
   drawMapLayer,
   drawOverlays,
+  drawWmsLayer,
   layerOverlays,
   legendOverlay,
   saveImage,
@@ -355,3 +356,22 @@ describe('drawMapLayer', () => {
   });
 });
 
+
+describe('drawWmsLayer', () => {
+  it('tells whether the service drew anything, for its line in the legend', async () => {
+    const extent = extentFromBbox([0.42, 46.77, 0.43, 46.78], 14, 0);
+    const pixels = new Uint8Array(extent.width * extent.height * 3).fill(255);
+    const image = (alpha) =>
+      sharp({ create: { width: 64, height: 64, channels: 4, background: { r: 240, g: 190, b: 60, alpha } } })
+        .png()
+        .toBuffer();
+    const block = { x: 0, y: 0, width: 64, height: 64, pixelWidth: 64, pixelHeight: 64 };
+
+    // A municipality without polluted soils: the service answers an image entirely transparent.
+    const empty = { ...block, content: await image(0) };
+    assert.deepEqual(await drawWmsLayer(pixels, extent, [empty]), { missing: 0, drawn: false });
+
+    const sector = { ...block, content: await image(1) };
+    assert.deepEqual(await drawWmsLayer(pixels, extent, [sector, { ...block, content: null }]), { missing: 1, drawn: true });
+  });
+});

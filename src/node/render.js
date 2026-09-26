@@ -103,10 +103,13 @@ export async function legendImageEntry(bytes) {
 
 /**
  * Draws the images of a WMS layer over the assembled image, each at its place, scaled when it was asked for
- * at a lower resolution than the map. Returns the number of blocks that could not be drawn.
+ * at a lower resolution than the map. Returns the number of blocks that could not be drawn, and whether any
+ * image had something to show: a layer that draws nothing on the map, as the polluted soils of most
+ * municipalities, gets no line in the legend.
  */
 export async function drawWmsLayer(pixels, extent, blocks, { opacity = 1 } = {}) {
   let missing = 0;
+  let drawn = false;
   for (const block of blocks) {
     if (!block.content) {
       missing++;
@@ -117,9 +120,10 @@ export async function drawWmsLayer(pixels, extent, blocks, { opacity = 1 } = {})
       image = image.resize(block.width, block.height);
     }
     const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+    drawn ||= hasVisiblePixel(data);
     blendPixels({ data, width: info.width, height: info.height }, pixels, block.x, block.y, extent.width, extent.height, opacity);
   }
-  return missing;
+  return { missing, drawn };
 }
 
 /**

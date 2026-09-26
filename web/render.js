@@ -97,7 +97,18 @@ export async function drawWmsBlock(context, block, content, { opacity = 1 } = {}
   context.globalAlpha = opacity;
   context.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, block.x, block.y, block.width, block.height);
   context.restore();
+  const visible = hasVisiblePixel(bitmap);
   bitmap.close();
+  return visible;
+}
+
+/** Whether an image holds anything visible, or is all transparent. */
+function hasVisiblePixel(bitmap) {
+  const probe = new OffscreenCanvas(bitmap.width, bitmap.height).getContext('2d');
+  probe.drawImage(bitmap, 0, 0);
+  const { data } = probe.getImageData(0, 0, bitmap.width, bitmap.height);
+  for (let index = 3; index < data.length; index += 4) if (data[index] > 0) return true;
+  return false;
 }
 
 /** Draws the municipality boundary, from the same path as the one used by the command line. */

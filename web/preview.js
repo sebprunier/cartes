@@ -216,10 +216,12 @@ async function paint({
     const images = await fetchWmsImages(layer, blocks, {
       load: (url, block) => load(url, { basemapId: layer.id, zoom: area.zoom, x: block.x, y: block.y }),
     });
+    let drawn = false;
     for (const [index, block] of blocks.entries()) {
-      if (images[index]) await drawWmsBlock(context, block, images[index], { opacity: layer.opacity });
+      if (images[index] && (await drawWmsBlock(context, block, images[index], { opacity: layer.opacity }))) drawn = true;
     }
-    const legend = await fetchTile(wmsLegendUrl(layer)).catch(() => null);
+    // As on the map: its legend when it drew something on what the preview shows.
+    const legend = drawn ? await fetchTile(wmsLegendUrl(layer)).catch(() => null) : null;
     if (legend) legendExtra.push(await legendImageEntry(legend));
   }
 
