@@ -84,8 +84,8 @@ Téléchargez l'installeur de la nouvelle version, comme la première fois, depu
 ### macOS
 
 1. **Quittez l'application** (menu cartes, puis « Quitter cartes ») : macOS ne remplace pas une application ouverte.
-2. **Ouvrez le nouveau `.dmg`**, glissez l'application dans le dossier Applications, et cliquez sur « Remplacer ».
-3. **Au premier lancement**, macOS peut refuser de nouveau de l'ouvrir : la nouvelle version est un nouveau fichier, qu'il n'a pas encore vu. Refaites alors les étapes du [premier lancement](#macos), ou la commande `xattr` qui les remplace.
+2. **Ouvrez le nouveau `.dmg`** et glissez l'application dans le dossier Applications, comme la première fois. macOS demande s'il faut remplacer l'ancienne : cliquez sur « Remplacer ».
+3. **Au premier lancement**, macOS refuse de nouveau de l'ouvrir, avec les mêmes messages que la première fois : la nouvelle version est un nouveau fichier, qu'il n'a pas encore vu. Refaites les étapes du [premier lancement](#macos), ou la commande `xattr` qui les remplace.
 
 ### Windows
 
