@@ -14,7 +14,7 @@ L'application reprend l'interface de la page web, mais génère les cartes avec 
 
 ## Installer
 
-Les installeurs pour **macOS (Apple Silicon)**, **Windows** et **Linux** sont joints à chaque [version publiée](https://github.com/sebprunier/cartes/releases). Sur un Mac à processeur Intel, utilisez pour l'instant la page web ou la ligne de commande.
+Les installeurs pour **macOS (Apple Silicon)**, **Windows** et **Linux** sont joints à chaque version : prenez-les dans la [dernière version publiée](https://github.com/sebprunier/cartes/releases/latest). Sur un Mac à processeur Intel, utilisez pour l'instant la page web ou la ligne de commande.
 
 ## Au premier lancement
 
@@ -79,7 +79,7 @@ Pour le savoir, l'application demande à GitHub, à chaque lancement, quelle est
 
 ## Mettre à jour
 
-Téléchargez l'installeur de la nouvelle version, comme la première fois, depuis la [page des versions](https://github.com/sebprunier/cartes/releases). Inutile de désinstaller l'ancienne : la nouvelle la remplace. Vos couches ajoutées par leur adresse et le cache des tuiles sont conservés.
+Téléchargez l'installeur de la nouvelle version, comme la première fois, depuis la [dernière version publiée](https://github.com/sebprunier/cartes/releases/latest). Inutile de désinstaller l'ancienne : la nouvelle la remplace. Vos couches ajoutées par leur adresse et le cache des tuiles sont conservés.
 
 ### macOS
 

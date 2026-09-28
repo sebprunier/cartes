@@ -61,10 +61,13 @@ jobs:
         with:
           path: installeurs
           merge-multiple: true
-      # La release peut ne pas exister encore : le tag déclenche ce workflow aussitôt.
+      # La release peut ne pas exister encore : le tag déclenche ce workflow aussitôt. Une version candidate
+      # (v1.0.0-rc.1) est créée en pré-version : GitHub ne la donne pas pour la dernière, et le bandeau de
+      # l'application ne la propose pas.
       - run: |
+          PRERELEASE=$([[ "$TAG" == *-* ]] && echo --prerelease || true)
           gh release view "$TAG" --repo "$REPO" > /dev/null 2>&1 ||
-            gh release create "$TAG" --repo "$REPO" --title "${TAG#v}" --notes "Notes de version à compléter."
+            gh release create "$TAG" --repo "$REPO" --title "${TAG#v}" --notes "Notes de version à compléter." $PRERELEASE
           gh release upload "$TAG" installeurs/* --clobber --repo "$REPO"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
