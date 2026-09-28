@@ -40,6 +40,15 @@ describe('estimateFileSize', () => {
     assert.equal(withLayer - withoutLayer, 100 * 2000 * 0.5);
   });
 
+  // Measured on Colombiers with the aerial photographs of 1950-1965, added by their address: 4.1 MB estimated at
+  // zoom 15 for 4.0 MB in the file. Without ratios of its own, the estimate failed.
+  it('weighs a layer added by its address, which has no ratios, as the basemap', () => {
+    const request = { basemap, format: 'png', tileCount: 100, sampleSizes };
+    const withoutLayer = estimateFileSize(request);
+    const withLayer = estimateFileSize({ ...request, layers: [{ layer: { custom: true }, sampleSizes: [2000] }] });
+    assert.equal(withLayer - withoutLayer, 100 * 2000 * basemap.fileSizeRatios.color.png);
+  });
+
   it('counts a layer for less below the zoom where it shows everything', () => {
     const layer = { minZoom: 16, fileSizeRatios: { color: { png: 0.5 }, grayscale: { png: 0.5 } } };
     const request = { basemap, format: 'png', tileCount: 100, sampleSizes, layers: [{ layer, sampleSizes: [2000] }] };

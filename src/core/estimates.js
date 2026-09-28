@@ -28,7 +28,9 @@ export function estimateFileSize({
 }) {
   if (sampleSizes.length === 0) return undefined;
   const weight = (source, sizes) => {
-    const ratios = source.fileSizeRatios[grayscale ? 'grayscale' : 'color'];
+    // A layer added by its address has no ratios of its own, measured as those of the catalog are: it counts as the
+    // basemap does, its tiles covering the map as the basemap's do.
+    const ratios = (source.fileSizeRatios ?? basemap.fileSizeRatios)[grayscale ? 'grayscale' : 'color'];
     const average = sizes.reduce((total, size) => total + size, 0) / sizes.length;
     const encoder = browser ? BROWSER_ENCODERS[grayscale ? 'grayscale' : 'color'][format] : 1;
     return average * tileCount * ((palette && ratios.pngPalette) || ratios[format]) * encoder * drawnShare(source, zoom);
