@@ -32,4 +32,7 @@ export const engine = {
 
   // The page is always up to date; an installed application may not be, and cannot update itself unsigned.
   newerVersion: () => window.cartes.newerVersion(),
+
+  // The menu « Nouvelle carte » of the application, which a page has no need of: a browser reloads.
+  onNewMap: (callback) => window.cartes.onNewMap(callback),
 };

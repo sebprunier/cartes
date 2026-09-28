@@ -110,6 +110,9 @@ for (const [value, label] of engine.formats) formatChoice.append(new Option(labe
 if (engine.zoomNote) zoomNote.textContent = engine.zoomNote;
 else zoomNote.hidden = true;
 // An installed application learns that a newer version exists; the page, always up to date, asks nothing.
+// The menu of the desktop application offers a new map at any time, as the button does once a map is made.
+engine.onNewMap?.(newMap);
+
 if (engine.newerVersion) {
   engine
     .newerVersion()
@@ -1467,8 +1470,26 @@ function showMap(map, name, seconds) {
     (map.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.') +
     (map.warnings ?? []).map((warning) => ` ${warning}`).join('');
 
-  result.replaceChildren(delivery, document.createElement('br'), details);
+  const again = document.createElement('button');
+  again.type = 'button';
+  again.className = 'new-map';
+  again.textContent = 'Nouvelle carte';
+  again.addEventListener('click', newMap);
+
+  result.replaceChildren(delivery, again, document.createElement('br'), details);
   result.hidden = false;
+}
+
+/**
+ * Starts again from a blank page: the only way back in the desktop application, which has no reload, and the
+ * question a generated map leaves. A map being generated is canceled first. The layers added by their address
+ * stay, as the page keeps them for the next maps; the files, the settings and the municipality go.
+ */
+function newMap() {
+  if (!cancelButton.hidden) engine.cancel();
+  // A navigation to the page itself rather than a reload, after which a browser may give the fields back the
+  // values they had.
+  location.replace(location.href);
 }
 
 function cancel() {

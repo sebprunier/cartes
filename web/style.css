@@ -1304,6 +1304,12 @@ progress::-moz-progress-bar {
   content: '↓\00a0';
 }
 
+/* Beside the download, what a generated map leaves to do: start again. */
+#result .new-map {
+  margin-left: 0.6rem;
+  vertical-align: top;
+}
+
 #result .note {
   display: inline-block;
   margin-top: 0.6rem;

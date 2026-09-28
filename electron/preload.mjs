@@ -3,8 +3,10 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 let onProgress;
+let onNewMap;
 
 ipcRenderer.on('progress', (event, progress) => onProgress?.(progress));
+ipcRenderer.on('new-map', () => onNewMap?.());
 
 contextBridge.exposeInMainWorld('cartes', {
   tile: (url, tile) => ipcRenderer.invoke('tile', url, tile),
@@ -17,4 +19,5 @@ contextBridge.exposeInMainWorld('cartes', {
   },
   cancel: () => ipcRenderer.invoke('cancel'),
   newerVersion: () => ipcRenderer.invoke('newer-version'),
+  onNewMap: (callback) => (onNewMap = callback),
 });

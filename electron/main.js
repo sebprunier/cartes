@@ -74,7 +74,20 @@ function applicationMenu() {
   };
   const fileMenu = {
     label: 'Fichier',
-    submenu: [{ role: process.platform === 'darwin' ? 'close' : 'quit', label: 'Quitter' }],
+    submenu: [
+      // Starts again from a blank page, as the button of a generated map does; opens a window if none is left.
+      {
+        label: 'Nouvelle carte',
+        accelerator: 'CmdOrCtrl+N',
+        click: () => {
+          const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+          if (window) window.webContents.send('new-map');
+          else createWindow();
+        },
+      },
+      { type: 'separator' },
+      { role: process.platform === 'darwin' ? 'close' : 'quit', label: 'Quitter' },
+    ],
   };
   const editMenu = {
     label: 'Édition',
