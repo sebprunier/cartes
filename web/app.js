@@ -1452,32 +1452,52 @@ function defaultFileName() {
 
 function showMap(map, name, seconds) {
   clearResult();
-  // The web page offers the image as a download; the desktop application has already written the file.
-  const delivery = document.createElement(map.blob ? 'a' : 'span');
+  // What a generated map leaves to do: the same municipality otherwise, or another map from nothing.
+  const actions = document.createElement('div');
+  actions.className = 'result-actions';
+  actions.append(resultButton('Modifier les réglages', editSettings), resultButton('Nouvelle carte', newMap));
+
+  // The web page offers the image as a download, beside the buttons, and names the file below them: its name
+  // is too long to share a line with them. The desktop application has already written the file, and says where.
+  const saved = document.createElement('p');
   if (map.blob) {
-    delivery.href = URL.createObjectURL(map.blob);
-    delivery.download = name;
-    delivery.textContent = `Télécharger ${name} (${formatBytes(map.blob.size)})`;
+    const download = document.createElement('a');
+    download.href = URL.createObjectURL(map.blob);
+    download.download = name;
+    download.textContent = `Télécharger la carte (${formatBytes(map.blob.size)})`;
+    actions.prepend(download);
   } else {
-    delivery.textContent = `Carte enregistrée dans ${map.path}`;
+    saved.textContent = `Carte enregistrée dans ${map.path}`;
   }
 
   const details = document.createElement('span');
   details.className = 'note';
   details.textContent =
-    `Image de ${map.width} × ${map.height} px, générée en ${seconds} s` +
+    (map.blob ? `${name} : image` : 'Image') +
+    ` de ${map.width} × ${map.height} px, générée en ${seconds} s` +
     (map.missing > 0 ? `, ${map.missing} tuile(s) indisponible(s) laissée(s) en blanc` : '') +
     (map.updateDatesMissing ? '. Date de mise à jour des données indisponible : réessayez plus tard.' : '.') +
     (map.warnings ?? []).map((warning) => ` ${warning}`).join('');
 
-  const again = document.createElement('button');
-  again.type = 'button';
-  again.className = 'new-map';
-  again.textContent = 'Nouvelle carte';
-  again.addEventListener('click', newMap);
-
-  result.replaceChildren(delivery, again, document.createElement('br'), details);
+  result.replaceChildren(...(map.blob ? [] : [saved]), actions, details);
   result.hidden = false;
+}
+
+function resultButton(label, action) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.addEventListener('click', action);
+  return button;
+}
+
+/**
+ * Back to the settings, everything kept — the municipality, the layers, the files: another map of the same
+ * municipality is one setting away, and the map generated is cleared as soon as one changes.
+ */
+function editSettings() {
+  settingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  basemapChoice.focus({ preventScroll: true });
 }
 
 /**

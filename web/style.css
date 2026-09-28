@@ -186,6 +186,8 @@ main {
 }
 
 section {
+  /* Brought into view below the bar of the page, which stays at the top. */
+  scroll-margin-top: 5.5rem;
   margin-bottom: 1.25rem;
   padding: 1.75rem 2rem 2rem;
   border: 1px solid var(--line);
@@ -1285,7 +1287,11 @@ progress::-moz-progress-bar {
 }
 
 
-/* The link that downloads the map, or where the application wrote it. */
+#result p {
+  margin: 0 0 0.75rem;
+}
+
+/* The link that downloads the map. */
 #result a {
   display: inline-flex;
   padding: 0.55rem 1.1rem;
@@ -1304,10 +1310,12 @@ progress::-moz-progress-bar {
   content: '↓\00a0';
 }
 
-/* Beside the download, what a generated map leaves to do: start again. */
-#result .new-map {
-  margin-left: 0.6rem;
-  vertical-align: top;
+/* Beside the download, what a generated map leaves to do: change a setting, or start again. */
+#result .result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
 }
 
 #result .note {

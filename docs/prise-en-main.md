@@ -20,7 +20,7 @@ L'outil est libre et gratuit. Les données viennent de services publics — IGN,
 
    ![L'aperçu : à gauche la commune entière réduite, à droite un extrait à l'échelle réelle autour du bourg, et au-dessous le poids estimé du fichier](images/captures/generer-4-apercu.png)
 
-5. **Générez la carte**, puis téléchargez-la. Le téléchargement des tuiles prend de quelques secondes à quelques minutes selon la taille demandée ; l'avancement s'affiche source par source. Le bouton « Nouvelle carte » repart ensuite de zéro — dans l'application, aussi par le menu Fichier. Les couches ajoutées par leur adresse restent.
+5. **Générez la carte**, puis téléchargez-la. Le téléchargement des tuiles prend de quelques secondes à quelques minutes selon la taille demandée ; l'avancement s'affiche source par source. Ensuite, « Modifier les réglages » remonte aux réglages en gardant tout, pour une autre carte de la même commune ; « Nouvelle carte » repart de zéro — dans l'application, aussi par le menu Fichier —, en gardant les couches ajoutées par leur adresse.
 
    ![La dernière étape : la carte générée, avec ses dimensions, son poids et le bouton de téléchargement](images/captures/generer-5-carte.png)
 
