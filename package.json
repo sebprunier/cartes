@@ -1,6 +1,6 @@
 {
   "name": "cartes",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "Des outils libres pour aider les communes de France à créer des cartes détaillées de leur territoire, prêtes à imprimer en grand format",
   "keywords": [
     "cartographie",
