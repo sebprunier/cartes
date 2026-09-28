@@ -89,9 +89,9 @@ Téléchargez l'installeur de la nouvelle version, comme la première fois, depu
 
 ### Windows
 
-1. **Lancez le nouvel installeur.** Si SmartScreen affiche de nouveau « Windows a protégé votre ordinateur », passez-le comme au [premier lancement](#windows) : sa confiance s'attache à chaque fichier, pas à l'application.
-2. **Si l'application est ouverte**, l'installeur propose de la fermer : acceptez.
-3. **L'installation remplace l'ancienne version**, au même endroit ; l'application se lance comme avant.
+1. **Quittez l'application**, puis **lancez le nouvel installeur**.
+2. **SmartScreen affiche de nouveau « Windows a protégé votre ordinateur »** : passez-le comme au [premier lancement](#windows). Sa confiance s'attache à chaque fichier, pas à l'application.
+3. **L'installation se déroule comme la première fois**, sans rien demander de plus : elle remplace l'ancienne version, au même endroit, et l'application se lance comme avant.
 
 ### Linux
 
