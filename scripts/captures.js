@@ -194,6 +194,8 @@ const STEPS = [
       await captures.wait(() => captures.shown(result) || captures.shown(failed), 'la carte', 600000);
       if (captures.shown(failed)) throw new Error(failed.textContent);`,
     frame: `captures.frame(document.getElementById('generation'))`,
+    // The catalog of the Géoplateforme sometimes fails to give a date: the map says so, and would show it.
+    warning: `document.getElementById('result').textContent.includes('indisponible') ? ['la date des données'] : []`,
   },
   {
     name: 'probleme-limite-navigateur',
@@ -288,7 +290,7 @@ async function capturePage(wanted, work) {
         if (step.warning) {
           const down = await window.webContents.executeJavaScript(step.warning);
           if (down.length > 0) {
-            console.warn(`  Service en panne ce jour pour ${down.join(', ')} : reprenez la capture une fois rétabli.`);
+            console.warn(`  Indisponible ce jour : ${down.join(', ')}. Reprenez la capture une fois le service rétabli.`);
           }
         }
       }
