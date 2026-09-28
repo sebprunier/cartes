@@ -189,13 +189,16 @@ const STEPS = [
   {
     name: 'generer-5-carte',
     alone: true,
+    // The time the page gives is that of a first map, its tiles downloaded, and not the second of a map whose
+    // tiles the browser kept from the previous captures.
+    emptyCache: true,
     act: `document.getElementById('generate').click();
       const [result, failed] = [document.getElementById('result'), document.getElementById('error')];
       await captures.wait(() => captures.shown(result) || captures.shown(failed), 'la carte', 600000);
       if (captures.shown(failed)) throw new Error(failed.textContent);`,
     frame: `captures.frame(document.getElementById('generation'))`,
-    // The catalog of the Géoplateforme sometimes fails to give a date: the map says so, and would show it.
-    warning: `document.getElementById('result').textContent.includes('indisponible') ? ['la date des données'] : []`,
+    // The Géoplateforme sometimes fails a tile, or a date in its catalog: the map says so, and would show it.
+    warning: `document.getElementById('result').textContent.includes('indisponible') ? ['une tuile ou la date des données'] : []`,
   },
   {
     name: 'probleme-limite-navigateur',
@@ -277,6 +280,7 @@ async function capturePage(wanted, work) {
     const townHall = await townHallInMiniature();
 
     for (const step of steps) {
+      if (step.emptyCache) await window.webContents.session.clearCache();
       if (step.before) await window.webContents.executeJavaScript(step.before);
       if (step.file) await chooseFile(devtools, step.file(work));
       const act = typeof step.act === 'function' ? step.act(townHall) : step.act;
