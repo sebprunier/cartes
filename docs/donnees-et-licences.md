@@ -105,7 +105,7 @@ Si vous recadrez ou retouchez une carte générée, conservez la mention des sou
 
 La page [Ajouter des données](donnees.md) décrit comment les ajouter. L'outil affiche les fichiers que vous lui donnez sans rien vérifier de leurs droits : c'est à vous de vous assurer que vous pouvez les diffuser, et d'adapter le nom du jeu de données qui apparaît dans la mention des sources. Les données produites par la commune elle-même ne posent en général pas de difficulté ; celles récupérées ailleurs (intercommunalité, département, opérateur) sont à vérifier auprès de leur producteur.
 
-Le dossier [`exemples/`](../exemples/) contient les points d'apport volontaire de Colombiers, relevés le 18 septembre 2026 sur le service cartographique de [Grand Châtellerault](https://www.grand-chatellerault.fr/connaitre/points-d-apport-volontaire), avec leurs coordonnées et, pour essayer le géocodage, sans elles. Aucune mention de licence n'accompagne ce service : ces treize points, factuels et publics, servent uniquement d'exemple, et seront retirés du dépôt à la demande de Grand Châtellerault.
+Le dossier [`exemples/`](../exemples/) contient les points d'apport volontaire de Colombiers, relevés le 18 septembre 2026 sur le service cartographique de [Grand Châtellerault](https://www.grand-chatellerault.fr/connaitre/points-d-apport-volontaire), avec leurs coordonnées et, pour essayer le géocodage, sans elles. Aucune mention de licence n'accompagne ce service : ces treize points, factuels et publics — et le fichier du verre, du papier et du textile qui en est tiré —, servent uniquement d'exemple, et seront retirés du dépôt à la demande de Grand Châtellerault.
 
 ## Conditions d'accès aux services de la Géoplateforme
 

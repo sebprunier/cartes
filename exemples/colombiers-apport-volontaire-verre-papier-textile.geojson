@@ -1,0 +1,195 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adresse": "6, Route du Vivier. 86490 Colombiers",
+        "categorie": "Verre",
+        "dechets": "verre",
+        "source": "Grand Châtellerault",
+        "couleur": "#2e9e44",
+        "marker-size": "large",
+        "emplacement": "Cimetière"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.425184,
+          46.774204
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Cimetière",
+        "adresse": "6, Route du Vivier. 86490 Colombiers",
+        "categorie": "Papier",
+        "dechets": "papier",
+        "source": "Grand Châtellerault",
+        "couleur": "#1f6fd1",
+        "marker-size": "large"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.426384,
+          46.774204
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adresse": "Route de Marigny. 86490 Colombiers",
+        "categorie": "Verre",
+        "dechets": "verre",
+        "source": "Grand Châtellerault",
+        "couleur": "#2e9e44",
+        "marker-size": "large",
+        "emplacement": "L'Ane Vert"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.396517,
+          46.757695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "L'Ane Vert",
+        "adresse": "Route de Marigny. 86490 Colombiers",
+        "categorie": "Papier",
+        "dechets": "papier",
+        "source": "Grand Châtellerault",
+        "couleur": "#1f6fd1",
+        "marker-size": "large"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.397717,
+          46.757695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adresse": "8, Route de la Bougrière. 86490 Colombiers",
+        "categorie": "Verre",
+        "dechets": "verre",
+        "source": "Grand Châtellerault",
+        "couleur": "#2e9e44",
+        "marker-size": "large",
+        "emplacement": "La Bougrière"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.448862,
+          46.794811
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "La Bougrière",
+        "adresse": "8, Route de la Bougrière. 86490 Colombiers",
+        "categorie": "Papier",
+        "dechets": "papier",
+        "source": "Grand Châtellerault",
+        "couleur": "#1f6fd1",
+        "marker-size": "large"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.450064,
+          46.794811
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adresse": "45, Lieu-dit la Davaillerie. 86490 Colombiers",
+        "categorie": "Verre",
+        "dechets": "verre",
+        "source": "Grand Châtellerault",
+        "couleur": "#2e9e44",
+        "marker-size": "large",
+        "emplacement": "Les Vigneaux"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.449523,
+          46.769777
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Les Vigneaux",
+        "adresse": "45, Lieu-dit la Davaillerie. 86490 Colombiers",
+        "categorie": "Papier",
+        "dechets": "papier",
+        "source": "Grand Châtellerault",
+        "couleur": "#1f6fd1",
+        "marker-size": "large"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.450723,
+          46.769777
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Place mairie",
+        "adresse": "Place Manderen. 86490 Colombiers",
+        "categorie": "Textile",
+        "dechets": "textile",
+        "source": "Grand Châtellerault",
+        "couleur": "#e0529c",
+        "marker-size": "large"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.426713,
+          46.772149
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Salle des Fêtes",
+        "adresse": "2, Rue de la Perroterie. 86490 Colombiers",
+        "categorie": "Verre",
+        "dechets": "verre",
+        "source": "Grand Châtellerault",
+        "couleur": "#2e9e44",
+        "marker-size": "large"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.425173,
+          46.771825
+        ]
+      }
+    }
+  ]
+}
