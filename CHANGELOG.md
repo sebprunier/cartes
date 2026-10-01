@@ -9,6 +9,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 ### Sécurité
 
 - L'API ne télécharge plus une couche ajoutée par son adresse (`couchesPerso`) sur son propre réseau : boucle locale, réseaux privés, adresse des métadonnées d'un hébergeur. Elle pouvait jusque-là y lire des images, les dessiner sur la carte et recopier dans ses erreurs ce que ces services répondaient. L'adresse est vérifiée au moment de la connexion, après la résolution du nom et à chaque redirection. `CARTES_COUCHES_PERSO=non` refuse toutes ces couches, et `GET /` dit si l'instance les accepte (`couchesPerso`). La ligne de commande et l'application de bureau ne changent pas : elles consultent toutes les adresses, y compris celles d'un intranet.
+- Deux couches ajoutées par leur adresse sous le même nom ne partagent plus leurs tuiles en cache : la seconde était dessinée avec les tuiles de la première, sans limite de durée. Sur une instance de l'API, un client pouvait ainsi faire apparaître ses tuiles sur les cartes des autres. Le dossier de cache d'une telle couche porte désormais une empreinte de son adresse : ses tuiles sont téléchargées de nouveau une fois, et les anciens dossiers `perso-…` du cache peuvent être supprimés.
 
 ## [1.0.0] – 2026-10-01
 

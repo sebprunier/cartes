@@ -287,6 +287,37 @@ describe('API', () => {
     assert.deepEqual([width, height], [map.largeur, map.hauteur]);
   });
 
+  // Measured before the fix: the second map came out with the tiles of the first address, read from the cache.
+  it('draws the tiles of its own address for a layer named as another one', async (t) => {
+    const { call } = await startApi(t);
+    const tiles = {};
+    for (const [host, background] of [['rouge.exemple', '#ff0000'], ['bleu.exemple', '#0000ff']]) {
+      tiles[host] = await sharp({ create: { width: 256, height: 256, channels: 3, background } }).png().toBuffer();
+    }
+    const offline = globalThis.fetch;
+    t.mock.method(globalThis, 'fetch', async (url, options) => {
+      const image = tiles[new URL(url).host];
+      return image ? new Response(image, { headers: { 'content-type': 'image/png' } }) : offline(url, options);
+    });
+
+    // A corner, away from the mention of the sources, which covers the middle of an image this small.
+    const corners = [];
+    for (const host of ['rouge.exemple', 'bleu.exemple']) {
+      const layer = { adresse: `https://${host}/{z}/{x}/{y}.png`, nom: 'Zones humides', source: '©', opacite: 1 };
+      const { body } = await call('POST', '/cartes', { commune: '86081', zoom: 13, contour: false, couchesPerso: [layer] });
+      const map = await waitFor(call, body.id);
+      assert.equal(map.statut, 'terminée', map.erreur);
+      const file = await call('GET', map.fichier);
+      const { data, info } = await sharp(Buffer.from(file.body)).raw().toBuffer({ resolveWithObject: true });
+      const corner = (10 * info.width + 10) * info.channels;
+      corners.push([...data.subarray(corner, corner + 3)]);
+    }
+    assert.deepEqual(corners, [
+      [255, 0, 0],
+      [0, 0, 255],
+    ]);
+  });
+
   it('generates one map at a time by default, the next ones waiting their turn', async (t) => {
     const { call } = await startApi(t);
     const first = await call('POST', '/cartes', { commune: '86081', zoom: 13 });

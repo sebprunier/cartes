@@ -31,7 +31,7 @@ import { downloadTiles, extentFromBbox, fetchTile, layerTiles, sampleTiles, tile
 import { extentBbox, readUrbanPlan, urbanPlanDrawing } from '../core/urbanism.js';
 import { categoriesInTiles, readVectorLayer, vectorTileShapes } from '../core/vectortiles.js';
 import { fetchWmsImages, wmsLegendUrl, wmsRequests } from '../core/wms.js';
-import { cachedTileLoader, tileSizes } from './cache.js';
+import { cacheFolder, cachedTileLoader, tileSizes } from './cache.js';
 import {
   assembleTiles,
   attributionLabel,
@@ -142,7 +142,7 @@ export async function generateMap(
   // A layer above the last zoom its service publishes is downloaded at that zoom, and drawn larger.
   const download = (source, { zoom: tileZoom, tiles } = { zoom, tiles: [...tilesInExtent(extent)] }) =>
     downloadTiles(source, tileZoom, tiles, {
-      loadTile: cachedTileLoader({ cacheDir, basemapId: source.vintage ? `${source.id}-${source.vintage}` : source.id, zoom: tileZoom }),
+      loadTile: cachedTileLoader({ cacheDir, basemapId: cacheFolder(source), zoom: tileZoom }),
       concurrency,
       signal,
       onProgress: (done, total) => onProgress({ sourceId: source.id, done, total }),
@@ -292,7 +292,7 @@ export async function estimateMapFileSize({ basemap, extent, mapLayers = [], for
     // 7.4 MB estimated for the layer, 8.0 MB in the file. Spread over them, the estimate fell to 1.9 MB.
     const { zoom, tiles: wanted } = layerTiles(source, extent, sample);
     const tiles = await downloadTiles(source, zoom, wanted, {
-      loadTile: cachedTileLoader({ cacheDir, basemapId: source.vintage ? `${source.id}-${source.vintage}` : source.id, zoom }),
+      loadTile: cachedTileLoader({ cacheDir, basemapId: cacheFolder(source), zoom }),
       concurrency,
     });
     return tileSizes(tiles);
