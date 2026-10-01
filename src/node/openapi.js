@@ -307,7 +307,9 @@ export function openApi(version) {
           summary: 'Demander une carte',
           description:
             'La carte est générée en arrière-plan : suivez-la sur /cartes/{id}, puis téléchargez-la sur ' +
-            '/cartes/{id}/fichier. Elle est conservée une durée limitée, indiquée par son expiration.',
+            '/cartes/{id}/fichier. Elle est conservée une durée limitée, indiquée par son expiration. Une carte ' +
+            'dont la génération dépasserait la mémoire de l’instance est refusée (400), et une demande arrivée ' +
+            'quand la file d’attente est pleine aussi (503).',
           requestBody: { required: true, content: { 'application/json': { schema: MAP_REQUEST } } },
           responses: {
             202: {
@@ -317,6 +319,7 @@ export function openApi(version) {
             400: error,
             401: unauthorized,
             413: error,
+            503: error,
           },
         },
       },

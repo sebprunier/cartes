@@ -354,6 +354,15 @@ describe('drawMapLayer', () => {
       drawn: true,
     });
   });
+  it('leaves out a tile that claims more pixels than any map service sends', async () => {
+    const extent = extentFromBbox([0.42, 46.77, 0.43, 46.78], 14, 0);
+    const [x, y] = [Math.floor(extent.xMin / 256), Math.floor(extent.yMin / 256)];
+    const pixels = new Uint8Array(extent.width * extent.height * 3).fill(255);
+    const huge = path.join(tempDir, 'immense.png');
+    await sharp({ create: { width: 5000, height: 5000, channels: 4, background: '#ff0000' } }).png().toFile(huge);
+    assert.deepEqual(await drawMapLayer(pixels, extent, [{ x, y, content: huge }]), { missing: 1, drawn: false });
+    assert.deepEqual(pixelAt(pixels, extent.width, 0, 0), [255, 255, 255]);
+  });
 });
 
 

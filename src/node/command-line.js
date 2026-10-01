@@ -75,7 +75,8 @@ Options de « serveur » :
       --paralleles <n>      téléchargements simultanés par carte, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   Le reste se règle par des variables d'environnement : CARTES_CLE_API, CARTES_ZOOM_MAX,
-  CARTES_GENERATIONS, CARTES_CONSERVATION, CARTES_SORTIES et CARTES_COUCHES_PERSO. La documentation les décrit :
+  CARTES_MEMOIRE_MAX, CARTES_GENERATIONS, CARTES_EN_ATTENTE, CARTES_CONSERVATION, CARTES_SORTIES
+  et CARTES_COUCHES_PERSO. La documentation les décrit :
   https://sebprunier.github.io/cartes/api.html
 
 Exemples :

@@ -7,6 +7,7 @@ import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { mkdir, rm, stat } from 'node:fs/promises';
 import http from 'node:http';
+import { totalmem } from 'node:os';
 import path from 'node:path';
 
 import { BASEMAPS } from '../core/basemaps.js';
@@ -24,6 +25,10 @@ import { openApi } from './openapi.js';
 const OUTPUT_FORMATS = { png: 'png', jpg: 'jpg', jpeg: 'jpg', tif: 'tif', tiff: 'tif' };
 const CONTENT_TYPES = { png: 'image/png', jpg: 'image/jpeg', tif: 'image/tiff' };
 const MAX_BODY_BYTES = 20 * 1024 * 1024;
+// A generation holds about four times the memory of its image, the time to decode the tiles and to draw the
+// layers. Measured on Clever Cloud with Colombiers: four times the image, compared to the memory of the instance
+// less what it already held, told apart the maps that came out from those that froze it, on every size tried.
+const GENERATION_MEMORY_RATIO = 4;
 
 // Paths, by their French name, with their English alias.
 const ROUTES = {
@@ -45,11 +50,11 @@ export class ApiError extends Error {
 }
 
 /**
- * Creates the HTTP server of the API. Nothing is limited by default: `maxZoom` lowers the highest zoom
- * accepted, `apiKey` reserves the API to whoever has the key, `customLayers` false refuses the layers added
- * by their address. `maxGenerations` maps are generated at once,
- * the next ones wait their turn: the memory of a map is about four times that of its image. A generated map
- * is kept `retentionMs`, then removed with its file.
+ * Creates the HTTP server of the API. `maxZoom` lowers the highest zoom accepted, `apiKey` reserves the API to
+ * whoever has the key, `customLayers` false refuses the layers added by their address. `maxGenerations` maps are
+ * generated at once, at most `maxWaiting` wait their turn. A map whose generation would take more than
+ * `maxMemory` bytes is refused: by default, the memory of the machine shared between the generations run at once.
+ * A generated map is kept `retentionMs`, then removed with its file.
  */
 export function createApiServer({
   cacheDir,
@@ -58,6 +63,8 @@ export function createApiServer({
   apiKey,
   maxZoom = Infinity,
   maxGenerations = 1,
+  maxWaiting = 10,
+  maxMemory = availableMemory(maxGenerations),
   retentionMs = 60 * 60 * 1000,
   concurrency = 6,
   customLayers = true,
@@ -73,10 +80,14 @@ export function createApiServer({
     maxZoom,
     concurrency,
     customLayers,
+    maxWaiting,
+    maxMemory,
     maps,
     queue,
     schedule,
     expireLater,
+    // A new map waits when every generation is taken, and cannot when the queue is full too.
+    isFull: () => running >= maxGenerations && queue.length >= maxWaiting,
   };
 
   function schedule() {
@@ -152,6 +163,20 @@ async function handle(request, response, context) {
     default:
       throw new ApiError(404, `Aucun service à cette adresse : ${request.method} ${url.pathname}.`);
   }
+}
+
+/**
+ * The memory a generation may take when nothing is set: that of the machine — or of its container, when it is
+ * smaller — less what the instance already holds, shared between the generations run at once.
+ */
+export function availableMemory(maxGenerations = 1) {
+  const machine = Math.min(process.constrainedMemory() || Infinity, totalmem());
+  return Math.max(0, machine - process.memoryUsage().rss) / maxGenerations;
+}
+
+/** The memory the generation of a map takes. */
+export function generationMemory(extent) {
+  return GENERATION_MEMORY_RATIO * imageMemory(extent);
 }
 
 function home({ version, apiKey, customLayers }) {
@@ -269,8 +294,22 @@ async function estimate(body, context) {
 }
 
 async function createMap(body, context, response) {
+  // Checked first, to answer at once without looking for the municipality, and again once it is found: other
+  // requests may have taken the last places in the meantime.
+  checkRoom(context);
   const request = await resolveRequest(body, context);
   const { boundary, extent, warnings } = request.plan;
+  // The zoom is not the only one to decide: a margin makes the image larger too, as much as it is asked.
+  const memory = generationMemory(extent);
+  if (memory > context.maxMemory) {
+    throw new ApiError(
+      400,
+      'Carte trop grande pour cette instance : sa génération occuperait environ ' +
+        `${formatBytes(memory)} de mémoire, au-delà des ${formatBytes(context.maxMemory)} dont elle dispose. ` +
+        'Baissez le zoom ou la marge.',
+    );
+  }
+  checkRoom(context);
   const id = randomUUID();
   const map = {
     id,
@@ -290,6 +329,12 @@ async function createMap(body, context, response) {
   context.schedule();
   response.setHeader('Location', `/cartes/${id}`);
   return mapStatus(map);
+}
+
+function checkRoom({ isFull, queue }) {
+  if (isFull()) {
+    throw new ApiError(503, `Déjà ${queue.length} carte(s) en attente : redemandez celle-ci dans quelques minutes.`);
+  }
 }
 
 async function run(map, { cacheDir, outputDir, concurrency }) {

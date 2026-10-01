@@ -256,6 +256,43 @@ describe('API', () => {
     assert.match(body.erreur, /compris entre 0 et 16/);
   });
 
+  // The zoom is not the only one to make an image large: a margin of 50 made 8.5 GB of a map of zoom 13.
+  it('refuses a map whose generation would take more memory than the instance has', async (t) => {
+    const { call } = await startApi(t, { maxMemory: 10 * 1024 * 1024 });
+    const small = await call('POST', '/cartes', { commune: '86081', zoom: 12 });
+    assert.equal(small.response.status, 202);
+    const { response, body } = await call('POST', '/cartes', { commune: '86081', zoom: 13, marge: 5 });
+    assert.equal(response.status, 400);
+    assert.match(
+      body.erreur,
+      /^Carte trop grande pour cette instance : sa génération occuperait environ [\d.]+ Mo de mémoire, au-delà des 10 Mo dont elle dispose\./,
+    );
+    // An estimate stays possible: it tells how large each zoom would be.
+    assert.equal((await call('POST', '/estimations', { commune: '86081', zoom: 13, marge: 5 })).response.status, 200);
+    await waitFor(call, small.body.id);
+  });
+
+  it('answers 503 when every generation is taken and the queue is full', async (t) => {
+    // The first map stays in progress until the catalog of the dates answers, which the test decides.
+    let answerCatalog;
+    const catalogAnswered = new Promise((resolve) => (answerCatalog = resolve));
+    const offline = globalThis.fetch;
+    t.mock.method(globalThis, 'fetch', async (url, options) => {
+      if (!String(url).startsWith('https://data.geopf.fr/csw')) return offline(url, options);
+      await catalogAnswered;
+      return new Response('', { status: 503 });
+    });
+    const { call } = await startApi(t, { maxWaiting: 1 });
+    const running = await call('POST', '/cartes', { commune: '86081', zoom: 12 });
+    const waiting = await call('POST', '/cartes', { commune: '86081', zoom: 12 });
+    assert.equal(waiting.body.statut, 'en attente');
+    const refused = await call('POST', '/cartes', { commune: '86081', zoom: 12 });
+    assert.equal(refused.response.status, 503);
+    assert.equal(refused.body.erreur, 'Déjà 1 carte(s) en attente : redemandez celle-ci dans quelques minutes.');
+    answerCatalog();
+    for (const { body } of [running, waiting]) assert.equal((await waitFor(call, body.id)).statut, 'terminée');
+  });
+
   it('estimates a map for every zoom level, and its weight for the zoom asked for', async (t) => {
     const { call } = await startApi(t);
     const { body } = await call('POST', '/estimations', { municipality: '86081', zoom: 13 });

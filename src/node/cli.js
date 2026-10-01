@@ -23,7 +23,7 @@ import { extentFromBbox, groundResolution } from '../core/tiles.js';
 import { HELP, UsageError, parseCommandLine, parseInteger, parseYesNo, resolveOutputPath } from './command-line.js';
 import { DATES_PROGRESS, SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
 import { publicFetch } from './network.js';
-import { createApiServer } from './server.js';
+import { availableMemory, createApiServer } from './server.js';
 import { CapabilitiesError, completeWmsDefinitions } from '../core/capabilities.js';
 import { SERVICES, checkService, describeCheck } from '../core/status.js';
 
@@ -59,8 +59,9 @@ async function main() {
 }
 
 /**
- * Serves the HTTP API. Its settings come from the environment, where a hosting platform sets them: nothing
- * is limited unless asked for.
+ * Serves the HTTP API. Its settings come from the environment, where a hosting platform sets them. What would
+ * take the instance down is limited by default — the memory of a generation, the maps waiting their turn, the
+ * addresses of its own network —, the rest only when asked for.
  */
 async function serve(options) {
   const env = process.env;
@@ -72,6 +73,12 @@ async function serve(options) {
   const outputDir = env.CARTES_SORTIES || path.join(tmpdir(), 'cartes');
   const concurrency = parseInteger(options.concurrency, '--paralleles', 1);
   const customLayers = parseYesNo(env.CARTES_COUCHES_PERSO ?? 'oui', 'CARTES_COUCHES_PERSO');
+  const maxWaiting = parseInteger(env.CARTES_EN_ATTENTE ?? '10', 'CARTES_EN_ATTENTE', 0);
+  // In megabytes, of a million bytes as the sizes the tool prints: what a generation may take, about four times
+  // the memory of its image.
+  const maxMemory = env.CARTES_MEMOIRE_MAX
+    ? parseInteger(env.CARTES_MEMOIRE_MAX, 'CARTES_MEMOIRE_MAX', 1) * 1e6
+    : availableMemory(maxGenerations);
 
   // The layers added by their address are asked for in the name of the clients: never on the network of the
   // instance. The rest of the command line, run by its own user, asks for whatever address it is given.
@@ -83,6 +90,8 @@ async function serve(options) {
     apiKey,
     maxZoom,
     maxGenerations,
+    maxWaiting,
+    maxMemory,
     retentionMs: retentionMinutes * 60 * 1000,
     concurrency,
     customLayers,
@@ -93,7 +102,15 @@ async function serve(options) {
   console.log(`  Clé d'API     : ${apiKey ? 'exigée' : 'aucune, l’API répond à tous'}`);
   console.log(`  Zoom maximal  : ${maxZoom === Infinity ? 'celui de chaque fond de carte' : maxZoom}`);
   console.log(`  Couches perso : ${customLayers ? 'acceptées, sur le réseau public seulement' : 'refusées'}`);
-  console.log(`  Générations   : ${maxGenerations} à la fois, cartes conservées ${retentionMinutes} min`);
+  console.log(
+    `  Générations   : ${maxGenerations} à la fois, ${maxWaiting} en attente au plus, ` +
+      `cartes conservées ${retentionMinutes} min`,
+  );
+  console.log(
+    `  Mémoire       : ${formatBytes(maxMemory)} par génération` +
+      `${env.CARTES_MEMOIRE_MAX ? '' : ', d’après celle de la machine'}, ` +
+      'au-delà de laquelle une carte est refusée',
+  );
   console.log(`  Cartes        : ${outputDir}`);
   console.log(`  Cache         : ${options.cache}`);
   // A platform stops an application with SIGTERM: the maps in progress are dropped, not left half written.

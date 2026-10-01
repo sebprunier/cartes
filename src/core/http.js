@@ -1,5 +1,9 @@
 const USER_AGENT = 'cartes/0.1 (generation de cartes communales)';
 const TIMEOUT_MS = 30_000;
+// The most a response may hold once uncompressed: the largest of the 33,389 tiles of a cache measured on
+// 1 October 2026 weighed 96 kB. Past this, a response is not a map but an attempt to fill the memory, as a gzip
+// of a few kilobytes that unfolds into gigabytes.
+export const MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
 
 // Browsers forbid setting the User-Agent header, and send their own.
 const isNode = typeof process !== 'undefined' && Boolean(process.versions?.node);
@@ -50,10 +54,31 @@ export async function requestBytes(url) {
   return bytes[0] === 0x1f && bytes[1] === 0x8b ? gunzip(bytes) : bytes;
 }
 
-/** Decompression is a web standard, available both in a browser and under Node. */
-export async function gunzip(bytes) {
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+/**
+ * Decompression is a web standard, available both in a browser and under Node. It stops past `maxBytes`, read
+ * as it goes rather than once everything is unfolded.
+ */
+export async function gunzip(bytes, { maxBytes = MAX_RESPONSE_BYTES } = {}) {
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+  const chunks = [];
+  let length = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    length += value.length;
+    if (length > maxBytes) {
+      await reader.cancel();
+      throw new Error(`Réponse trop volumineuse une fois décompressée : plus de ${maxBytes / 1024 / 1024} Mo.`);
+    }
+    chunks.push(value);
+  }
+  const unfolded = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    unfolded.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return unfolded;
 }
 
 /**

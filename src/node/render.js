@@ -25,6 +25,10 @@ import { removeTile } from './cache.js';
 
 // librsvg rejects SVGs larger than 32,767 px on a side: overlays are drawn block by block.
 const BLOCK_SIZE = 4096;
+// The most pixels a downloaded image may have: a WMS is asked for blocks of 4,096 px a side at most, a tile is
+// 256 or 512. A few kilobytes of PNG can claim 16,384 px a side, a gigabyte once decoded, where sharp would
+// otherwise accept up to 268 million pixels.
+const DOWNLOADED_IMAGE = { limitInputPixels: 4096 * 4096 };
 
 /**
  * Stitches the cached tiles into a raw RGB pixel buffer with the exact dimensions of the extent.
@@ -33,7 +37,7 @@ const BLOCK_SIZE = 4096;
 export function assembleTiles(extent, tiles, { grayscale = false } = {}) {
   return assemblePixels(extent, tiles, async (tile) => {
     try {
-      let decoding = sharp(tile.content).flatten({ background: '#ffffff' }).toColourspace('srgb');
+      let decoding = sharp(tile.content, DOWNLOADED_IMAGE).flatten({ background: '#ffffff' }).toColourspace('srgb');
       if (grayscale) decoding = decoding.recomb([LUMINANCE, LUMINANCE, LUMINANCE]);
       const { data, info } = await decoding.raw().toBuffer({ resolveWithObject: true });
       if (info.channels !== CHANNELS) throw new Error(`Tuile à ${info.channels} canaux, ${CHANNELS} attendus.`);
@@ -63,7 +67,7 @@ export async function drawMapLayer(pixels, extent, tiles, { opacity = 1, scale =
       continue;
     }
     try {
-      let image = sharp(tile.content).ensureAlpha();
+      let image = sharp(tile.content, DOWNLOADED_IMAGE).ensureAlpha();
       // Enlarged pixel by pixel: smoothed, the edges took shades that a PNG compresses badly — 27 MB instead of
       // 22.6 MB for the land cover of Colombiers at zoom 17 — and looked no better.
       if (scale > 1) image = image.resize(TILE_SIZE * scale, TILE_SIZE * scale, { kernel: 'nearest' });
@@ -97,7 +101,7 @@ export function hasVisiblePixel(data) {
 export async function legendImageEntry(bytes) {
   // A Buffer, and not any bytes: the image is written into the SVG as base64.
   const image = Buffer.from(bytes);
-  const { width, height } = await sharp(image).metadata();
+  const { width, height } = await sharp(image, DOWNLOADED_IMAGE).metadata();
   return { image, width, height };
 }
 
@@ -115,7 +119,7 @@ export async function drawWmsLayer(pixels, extent, blocks, { opacity = 1 } = {})
       missing++;
       continue;
     }
-    let image = sharp(block.content).ensureAlpha();
+    let image = sharp(block.content, DOWNLOADED_IMAGE).ensureAlpha();
     if (block.pixelWidth !== block.width || block.pixelHeight !== block.height) {
       image = image.resize(block.width, block.height);
     }

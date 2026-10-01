@@ -103,6 +103,11 @@ describe('createPublicFetch', () => {
           return response.end();
         }
         if (request.url === '/lente') return setTimeout(() => response.end('trop tard'), 500);
+        if (request.url === '/grosse') return response.end(Buffer.alloc(2 * 1024 * 1024));
+        if (request.url === '/bombe') {
+          response.writeHead(200, { 'Content-Encoding': 'gzip' });
+          return response.end(gzipSync(Buffer.alloc(2 * 1024 * 1024)));
+        }
         response.writeHead(404);
         response.end();
       });
@@ -130,6 +135,15 @@ describe('createPublicFetch', () => {
       assert.equal(await (await publicFetch(`${base}/vers-texte`)).text(), 'bonjour');
       await assert.rejects(publicFetch(`${base}/vers-prive`), PrivateAddressError);
       await assert.rejects(publicFetch(`${base}/boucle`), /fetch failed/);
+    });
+
+    it('fails on a body larger than the limit, counted once uncompressed', async () => {
+      const limited = createPublicFetch({ isAllowed: (address) => address === '127.0.0.1', maxBytes: 1024 * 1024 });
+      for (const route of ['/grosse', '/bombe']) {
+        const response = await limited(`${base}${route}`);
+        await assert.rejects(response.arrayBuffer(), route);
+      }
+      assert.equal((await (await publicFetch(`${base}/bombe`)).arrayBuffer()).byteLength, 2 * 1024 * 1024);
     });
 
     it('stops at the end of its time, as fetch does', async () => {

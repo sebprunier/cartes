@@ -8,8 +8,10 @@ import dns from 'node:dns';
 import http from 'node:http';
 import https from 'node:https';
 import net from 'node:net';
-import { Readable, pipeline } from 'node:stream';
+import { Readable, Transform, pipeline } from 'node:stream';
 import zlib from 'node:zlib';
+
+import { MAX_RESPONSE_BYTES } from '../core/http.js';
 
 const MAX_REDIRECTS = 5;
 const REDIRECTS = [301, 302, 303, 307, 308];
@@ -83,9 +85,13 @@ export function isPublicAddress(address) {
 /**
  * A `fetch` that only reaches the public internet, for the requests the core makes: GET, with headers and a
  * signal. `lookup` resolves a name, and `isAllowed` says whether an address may be reached — the tests reach
- * a server of their own on the loopback.
+ * a server of their own on the loopback. A body larger than `maxBytes` fails while it is read.
  */
-export function createPublicFetch({ lookup = dns.lookup, isAllowed = isPublicAddress } = {}) {
+export function createPublicFetch({
+  lookup = dns.lookup,
+  isAllowed = isPublicAddress,
+  maxBytes = MAX_RESPONSE_BYTES,
+} = {}) {
   // The resolved addresses are checked where the socket is opened: there is no moment between the check and
   // the connection for the name to change its answer.
   const checkedLookup = (hostname, options, callback) => {
@@ -114,9 +120,11 @@ export function createPublicFetch({ lookup = dns.lookup, isAllowed = isPublicAdd
         isAllowed,
       });
       const location = REDIRECTS.includes(response.statusCode) && response.headers.location;
-      if (!location) return toResponse(response);
+      if (!location) return toResponse(response, maxBytes);
       response.resume();
-      if (redirects === MAX_REDIRECTS) throw new TypeError('fetch failed', { cause: new Error('Trop de redirections.') });
+      if (redirects === MAX_REDIRECTS) {
+        throw new TypeError('fetch failed', { cause: new Error('Trop de redirections.') });
+      }
       address = new URL(location, address);
     }
   };
@@ -124,7 +132,8 @@ export function createPublicFetch({ lookup = dns.lookup, isAllowed = isPublicAdd
 
 function get(address, { headers, signal, agents, lookup, isAllowed }) {
   if (address.protocol !== 'http:' && address.protocol !== 'https:') {
-    return Promise.reject(new TypeError('fetch failed', { cause: new Error(`Protocole refusé : ${address.protocol}`) }));
+    const cause = new Error(`Protocole refusé : ${address.protocol}`);
+    return Promise.reject(new TypeError('fetch failed', { cause }));
   }
   // An address written as an IP is connected to without being resolved: it is checked here.
   const host = address.hostname.replace(/^\[|\]$/g, '');
@@ -143,7 +152,7 @@ function get(address, { headers, signal, agents, lookup, isAllowed }) {
   });
 }
 
-function toResponse(message) {
+function toResponse(message, maxBytes) {
   const headers = new Headers();
   for (let index = 0; index < message.rawHeaders.length; index += 2) {
     try {
@@ -154,7 +163,7 @@ function toResponse(message) {
   }
   const empty = NULL_BODY_STATUSES.includes(message.statusCode);
   if (empty) message.resume();
-  return new Response(empty ? null : Readable.toWeb(decoded(message)), {
+  return new Response(empty ? null : Readable.toWeb(limited(decoded(message), maxBytes)), {
     status: message.statusCode,
     statusText: message.statusMessage,
     headers,
@@ -165,6 +174,19 @@ function toResponse(message) {
 function decoded(message) {
   const decoder = DECODERS[message.headers['content-encoding']?.trim().toLowerCase()];
   return decoder ? pipeline(message, decoder(), () => {}) : message;
+}
+
+/** A body that fails past `maxBytes`, counted once uncompressed: a few kilobytes of gzip can unfold into gigabytes. */
+function limited(body, maxBytes) {
+  let length = 0;
+  const counter = new Transform({
+    transform(chunk, encoding, callback) {
+      length += chunk.length;
+      if (length > maxBytes) callback(new Error(`Réponse trop volumineuse : plus de ${maxBytes / 1024 / 1024} Mo.`));
+      else callback(null, chunk);
+    },
+  });
+  return pipeline(body, counter, () => {});
 }
 
 /** The fetch of an instance of the API. */

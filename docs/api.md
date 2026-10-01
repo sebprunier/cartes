@@ -17,13 +17,15 @@ L'instance écoute sur le port donné par `--port`, sinon par la variable `PORT`
 
 ## Réglages
 
-Rien n'est bridé par défaut. Chaque réglage passe par une variable d'environnement :
+Chaque réglage passe par une variable d'environnement. Ce qui ferait tomber l'instance est limité d'office : la mémoire d'une génération, la file d'attente, les adresses de son propre réseau. Le reste ne l'est que si on le demande :
 
 | Variable | Effet | Par défaut |
 | --- | --- | --- |
 | `CARTES_CLE_API` | clé exigée dans l'en-tête `Authorization: Bearer <clé>` | aucune : l'API répond à tous |
 | `CARTES_ZOOM_MAX` | zoom le plus élevé accepté | celui de chaque fond de carte, 19 |
+| `CARTES_MEMOIRE_MAX` | mémoire, en Mo, que peut occuper la génération d'une carte ; une carte qui en demande plus est refusée | celle de la machine ou de son conteneur, moins ce que l'instance occupe déjà, partagée entre les générations simultanées |
 | `CARTES_GENERATIONS` | nombre de cartes générées en même temps ; les suivantes attendent leur tour | 1 |
+| `CARTES_EN_ATTENTE` | nombre de cartes qui peuvent attendre leur tour ; au-delà, la demande reçoit le code 503 | 10 |
 | `CARTES_CONSERVATION` | durée, en minutes, pendant laquelle une carte reste téléchargeable | 60 |
 | `CARTES_SORTIES` | dossier où les cartes sont écrites | un dossier `cartes` dans le dossier temporaire |
 | `CARTES_COUCHES_PERSO` | `non` refuse les couches ajoutées par leur adresse (`couchesPerso`) | `oui` : acceptées, sur le réseau public seulement |
@@ -41,7 +43,9 @@ Une génération occupe environ quatre fois la mémoire de l'image, que l'estima
 | 16 | 5 104 × 3 904 px | 490 Mo | 2 s |
 | 17 | 10 207 × 7 807 px | 1 Go | 6 s |
 
-Comptez donc au moins 2 Go pour le zoom 17, et bien plus pour les zooms 18 et 19. Deux cartes générées en même temps additionnent leur mémoire : c'est pourquoi `CARTES_GENERATIONS` vaut 1 par défaut. Pour un hébergement modeste, `CARTES_ZOOM_MAX` évite qu'une demande ne dépasse la mémoire de l'instance.
+Comptez donc au moins 2 Go pour le zoom 17, et bien plus pour les zooms 18 et 19. Deux cartes générées en même temps additionnent leur mémoire : c'est pourquoi `CARTES_GENERATIONS` vaut 1 par défaut.
+
+L'instance refuse d'elle-même une carte dont la génération dépasserait sa mémoire, quatre fois celle de l'image, et le dit dans l'erreur. Le zoom n'est pas seul en cause : une marge élargit l'image tout autant. Par défaut, elle compte la mémoire de la machine, ou celle de son conteneur si elle est plus petite. `CARTES_MEMOIRE_MAX` la fixe quand l'instance partage sa machine avec d'autres programmes. `CARTES_ZOOM_MAX` reste utile pour annoncer une limite simple aux logiciels qui appellent l'API.
 
 ## Les services
 
@@ -58,7 +62,7 @@ Chaque chemin a un alias anglais, entre parenthèses.
 | `GET /cartes/{id}/fichier` (`/maps/{id}/file`) | télécharger une carte terminée |
 | `DELETE /cartes/{id}` | annuler une carte, ou supprimer une carte terminée et son fichier |
 
-Une erreur est renvoyée en JSON, décrite en français : `{ "erreur": "Fond inconnu : …" }`, avec le code 400 pour une demande incorrecte, 401 pour une clé absente ou invalide, 404 pour une carte inconnue ou expirée, 409 pour une carte pas encore prête, 413 pour une demande trop volumineuse, au-delà de 21 Mo. La description OpenAPI, sur `/openapi.json`, donne la réponse de chaque service, champ par champ.
+Une erreur est renvoyée en JSON, décrite en français : `{ "erreur": "Fond inconnu : …" }`, avec le code 400 pour une demande incorrecte ou une carte trop grande pour la mémoire de l'instance, 401 pour une clé absente ou invalide, 404 pour une carte inconnue ou expirée, 409 pour une carte pas encore prête, 413 pour une demande trop volumineuse, au-delà de 21 Mo, et 503 quand la file d'attente est pleine. La description OpenAPI, sur `/openapi.json`, donne la réponse de chaque service, champ par champ.
 
 ## Demander une carte
 
@@ -121,7 +125,7 @@ clever deploy
 Quelques particularités à connaître :
 
 - **Une seule instance** : une carte n'existe que dans l'instance qui l'a générée. Avec deux instances, le suivi d'une carte pourrait tomber sur l'autre, qui ne la connaît pas : n'activez pas la mise à l'échelle horizontale.
-- **Taille de l'instance** : choisissez-la (`clever scale --flavor …`) d'après le zoom le plus élevé que vous accepterez, avec le tableau ci-dessous.
+- **Taille de l'instance** : choisissez-la (`clever scale --flavor …`) d'après le zoom le plus élevé que vous accepterez, avec le tableau ci-dessous. Une carte trop grande pour elle est refusée, au lieu de la figer.
 - **Disque éphémère** : il est effacé à chaque déploiement. Le cache des tuiles se reconstitue au fil des demandes, et les cartes en cours ou non téléchargées sont perdues.
 - **Dépendances** : seules celles de l'exécution sont installées ; l'application de bureau et ses outils de construction ne partent pas sur le serveur.
 
