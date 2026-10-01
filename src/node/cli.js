@@ -66,6 +66,8 @@ async function main() {
 async function serve(options) {
   const env = process.env;
   const port = parseInteger(options.port ?? env.PORT ?? '8080', '--port', 0, 65535);
+  // This machine only, unless asked: started on a laptop to try it, the API is not offered to the whole network.
+  const host = options.host ?? (env.CARTES_HOTE || '127.0.0.1');
   const apiKey = env.CARTES_CLE_API || undefined;
   const maxZoom = env.CARTES_ZOOM_MAX ? parseInteger(env.CARTES_ZOOM_MAX, 'CARTES_ZOOM_MAX', 0) : Infinity;
   const maxGenerations = parseInteger(env.CARTES_GENERATIONS ?? '1', 'CARTES_GENERATIONS', 1);
@@ -96,9 +98,18 @@ async function serve(options) {
     concurrency,
     customLayers,
   });
-  await new Promise((resolve, reject) => server.once('error', reject).listen(port, resolve));
+  await new Promise((resolve, reject) => server.once('error', reject).listen(port, host, resolve)).catch((error) => {
+    if (error.code === 'ENOTFOUND' || error.code === 'EADDRNOTAVAIL') {
+      throw new UsageError(`Adresse d'écoute introuvable sur cette machine : ${host} (--hote ou CARTES_HOTE).`);
+    }
+    throw error;
+  });
 
-  console.log(`API de cartes ${VERSION} à l'écoute sur le port ${server.address().port}.`);
+  const local = ['127.0.0.1', '::1', 'localhost'].includes(host);
+  console.log(`API de cartes ${VERSION} à l'écoute sur ${host}, sur le port ${server.address().port}.`);
+  console.log(
+    `  Réseau        : ${local ? 'cette machine seulement ; CARTES_HOTE=0.0.0.0 l’ouvre au réseau' : 'ouvert'}`,
+  );
   console.log(`  Clé d'API     : ${apiKey ? 'exigée' : 'aucune, l’API répond à tous'}`);
   console.log(`  Zoom maximal  : ${maxZoom === Infinity ? 'celui de chaque fond de carte' : maxZoom}`);
   console.log(`  Couches perso : ${customLayers ? 'acceptées, sur le réseau public seulement' : 'refusées'}`);

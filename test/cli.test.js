@@ -81,7 +81,7 @@ describe('cartes', () => {
 
   describe('serveur', () => {
     // The variables of the instance are those of the test, whatever the environment that runs it.
-    const settings = { CARTES_CLE_API: '', CARTES_COUCHES_PERSO: undefined };
+    const settings = { CARTES_CLE_API: '', CARTES_COUCHES_PERSO: undefined, CARTES_HOTE: undefined };
 
     /** Starts `cartes serveur` on a free port, for the time of a test. */
     async function startServer(t, env = {}) {
@@ -129,6 +129,24 @@ describe('cartes', () => {
       const { status, body } = await post('/estimations', internalWms);
       assert.equal(status, 400);
       assert.match(body.erreur, /^Cette instance n’accepte pas les couches ajoutées par leur adresse/);
+    });
+
+    it('listens to this machine only, unless asked to open to the network', async (t) => {
+      const local = await startServer(t);
+      assert.match(local.output(), /à l'écoute sur 127\.0\.0\.1, sur le port \d+\.\n  Réseau +: cette machine seulement/);
+      const open = await startServer(t, { CARTES_HOTE: '0.0.0.0' });
+      assert.match(open.output(), /à l'écoute sur 0\.0\.0\.0, sur le port \d+\.\n  Réseau +: ouvert/);
+    });
+
+    it('says in French that the address to listen to is not on this machine', async () => {
+      await assert.rejects(
+        promisify(execFile)(process.execPath, ['src/node/cli.js', 'serveur', '--port', '0', '--hote', '999.1.1.1']),
+        (error) => {
+          assert.equal(error.code, 1);
+          assert.match(error.stderr, /^Adresse d'écoute introuvable sur cette machine : 999\.1\.1\.1/);
+          return true;
+        },
+      );
     });
 
     it('says in French that a setting is neither oui nor non', async () => {

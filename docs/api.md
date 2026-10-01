@@ -13,7 +13,7 @@ npm install
 npm start               # ou : cartes serveur --port 8080
 ```
 
-L'instance écoute sur le port donné par `--port`, sinon par la variable `PORT`, sinon sur le 8080. Elle se décrit elle-même : `GET /` donne sa version et dit si une clé est exigée, `GET /openapi.json` donne sa description OpenAPI complète.
+L'instance écoute sur le port donné par `--port`, sinon par la variable `PORT`, sinon sur le 8080. Elle ne répond qu'à la machine où elle tourne, sur `127.0.0.1` : `--hote 0.0.0.0`, ou la variable `CARTES_HOTE=0.0.0.0`, l'ouvre au réseau. Un hébergeur l'exige, et une instance ouverte au réseau devrait exiger une clé. Elle se décrit elle-même : `GET /` donne sa version et dit si une clé est exigée, `GET /openapi.json` donne sa description OpenAPI complète.
 
 ## Réglages
 
@@ -21,6 +21,7 @@ Chaque réglage passe par une variable d'environnement. Ce qui ferait tomber l'i
 
 | Variable | Effet | Par défaut |
 | --- | --- | --- |
+| `CARTES_HOTE` | adresse d'écoute, comme `--hote` ; `0.0.0.0` ouvre l'instance au réseau | `127.0.0.1` : cette machine seulement |
 | `CARTES_CLE_API` | clé exigée dans l'en-tête `Authorization: Bearer <clé>` | aucune : l'API répond à tous |
 | `CARTES_ZOOM_MAX` | zoom le plus élevé accepté | celui de chaque fond de carte, 19 |
 | `CARTES_MEMOIRE_MAX` | mémoire, en Mo, que peut occuper la génération d'une carte ; une carte qui en demande plus est refusée | celle de la machine ou de son conteneur, moins ce que l'instance occupe déjà, partagée entre les générations simultanées |
@@ -112,11 +113,12 @@ Ce sont les options de `cartes generer`, en JSON. Chacun accepte aussi un nom an
 
 ## Déployer sur Clever Cloud
 
-Clever Cloud reconnaît une application Node.js et la lance par `npm start`, sur le port que donne sa variable `PORT`. Avec l'outil en ligne de commande [clever-tools](https://github.com/CleverCloud/clever-tools), depuis le dépôt :
+Clever Cloud reconnaît une application Node.js et la lance par `npm start`, sur le port que donne sa variable `PORT`. Elle doit écouter sur toutes ses interfaces : `CARTES_HOTE=0.0.0.0` est indispensable, sans quoi Clever Cloud ne la joint pas. Avec l'outil en ligne de commande [clever-tools](https://github.com/CleverCloud/clever-tools), depuis le dépôt :
 
 ```sh
 clever create -t node cartes-api
 clever scale --instances 1
+clever env set CARTES_HOTE 0.0.0.0                        # indispensable
 clever env set CARTES_CLE_API "$(openssl rand -hex 24)"   # facultatif
 clever env set CARTES_ZOOM_MAX 17                         # facultatif
 clever deploy

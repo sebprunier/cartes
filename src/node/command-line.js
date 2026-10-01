@@ -12,7 +12,7 @@ Usage :
   cartes generer <commune> [options]         générer la carte d'une commune, par nom ou code INSEE
   cartes geocoder <fichier.csv> --commune <commune>
                                              placer les adresses d'un fichier CSV, pour l'ajouter à une carte
-  cartes serveur [--port <n>]                servir l'API HTTP, pour intégrer cartes à d'autres logiciels
+  cartes serveur [--port <n>] [--hote <ip>]  servir l'API HTTP, pour intégrer cartes à d'autres logiciels
   cartes etat                                vérifier que les services des fonds et des couches répondent
 
 Options de « generer » :
@@ -72,6 +72,8 @@ Options de « geocoder » :
 
 Options de « serveur » :
       --port <n>            port d'écoute ; défaut : la variable PORT, sinon 8080
+      --hote <adresse>      adresse d'écoute ; défaut : la variable CARTES_HOTE, sinon 127.0.0.1,
+                            cette machine seulement. 0.0.0.0 l'ouvre au réseau, comme l'exige un hébergeur.
       --paralleles <n>      téléchargements simultanés par carte, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   Le reste se règle par des variables d'environnement : CARTES_CLE_API, CARTES_ZOOM_MAX,
@@ -101,7 +103,7 @@ Les commandes et options existent aussi en anglais : search, basemaps, maplayers
 --department, --basemap, --maplayers, --maplayers-opacity, --custom-layer, --custom-layer-layer, --custom-layer-name,
 --custom-layer-source, --custom-layer-opacity, --data, --data-title, --data-category, --data-color,
 --data-unverified, --municipality, --output, --margin, --grayscale, --no-outline, --no-legend, --estimate,
---max-tiles, --concurrency, --help.`;
+--max-tiles, --concurrency, --host, --help.`;
 
 // French command names, mapped to the English names used in code (which are accepted too).
 export const FRENCH_COMMANDS = {
@@ -147,6 +149,7 @@ export const OPTIONS = {
   concurrency: { type: 'string', french: 'paralleles', default: '6' },
   cache: { type: 'string', default: '.cache/tiles' },
   port: { type: 'string' },
+  host: { type: 'string', french: 'hote' },
   help: { type: 'boolean', short: 'h', french: 'aide', default: false },
   version: { type: 'boolean', short: 'v', default: false },
 };
