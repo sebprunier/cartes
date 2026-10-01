@@ -6,6 +6,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [1.0.0] – 2026-10-01
+
 Première version stable. Ce que la 1.0.0 garantit, jusqu'à une version majeure : les commandes, leurs options — sous leurs noms français et anglais — et leurs valeurs par défaut ; les chemins et les champs de l'API, dans les demandes comme dans les réponses, sous leurs deux noms aussi ; les identifiants des fonds et des couches du catalogue ; le nom des cartes générées ; les colonnes qu'un fichier géocodé reçoit et les valeurs de son statut ; et que ce que la page retient dans le navigateur — les couches ajoutées par leur adresse — reste lu par les versions suivantes. Une version mineure peut en ajouter, jamais en retirer ni en renommer. Ce qu'elle ne garantit pas : l'apparence d'une carte, qui dépend des services publics dont les données et les styles évoluent ; la présence d'une couche dont le service fermerait ; les seuils du géocodage et les estimations de poids, qui sont des mesures et seront refaites.
 
 ### Ajouté
@@ -170,7 +172,8 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v0.6.0...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/sebprunier/cartes/releases/tag/v1.0.0
 [0.6.0]: https://github.com/sebprunier/cartes/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sebprunier/cartes/releases/tag/v0.5.0
 [0.4.1]: https://github.com/sebprunier/cartes/releases/tag/v0.4.1
