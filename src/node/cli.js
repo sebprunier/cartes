@@ -17,10 +17,12 @@ import {
 } from '../core/municipalities.js';
 import { GEOCODING_STATUS, GeocodingNeeded, LayerError, addressColumns, decodeText, parseCsv, readLayer } from '../core/layers.js';
 import { GeocodingError, geocodeCsv } from '../core/geocoding.js';
+import { useFetch } from '../core/http.js';
 import { paperFormat, printSizeMm } from '../core/print.js';
 import { extentFromBbox, groundResolution } from '../core/tiles.js';
-import { HELP, UsageError, parseCommandLine, parseInteger, resolveOutputPath } from './command-line.js';
+import { HELP, UsageError, parseCommandLine, parseInteger, parseYesNo, resolveOutputPath } from './command-line.js';
 import { DATES_PROGRESS, SAMPLE_GRID_SIZE, estimateMapFileSize, generateMap, mapFileName, planMap } from './generate.js';
+import { publicFetch } from './network.js';
 import { createApiServer } from './server.js';
 import { CapabilitiesError, completeWmsDefinitions } from '../core/capabilities.js';
 import { SERVICES, checkService, describeCheck } from '../core/status.js';
@@ -69,7 +71,11 @@ async function serve(options) {
   const retentionMinutes = parseInteger(env.CARTES_CONSERVATION ?? '60', 'CARTES_CONSERVATION', 1);
   const outputDir = env.CARTES_SORTIES || path.join(tmpdir(), 'cartes');
   const concurrency = parseInteger(options.concurrency, '--paralleles', 1);
+  const customLayers = parseYesNo(env.CARTES_COUCHES_PERSO ?? 'oui', 'CARTES_COUCHES_PERSO');
 
+  // The layers added by their address are asked for in the name of the clients: never on the network of the
+  // instance. The rest of the command line, run by its own user, asks for whatever address it is given.
+  useFetch(publicFetch);
   const server = createApiServer({
     cacheDir: options.cache,
     outputDir,
@@ -79,12 +85,14 @@ async function serve(options) {
     maxGenerations,
     retentionMs: retentionMinutes * 60 * 1000,
     concurrency,
+    customLayers,
   });
   await new Promise((resolve, reject) => server.once('error', reject).listen(port, resolve));
 
   console.log(`API de cartes ${VERSION} à l'écoute sur le port ${server.address().port}.`);
   console.log(`  Clé d'API     : ${apiKey ? 'exigée' : 'aucune, l’API répond à tous'}`);
   console.log(`  Zoom maximal  : ${maxZoom === Infinity ? 'celui de chaque fond de carte' : maxZoom}`);
+  console.log(`  Couches perso : ${customLayers ? 'acceptées, sur le réseau public seulement' : 'refusées'}`);
   console.log(`  Générations   : ${maxGenerations} à la fois, cartes conservées ${retentionMinutes} min`);
   console.log(`  Cartes        : ${outputDir}`);
   console.log(`  Cache         : ${options.cache}`);

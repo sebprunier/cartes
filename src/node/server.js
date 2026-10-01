@@ -46,7 +46,8 @@ export class ApiError extends Error {
 
 /**
  * Creates the HTTP server of the API. Nothing is limited by default: `maxZoom` lowers the highest zoom
- * accepted, `apiKey` reserves the API to whoever has the key. `maxGenerations` maps are generated at once,
+ * accepted, `apiKey` reserves the API to whoever has the key, `customLayers` false refuses the layers added
+ * by their address. `maxGenerations` maps are generated at once,
  * the next ones wait their turn: the memory of a map is about four times that of its image. A generated map
  * is kept `retentionMs`, then removed with its file.
  */
@@ -59,11 +60,24 @@ export function createApiServer({
   maxGenerations = 1,
   retentionMs = 60 * 60 * 1000,
   concurrency = 6,
+  customLayers = true,
 }) {
   const maps = new Map();
   const queue = [];
   let running = 0;
-  const context = { cacheDir, outputDir, version, apiKey, maxZoom, concurrency, maps, queue, schedule, expireLater };
+  const context = {
+    cacheDir,
+    outputDir,
+    version,
+    apiKey,
+    maxZoom,
+    concurrency,
+    customLayers,
+    maps,
+    queue,
+    schedule,
+    expireLater,
+  };
 
   function schedule() {
     while (running < maxGenerations && queue.length > 0) {
@@ -140,12 +154,13 @@ async function handle(request, response, context) {
   }
 }
 
-function home({ version, apiKey }) {
+function home({ version, apiKey, customLayers }) {
   return {
     nom: 'cartes',
     version,
     description: "Cartes détaillées des communes françaises, prêtes à imprimer en grand format.",
     cleRequise: Boolean(apiKey),
+    couchesPerso: customLayers,
     documentation: 'https://sebprunier.github.io/cartes/api.html',
     openapi: '/openapi.json',
   };
@@ -399,8 +414,11 @@ function sendFile(response, map) {
  * Reads a map request — the options of `cartes generer` as JSON fields — and resolves it into what the
  * generation takes: the basemap, the layers, the data, and the plan of the map.
  */
-export async function resolveRequest(body, { maxZoom = Infinity } = {}) {
+export async function resolveRequest(body, { maxZoom = Infinity, customLayers = true } = {}) {
   const fields = normalizeFields(body, REQUEST_FIELDS, 'la demande');
+  if (!customLayers && listField(fields.customLayers, 'couchesPerso').length > 0) {
+    throw new ApiError(400, 'Cette instance n’accepte pas les couches ajoutées par leur adresse (couchesPerso).');
+  }
 
   if (typeof fields.municipality !== 'string' || !fields.municipality.trim()) {
     throw new ApiError(400, 'Le champ commune est obligatoire : un nom de commune ou un code INSEE.');

@@ -6,6 +6,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+### Sécurité
+
+- L'API ne télécharge plus une couche ajoutée par son adresse (`couchesPerso`) sur son propre réseau : boucle locale, réseaux privés, adresse des métadonnées d'un hébergeur. Elle pouvait jusque-là y lire des images, les dessiner sur la carte et recopier dans ses erreurs ce que ces services répondaient. L'adresse est vérifiée au moment de la connexion, après la résolution du nom et à chaque redirection. `CARTES_COUCHES_PERSO=non` refuse toutes ces couches, et `GET /` dit si l'instance les accepte (`couchesPerso`). La ligne de commande et l'application de bureau ne changent pas : elles consultent toutes les adresses, y compris celles d'un intranet.
+
 ## [1.0.0] – 2026-10-01
 
 Première version stable. Ce que la 1.0.0 garantit, jusqu'à une version majeure : les commandes, leurs options — sous leurs noms français et anglais — et leurs valeurs par défaut ; les chemins et les champs de l'API, dans les demandes comme dans les réponses, sous leurs deux noms aussi ; les identifiants des fonds et des couches du catalogue ; le nom des cartes générées ; les colonnes qu'un fichier géocodé reçoit et les valeurs de son statut ; et que ce que la page retient dans le navigateur — les couches ajoutées par leur adresse — reste lu par les versions suivantes. Une version mineure peut en ajouter, jamais en retirer ni en renommer. Ce qu'elle ne garantit pas : l'apparence d'une carte, qui dépend des services publics dont les données et les styles évoluent ; la présence d'une couche dont le service fermerait ; les seuils du géocodage et les estimations de poids, qui sont des mesures et seront refaites.

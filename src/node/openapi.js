@@ -53,7 +53,10 @@ const MAP_REQUEST = fieldsObject(REQUEST_FIELDS, {
     },
     couchesPerso: {
       type: 'array',
-      description: 'Couches ajoutées par l’adresse de leurs tuiles, ou par celle d’un service WMS et le nom de sa couche.',
+      description:
+        'Couches ajoutées par l’adresse de leurs tuiles, ou par celle d’un service WMS et le nom de sa couche. ' +
+        'Une adresse du réseau privé de l’instance est refusée, et une instance peut refuser toutes ces couches : ' +
+        'voir couchesPerso sur GET /.',
       items: fieldsObject(CUSTOM_LAYER_FIELDS, {
         description: 'Une couche ajoutée par son adresse.',
         required: ['adresse', 'source'],
@@ -97,6 +100,10 @@ const HOME = {
     version: { type: 'string', examples: ['1.0.0'] },
     description: { type: 'string' },
     cleRequise: { type: 'boolean', description: "Si l'instance exige une clé d'API." },
+    couchesPerso: {
+      type: 'boolean',
+      description: "Si l'instance accepte les couches ajoutées par leur adresse, qu'elle ne va chercher que sur le réseau public.",
+    },
     documentation: { type: 'string', format: 'uri' },
     openapi: { type: 'string', description: 'Chemin de cette description.' },
   },

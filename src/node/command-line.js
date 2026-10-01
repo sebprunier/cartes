@@ -75,7 +75,7 @@ Options de « serveur » :
       --paralleles <n>      téléchargements simultanés par carte, défaut : 6
       --cache <dossier>     dossier de cache des tuiles, défaut : .cache/tiles
   Le reste se règle par des variables d'environnement : CARTES_CLE_API, CARTES_ZOOM_MAX,
-  CARTES_GENERATIONS, CARTES_CONSERVATION et CARTES_SORTIES. La documentation les décrit :
+  CARTES_GENERATIONS, CARTES_CONSERVATION, CARTES_SORTIES et CARTES_COUCHES_PERSO. La documentation les décrit :
   https://sebprunier.github.io/cartes/api.html
 
 Exemples :
@@ -231,6 +231,13 @@ export function resolveOutputPath({ output, format }, defaultFormat, defaultPath
     throw new UsageError(`Le format demandé (${format}) ne correspond pas à l'extension du fichier de sortie : ${output}.`);
   }
   return { path: output, format: extensionFormat };
+}
+
+/** Parses a setting that is on or off: « oui » or « non », and their English aliases. */
+export function parseYesNo(value, name) {
+  const answer = { oui: true, yes: true, non: false, no: false }[value.trim().toLowerCase()];
+  if (answer === undefined) throw new UsageError(`${name} vaut oui ou non.`);
+  return answer;
 }
 
 /** Parses an integer option value, checking its bounds. */

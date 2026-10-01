@@ -144,6 +144,7 @@ describe('API', () => {
     assert.equal(home.response.status, 200);
     assert.equal(home.body.version, '9.9.9');
     assert.equal(home.body.cleRequise, true);
+    assert.equal(home.body.couchesPerso, true);
     assertDescribed(home.body, described('get', '/', 200), 'GET /');
     const openApi = await call('GET', '/openapi.json');
     assert.equal(openApi.body.info.version, '9.9.9');
@@ -233,6 +234,19 @@ describe('API', () => {
       assert.equal(response.status, 400, JSON.stringify(body));
       assert.match(error.erreur, message);
     }
+  });
+
+  it('refuses the layers added by their address when the instance asks for it', async (t) => {
+    const { call } = await startApi(t, { customLayers: false });
+    assert.equal((await call('GET', '/')).body.couchesPerso, false);
+    const { response, body } = await call('POST', '/cartes', {
+      commune: '86081',
+      couchesPerso: [{ adresse: 'https://exemple.fr/{z}/{x}/{y}.png', nom: 'Zonage', source: '© Exemple' }],
+    });
+    assert.equal(response.status, 400);
+    assert.equal(body.erreur, 'Cette instance n’accepte pas les couches ajoutées par leur adresse (couchesPerso).');
+    const without = await call('POST', '/estimations', { commune: '86081', zoom: 13, couchesPerso: [] });
+    assert.equal(without.response.status, 200);
   });
 
   it('lowers the highest zoom when the instance asks for it', async (t) => {

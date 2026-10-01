@@ -11,8 +11,17 @@ export class HttpError extends Error {
   }
 }
 
+// The fetch of the requests below. An instance of the API puts in its place one that refuses the addresses of its
+// own network: the layers added by their address are chosen by its clients.
+let fetchImplementation = (...args) => fetch(...args);
+
+/** Makes `implementation` do the requests from now on, or fetch again when there is none. */
+export function useFetch(implementation) {
+  fetchImplementation = implementation ?? ((...args) => fetch(...args));
+}
+
 export function request(url, headers = {}, { timeoutMs = TIMEOUT_MS } = {}) {
-  return fetch(url, {
+  return fetchImplementation(url, {
     headers: { ...(isNode ? { 'User-Agent': USER_AGENT } : {}), ...headers },
     signal: AbortSignal.timeout(timeoutMs),
   });

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -77,5 +77,71 @@ describe('cartes', () => {
           new RegExp(`pas de coordonnées[\\s\\S]*Pour le géocoder : cartes geocoder ${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} --commune 86081`),
         ),
       ));
+  });
+
+  describe('serveur', () => {
+    // The variables of the instance are those of the test, whatever the environment that runs it.
+    const settings = { CARTES_CLE_API: '', CARTES_COUCHES_PERSO: undefined };
+
+    /** Starts `cartes serveur` on a free port, for the time of a test. */
+    async function startServer(t, env = {}) {
+      const child = spawn(process.execPath, ['src/node/cli.js', 'serveur', '--port', '0'], {
+        env: { ...process.env, ...settings, ...env },
+      });
+      t.after(() => child.kill());
+      let output = '';
+      const port = await new Promise((resolve, reject) => {
+        child.stdout.on('data', (chunk) => {
+          output += chunk;
+          // The port is on the first line, but the instance has said everything once it names its cache.
+          const found = output.match(/sur le port (\d+)/);
+          if (found && /Cache +:/.test(output)) resolve(Number(found[1]));
+        });
+        child.on('exit', (code) => reject(new Error(`cartes serveur s’est arrêté (${code}).`)));
+      });
+      const post = async (route, body) => {
+        const response = await fetch(`http://127.0.0.1:${port}${route}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        return { status: response.status, body: await response.json() };
+      };
+      return { port, post, output: () => output };
+    }
+
+    // The service of a layer is read before the municipality is looked for: refused, it calls nothing at all.
+    const internalWms = {
+      commune: '86081',
+      couchesPerso: [{ adresse: 'http://127.0.0.1:9/wms', couche: 'x', nom: 'Interne', source: '©' }],
+    };
+
+    it('refuses the layers whose address is on the network of the instance', async (t) => {
+      const { post, output } = await startServer(t);
+      assert.match(output(), /Couches perso : acceptées, sur le réseau public seulement/);
+      const { status, body } = await post('/estimations', internalWms);
+      assert.equal(status, 400);
+      assert.match(body.erreur, /127\.0\.0\.1 est une adresse privée, que l’API ne consulte pas/);
+    });
+
+    it('refuses every layer added by its address with CARTES_COUCHES_PERSO=non', async (t) => {
+      const { post } = await startServer(t, { CARTES_COUCHES_PERSO: 'non' });
+      const { status, body } = await post('/estimations', internalWms);
+      assert.equal(status, 400);
+      assert.match(body.erreur, /^Cette instance n’accepte pas les couches ajoutées par leur adresse/);
+    });
+
+    it('says in French that a setting is neither oui nor non', async () => {
+      await assert.rejects(
+        promisify(execFile)(process.execPath, ['src/node/cli.js', 'serveur', '--port', '0'], {
+          env: { ...process.env, ...settings, CARTES_COUCHES_PERSO: 'peut-être' },
+        }),
+        (error) => {
+          assert.equal(error.code, 1);
+          assert.match(error.stderr, /^CARTES_COUCHES_PERSO vaut oui ou non\./);
+          return true;
+        },
+      );
+    });
   });
 });

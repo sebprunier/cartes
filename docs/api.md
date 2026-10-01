@@ -26,6 +26,9 @@ Rien n'est bridé par défaut. Chaque réglage passe par une variable d'environn
 | `CARTES_GENERATIONS` | nombre de cartes générées en même temps ; les suivantes attendent leur tour | 1 |
 | `CARTES_CONSERVATION` | durée, en minutes, pendant laquelle une carte reste téléchargeable | 60 |
 | `CARTES_SORTIES` | dossier où les cartes sont écrites | un dossier `cartes` dans le dossier temporaire |
+| `CARTES_COUCHES_PERSO` | `non` refuse les couches ajoutées par leur adresse (`couchesPerso`) | `oui` : acceptées, sur le réseau public seulement |
+
+Une couche ajoutée par son adresse est téléchargée par l'instance, au nom de celui qui la demande. L'instance refuse donc toute adresse de son propre réseau : la boucle locale, les réseaux privés, l'adresse où un hébergeur sert les informations de ses machines. Elle le vérifie au moment de se connecter, après avoir résolu le nom, et à chaque redirection. Une couche publiée sur un intranet s'ajoute dans l'application de bureau ou en ligne de commande, qui consultent toutes les adresses.
 
 Le cache des tuiles se règle comme pour la ligne de commande, avec `--cache` (`.cache/tiles` par défaut), et le nombre de téléchargements simultanés de chaque carte avec `--paralleles` (6).
 
