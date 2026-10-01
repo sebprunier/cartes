@@ -6,10 +6,13 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 
 ## [Non publié]
 
+## [1.0.1] – 2026-10-01
+
+Version de sécurité, pour l'API : voir l'avis [GHSA-wwgq-4wf7-9558](https://github.com/sebprunier/cartes/security/advisories/GHSA-wwgq-4wf7-9558). Mettez à jour toute instance de `cartes serveur`, en lui ajoutant `CARTES_HOTE=0.0.0.0` si elle est hébergée. Les autres outils gagnent le correctif du cache des couches perso et les limites de taille des réponses et des images.
+
 ### Sécurité
 
 - **À faire avant de mettre à jour une instance de l'API déployée** : ajoutez `CARTES_HOTE=0.0.0.0` à ses variables. `cartes serveur` n'écoute plus que sur `127.0.0.1` par défaut, et une instance hébergée ne serait plus joignable sans cette variable. Lancée sur un portable, l'API était jusqu'ici ouverte à tout le réseau local, sans clé. `--hote` (`--host`) ou `CARTES_HOTE` choisit l'adresse d'écoute.
-
 - L'API ne télécharge plus une couche ajoutée par son adresse (`couchesPerso`) sur son propre réseau : boucle locale, réseaux privés, adresse des métadonnées d'un hébergeur. Elle pouvait jusque-là y lire des images, les dessiner sur la carte et recopier dans ses erreurs ce que ces services répondaient. L'adresse est vérifiée au moment de la connexion, après la résolution du nom et à chaque redirection. `CARTES_COUCHES_PERSO=non` refuse toutes ces couches, et `GET /` dit si l'instance les accepte (`couchesPerso`). La ligne de commande et l'application de bureau ne changent pas : elles consultent toutes les adresses, y compris celles d'un intranet.
 - Deux couches ajoutées par leur adresse sous le même nom ne partagent plus leurs tuiles en cache : la seconde était dessinée avec les tuiles de la première, sans limite de durée. Sur une instance de l'API, un client pouvait ainsi faire apparaître ses tuiles sur les cartes des autres. Le dossier de cache d'une telle couche porte désormais une empreinte de son adresse : ses tuiles sont téléchargées de nouveau une fois, et les anciens dossiers `perso-…` du cache peuvent être supprimés.
 - L'API refuse une carte dont la génération dépasserait sa mémoire, au lieu de se figer. Le seuil est la mémoire de la machine ou du conteneur, moins ce que l'instance occupe déjà ; `CARTES_MEMOIRE_MAX` le fixe. `CARTES_ZOOM_MAX` ne suffisait pas : une marge de 50 au zoom 13 demandait 8,5 Go pour l'image seule. La file d'attente est limitée à 10 cartes (`CARTES_EN_ATTENTE`), au-delà de quoi une demande reçoit le code 503.
@@ -181,7 +184,8 @@ Première version : un outil en ligne de commande qui génère la carte détaill
 - Option `--version`.
 - Documentation des données utilisées et de leurs licences.
 
-[Non publié]: https://github.com/sebprunier/cartes/compare/v1.0.0...HEAD
+[Non publié]: https://github.com/sebprunier/cartes/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/sebprunier/cartes/releases/tag/v1.0.1
 [1.0.0]: https://github.com/sebprunier/cartes/releases/tag/v1.0.0
 [0.6.0]: https://github.com/sebprunier/cartes/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sebprunier/cartes/releases/tag/v0.5.0
